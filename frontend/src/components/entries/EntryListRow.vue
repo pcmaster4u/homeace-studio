@@ -1,0 +1,223 @@
+<template>
+  <div
+    class="entry-list-row"
+    :class="{ 'entry-list-row--active': isSelected, 'entry-list-row--off': isOff }"
+    :draggable="entry.isInRegistry"
+    @dragstart="startDrag"
+  >
+    <button class="entry-list-row__open" type="button" @click="emit('select', entry.entityId)">
+      <span class="entry-list-row__icon" :class="`kind-${entry.kind}`">
+        <span class="mdi" :class="iconClass" />
+      </span>
+      <span class="entry-list-row__main">
+        <span class="entry-list-row__name">
+          {{ entry.name }}
+          <span v-if="entry.isFavorite" class="mdi mdi-star entry-list-row__star" />
+          <span
+            v-if="hasUnsavedChanges"
+            class="entry-list-row__unsaved"
+            :title="t('flow.unsaved')"
+            :aria-label="t('flow.unsaved')"
+          />
+        </span>
+        <span v-if="isTechnicalDetailsVisible" class="entry-list-row__sub mono">
+          {{ entry.entityId }}
+        </span>
+        <span v-else class="entry-list-row__sub">{{ subtitle }}</span>
+      </span>
+    </button>
+
+    <SwitchToggle
+      v-if="canToggle(entry)"
+      :model-value="isOn(entry)"
+      :label="t('detail.switch')"
+      @update:model-value="emit('act', entry, toggleAction(entry))"
+    />
+    <button
+      v-else-if="supportsAction(entry, ENTRY_ACTION.run)"
+      class="entry-list-row__run"
+      type="button"
+      :aria-label="t(`detail.run.${entry.domain}`)"
+      :title="t(`detail.run.${entry.domain}`)"
+      @click="emit('act', entry, ENTRY_ACTION.run)"
+    >
+      <span class="mdi mdi-play" />
+    </button>
+    <span v-else-if="entry.state" class="entry-list-row__state">{{ entry.state }}</span>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+import SwitchToggle from "@/components/common/SwitchToggle.vue";
+import { ENTRY_ACTION, ENTRY_KIND_ICON, type EntryAction } from "@/constants/entries";
+import type { Entry } from "@/types/entry";
+import { setDraggedEntity } from "@/utils/dragDrop";
+import { canToggle, isOn, supportsAction, toggleAction } from "@/utils/entryActions";
+import { mdiIconClass } from "@/utils/text";
+
+/** HA's state for a switched-off automation or script. */
+const STATE_OFF = "off";
+const SUBTITLE_SEPARATOR = " · ";
+
+const props = defineProps<{
+  entry: Entry;
+  isSelected: boolean;
+  isTechnicalDetailsVisible: boolean;
+  /** The flow has edits that are not saved to HA yet. */
+  hasUnsavedChanges: boolean;
+}>();
+
+const emit = defineEmits<{
+  select: [entityId: string];
+  act: [entry: Entry, action: EntryAction];
+}>();
+
+const { t } = useI18n();
+
+const isOff = computed(() => props.entry.isDisabled || props.entry.state === STATE_OFF);
+const iconClass = computed(
+  () => mdiIconClass(props.entry.icon) ?? ENTRY_KIND_ICON[props.entry.kind],
+);
+/** Without technical details: kind and area, e.g. "Automation · Terrasse". */
+const subtitle = computed(() => {
+  const parts = [t(`kind.${props.entry.kind}`), props.entry.area?.name];
+
+  return parts.filter(Boolean).join(SUBTITLE_SEPARATOR);
+});
+
+function startDrag(event: DragEvent): void {
+  if (!event.dataTransfer) return;
+
+  event.dataTransfer.effectAllowed = "move";
+  setDraggedEntity(event.dataTransfer, props.entry.entityId);
+}
+</script>
+
+<style scoped>
+.entry-list-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 0 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+}
+
+.entry-list-row:hover {
+  background: var(--surface);
+}
+
+.entry-list-row--active {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.entry-list-row--off .entry-list-row__name {
+  color: var(--muted);
+}
+
+.entry-list-row__open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0 9px 10px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.entry-list-row__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 18px;
+}
+
+.entry-list-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.entry-list-row__name {
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.entry-list-row__unsaved {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: var(--warn);
+  vertical-align: middle;
+}
+
+.entry-list-row__star {
+  color: var(--kind-automation);
+  font-size: 13px;
+}
+
+.entry-list-row__sub {
+  overflow: hidden;
+  color: var(--faint);
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.entry-list-row__run {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--kind-script);
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.entry-list-row__run:hover {
+  background: var(--kind-script-soft);
+}
+
+.entry-list-row__state {
+  flex: none;
+  max-width: 35%;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media (pointer: coarse) {
+  .entry-list-row__open {
+    padding-block: 12px;
+  }
+
+  .entry-list-row__run {
+    width: 36px;
+    height: 36px;
+  }
+}
+</style>

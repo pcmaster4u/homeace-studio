@@ -1,0 +1,114 @@
+import type { CatalogEntry, CatalogField, EditorCatalog } from "./editor.model";
+
+/** A trigger or condition description, as `trigger_platforms/subscribe` sends it. */
+export type HaPlatformDescription = {
+  fields?: Record<string, HaFieldDescription>;
+  target?: unknown;
+};
+
+/** One field description; sections (like `temperature_range`) contain their own `fields`. */
+export type HaFieldDescription = {
+  required?: boolean;
+  default?: unknown;
+  selector?: Record<string, unknown>;
+  fields?: Record<string, HaFieldDescription>;
+};
+
+/** `get_services`: domain → service → description. */
+export type HaServices = Record<string, Record<string, HaPlatformDescription>>;
+
+/** `frontend/get_translations` resources: flat keys like "component.zone.triggers.entered.name". */
+export type HaTranslations = Record<string, string>;
+
+export type CatalogSources = {
+  triggers: Record<string, HaPlatformDescription>;
+  conditions: Record<string, HaPlatformDescription>;
+  services: HaServices;
+  translations: { triggers: HaTranslations; conditions: HaTranslations; services: HaTranslations };
+};
+
+const KEY_SEPARATOR = ".";
+
+/**
+ * Combines HA's descriptions with their translations into one catalog for the editor.
+ *
+ * Keys stay as HA uses them in configs ("zone.entered", "climate.set_temperature"). Field sections
+ * are flattened, because a config stores their fields side by side.
+ */
+export function buildCatalog(sources: CatalogSources): EditorCatalog {
+  const actionDescriptions: Record<string, HaPlatformDescription> = {};
+
+  for (const [domain, services] of Object.entries(sources.services)) {
+    for (const [service, description] of Object.entries(services)) {
+      actionDescriptions[domain + KEY_SEPARATOR + service] = description;
+    }
+  }
+
+  return {
+    triggers: mapEntries(sources.triggers, "triggers", sources.translations.triggers),
+    conditions: mapEntries(sources.conditions, "conditions", sources.translations.conditions),
+    actions: mapEntries(actionDescriptions, "services", sources.translations.services),
+  };
+}
+
+function mapEntries(
+  descriptions: Record<string, HaPlatformDescription>,
+  category: string,
+  translations: HaTranslations,
+): Record<string, CatalogEntry> {
+  const entries = Object.entries(descriptions).map(([key, description]): [string, CatalogEntry] => {
+    const prefix = translationPrefix(key, category);
+    const fields = flattenFields(description.fields ?? {});
+    const mappedFields = Object.fromEntries(
+      Object.entries(fields).map(([fieldKey, field]): [string, CatalogField] => [
+        fieldKey,
+        {
+          name: translations[`${prefix}.fields.${fieldKey}.name`] ?? null,
+          description: translations[`${prefix}.fields.${fieldKey}.description`] ?? null,
+          required: field.required ?? false,
+          ...(field.default !== undefined ? { default: field.default } : {}),
+          selector: field.selector ?? null,
+        },
+      ]),
+    );
+
+    return [
+      key,
+      {
+        name: translations[`${prefix}.name`] ?? key,
+        description: translations[`${prefix}.description`] ?? null,
+        fields: mappedFields,
+        target: description.target ?? null,
+      },
+    ];
+  });
+
+  return Object.fromEntries(entries);
+}
+
+/**
+ * Where HA keeps the texts of a key: "zone.entered" → "component.zone.triggers.entered".
+ * A key without a dot is the domain's default ("component.sun.triggers._").
+ */
+function translationPrefix(key: string, category: string): string {
+  const [domain, ...rest] = key.split(KEY_SEPARATOR);
+  const name = rest.length > 0 ? rest.join(KEY_SEPARATOR) : "_";
+
+  return `component.${domain}.${category}.${name}`;
+}
+
+function flattenFields(
+  fields: Record<string, HaFieldDescription>,
+): Record<string, HaFieldDescription> {
+  const flat: Record<string, HaFieldDescription> = {};
+
+  for (const [key, field] of Object.entries(fields)) {
+    if (field.fields) {
+      Object.assign(flat, flattenFields(field.fields));
+    } else {
+      flat[key] = field;
+    }
+  }
+
+  return flat;
+}

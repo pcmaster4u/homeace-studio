@@ -1,0 +1,500 @@
+import { CATEGORY_SCOPE, type CategoryScope } from "../categories/categories.constants";
+import { HELPER_DOMAINS } from "../entries/entries.constants";
+import { HaCommandError } from "../ha/ha-command.error";
+import { HaRestError } from "../ha/ha-rest.service";
+import { HA_COMMAND, HA_REST_PATH } from "../ha/ha.constants";
+import type {
+  HaCategory,
+  HaEntityRegistryEntry,
+  HaEvent,
+  HaLabel,
+  HaArea,
+  HaState,
+} from "../ha/ha.types";
+import { DEMO_EVENT_DELAY_MS } from "./demo.constants";
+import type { DemoEntity, DemoHome } from "./demo-home";
+
+type Payload = Record<string, unknown>;
+type EventHandler = (event: HaEvent) => void;
+type FlowKind = "automation" | "script";
+
+const HTTP_BAD_REQUEST = 400;
+const HTTP_NOT_FOUND = 404;
+const DOMAIN_SEPARATOR = ".";
+const FALLBACK_LANGUAGE = "en";
+
+/** HA's error codes for the cases the demo reproduces. */
+const ERROR_CODE = {
+  notFound: "not_found",
+  invalid: "invalid_format",
+  unknownCommand: "unknown_command",
+} as const;
+
+const HELPER_COMMAND = /^([a-z_]+)\/(create|delete)$/;
+
+/** Service calls that change a state, by service name. */
+const STATE_BY_SERVICE: Partial<Record<string, string>> = {
+  turn_on: "on",
+  turn_off: "off",
+  open_cover: "open",
+  close_cover: "closed",
+  open_valve: "open",
+  close_valve: "closed",
+};
+
+/** A payload value as text; HA's payloads are untyped. */
+function text(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function domainOf(entityId: string): string {
+  return entityId.split(DOMAIN_SEPARATOR)[0] ?? "";
+}
+
+/** "Gute Nacht" → "gute_nacht", like HA builds object ids from names. */
+function slugify(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "") || "unnamed"
+  );
+}
+
+function scopeOf(entityId: string, configEntryId: string | null): CategoryScope | null {
+  const domain = domainOf(entityId);
+
+  if (domain === "automation" || domain === "script" || domain === "scene") return domain;
+  if (HELPER_DOMAINS.has(domain) || configEntryId) return CATEGORY_SCOPE.helpers;
+
+  return null;
+}
+
+function now(): string {
+  return new Date().toISOString();
+}
+
+/**
+ * A small Home Assistant in memory for demo mode.
+ *
+ * Answers the WebSocket commands and REST calls HomeAce Studio uses, with HA's shapes and the
+ * same rules where they matter (one category list per scope, duplicate names refused, saving a new
+ * automation registers its entity). Changes fire HA's events, so live updates work as well.
+ */
+export class FakeHa {
+  private readonly registry = new Map<string, HaEntityRegistryEntry>();
+  private readonly states = new Map<string, HaState>();
+  private readonly categories = new Map<CategoryScope, HaCategory[]>();
+  private readonly flowConfigs = new Map<FlowKind, Map<string, Payload>>([
+    ["automation", new Map()],
+    ["script", new Map()],
+  ]);
+  private readonly handlers = new Map<string, EventHandler[]>();
+  private readonly areas: HaArea[];
+  private readonly labels: HaLabel[];
+  private nextId = 1;
+
+  constructor(private readonly home: DemoHome) {
+    this.areas = home.areas;
+    this.labels = home.labels;
+
+    for (const scope of Object.values(CATEGORY_SCOPE)) this.categories.set(scope, []);
+    for (const entity of home.entities) this.addEntity(entity);
+  }
+
+  /** Answers one WebSocket command like HA would, or throws {@link HaCommandError}. */
+  call(type: string, payload: Payload = {}): unknown {
+    switch (type) {
+      case HA_COMMAND.getStates:
+        return structuredClone([...this.states.values()]);
+      case HA_COMMAND.entityRegistryList:
+        return structuredClone([...this.registry.values()]);
+      case HA_COMMAND.entityRegistryGet:
+        return structuredClone(this.requireEntity(String(payload.entity_id)));
+      case HA_COMMAND.entityRegistryUpdate:
+        return this.updateEntity(payload);
+      case HA_COMMAND.categoryRegistryList:
+        return structuredClone(this.categoryList(payload.scope));
+      case HA_COMMAND.categoryRegistryCreate:
+        return this.createCategory(payload);
+      case HA_COMMAND.categoryRegistryUpdate:
+        return this.renameCategory(payload);
+      case HA_COMMAND.categoryRegistryDelete:
+        return this.deleteCategory(payload);
+      case HA_COMMAND.labelRegistryList:
+        return structuredClone(this.labels);
+      case HA_COMMAND.areaRegistryList:
+        return structuredClone(this.areas);
+      case HA_COMMAND.configEntriesGet:
+        return structuredClone(this.home.helperConfigEntries);
+      case HA_COMMAND.callService:
+        return this.callService(payload);
+      case HA_COMMAND.getServices:
+        return structuredClone(this.home.services);
+      case HA_COMMAND.getTranslations:
+        return { resources: this.translations(payload) };
+      case HA_COMMAND.automationConfig:
+        return { config: this.flowConfigOf("automation", String(payload.entity_id)) };
+      case HA_COMMAND.scriptConfig:
+        return { config: this.flowConfigOf("script", String(payload.entity_id)) };
+      case HA_COMMAND.unsubscribeEvents:
+        return null;
+      default:
+        return this.helperCommand(type, payload);
+    }
+  }
+
+  /** First event of a subscription command: the demo has no new-style triggers or conditions. */
+  snapshot(type: string): unknown {
+    if (
+      type === HA_COMMAND.triggerPlatformsSubscribe ||
+      type === HA_COMMAND.conditionPlatformsSubscribe
+    ) {
+      return {};
+    }
+
+    throw new HaCommandError(ERROR_CODE.unknownCommand, `Unknown command ${type}`);
+  }
+
+  subscribe(eventType: string, handler: EventHandler): void {
+    this.handlers.set(eventType, [...(this.handlers.get(eventType) ?? []), handler]);
+  }
+
+  /** REST GET below `/api`; null for unknown resources, like HA's 404. */
+  restGet(path: string): unknown {
+    const { kind, key } = this.parseFlowPath(path);
+    const config = this.flowConfigs.get(kind)?.get(key);
+
+    return config ? structuredClone(config) : null;
+  }
+
+  /** REST POST below `/api`: saves an automation or script; a new key creates its entity. */
+  restPost(path: string, body: unknown): unknown {
+    const { kind, key } = this.parseFlowPath(path);
+    const config = structuredClone(body) as Payload;
+
+    if (typeof config !== "object" || config === null || Array.isArray(config)) {
+      throw new HaRestError(HTTP_BAD_REQUEST, "Message malformed: expected a dictionary");
+    }
+
+    this.flowConfigs.get(kind)?.set(key, config);
+    const name = typeof config.alias === "string" && config.alias ? config.alias : key;
+    const existing = [...this.registry.values()].find(
+      (entry) => entry.platform === kind && entry.unique_id === key,
+    );
+
+    if (existing) {
+      this.setState(existing.entity_id, this.states.get(existing.entity_id)?.state ?? "on", {
+        friendly_name: name,
+      });
+    } else {
+      const objectId = kind === "script" ? key : slugify(name);
+      this.addEntity({
+        entityId: this.freeEntityId(kind, objectId),
+        name,
+        state: kind === "automation" ? "on" : "off",
+        platform: kind,
+        uniqueId: key,
+      });
+      this.emit("entity_registry_updated", { action: "create" });
+    }
+
+    return { result: "ok" };
+  }
+
+  /** REST DELETE below `/api`: removes an automation or script and its entity. */
+  restDelete(path: string): void {
+    const { kind, key } = this.parseFlowPath(path);
+    const configs = this.flowConfigs.get(kind);
+
+    if (!configs?.has(key)) throw new HaRestError(HTTP_NOT_FOUND, "Resource not found");
+
+    configs.delete(key);
+    const entry = [...this.registry.values()].find(
+      (item) => item.platform === kind && item.unique_id === key,
+    );
+
+    if (entry) this.removeEntity(entry.entity_id);
+  }
+
+  private addEntity(entity: DemoEntity): void {
+    const configEntryId = entity.configEntryId ?? null;
+    const scope = scopeOf(entity.entityId, configEntryId);
+    const categories: Partial<Record<string, string>> = {};
+
+    if (scope && entity.category) {
+      categories[scope] = this.ensureCategory(scope, entity.category).category_id;
+    }
+
+    this.registry.set(entity.entityId, {
+      entity_id: entity.entityId,
+      unique_id: entity.uniqueId ?? entity.entityId,
+      name: null,
+      original_name: entity.name,
+      icon: entity.icon ?? null,
+      platform: entity.platform,
+      config_entry_id: configEntryId,
+      categories,
+      labels: entity.labels ?? [],
+      area_id: entity.areaId ?? null,
+      disabled_by: entity.isDisabled ? "user" : null,
+      hidden_by: null,
+    });
+    this.states.set(entity.entityId, {
+      entity_id: entity.entityId,
+      state: entity.state,
+      attributes: { friendly_name: entity.name, ...entity.attributes },
+    });
+
+    if (entity.config) {
+      const kind = domainOf(entity.entityId) as FlowKind;
+      this.flowConfigs.get(kind)?.set(entity.uniqueId ?? entity.entityId, entity.config);
+    }
+  }
+
+  private removeEntity(entityId: string): void {
+    const oldState = this.states.get(entityId) ?? null;
+
+    this.registry.delete(entityId);
+    this.states.delete(entityId);
+    this.emit("entity_registry_updated", { action: "remove", entity_id: entityId });
+    this.emit("state_changed", { entity_id: entityId, old_state: oldState, new_state: null });
+  }
+
+  private freeEntityId(domain: string, objectId: string): string {
+    let candidate = `${domain}.${objectId}`;
+
+    for (let suffix = 2; this.states.has(candidate); suffix++) {
+      candidate = `${domain}.${objectId}_${suffix}`;
+    }
+
+    return candidate;
+  }
+
+  private requireEntity(entityId: string): HaEntityRegistryEntry {
+    const entry = this.registry.get(entityId);
+
+    if (!entry) throw new HaCommandError(ERROR_CODE.notFound, "Entity not found");
+
+    return entry;
+  }
+
+  private updateEntity(payload: Payload): HaEntityRegistryEntry {
+    const entry = this.requireEntity(String(payload.entity_id));
+    const fields = ["name", "icon", "area_id", "labels"] as const;
+
+    for (const field of fields) {
+      if (payload[field] !== undefined) Object.assign(entry, { [field]: payload[field] });
+    }
+
+    // HA merges the categories per scope; null removes a scope's category.
+    if (payload.categories && typeof payload.categories === "object") {
+      for (const [scope, id] of Object.entries(payload.categories as Payload)) {
+        if (id === null) delete entry.categories[scope];
+        else entry.categories[scope] = text(id);
+      }
+    }
+
+    if (payload.name !== undefined) {
+      const state = this.states.get(entry.entity_id);
+      const name = (payload.name as string | null) ?? entry.original_name ?? entry.entity_id;
+
+      if (state) state.attributes.friendly_name = name;
+    }
+
+    this.emit("entity_registry_updated", { action: "update", entity_id: entry.entity_id });
+
+    return structuredClone(entry);
+  }
+
+  private categoryList(scope: unknown): HaCategory[] {
+    const list = this.categories.get(scope as CategoryScope);
+
+    if (!list) throw new HaCommandError(ERROR_CODE.invalid, "Unknown scope");
+
+    return list;
+  }
+
+  private ensureCategory(scope: CategoryScope, name: string): HaCategory {
+    const list = this.categoryList(scope);
+    const existing = list.find((category) => category.name === name);
+
+    if (existing) return existing;
+
+    const category = { category_id: `demo_category_${this.nextId++}`, name, icon: null };
+    list.push(category);
+
+    return category;
+  }
+
+  private createCategory(payload: Payload): HaCategory {
+    const list = this.categoryList(payload.scope);
+    const name = text(payload.name).trim();
+
+    if (!name || list.some((category) => category.name === name)) {
+      throw new HaCommandError(ERROR_CODE.invalid, `The name "${name}" is already in use`);
+    }
+
+    const category = this.ensureCategory(payload.scope as CategoryScope, name);
+    this.emit("category_registry_updated", { action: "create", scope: payload.scope });
+
+    return structuredClone(category);
+  }
+
+  private renameCategory(payload: Payload): HaCategory {
+    const list = this.categoryList(payload.scope);
+    const category = list.find((item) => item.category_id === payload.category_id);
+    const name = text(payload.name).trim();
+
+    if (!category) throw new HaCommandError(ERROR_CODE.notFound, "Category not found");
+    if (list.some((item) => item !== category && item.name === name)) {
+      throw new HaCommandError(ERROR_CODE.invalid, `The name "${name}" is already in use`);
+    }
+
+    category.name = name;
+    this.emit("category_registry_updated", { action: "update", scope: payload.scope });
+
+    return structuredClone(category);
+  }
+
+  private deleteCategory(payload: Payload): null {
+    const scope = payload.scope as CategoryScope;
+    const list = this.categoryList(scope);
+    const index = list.findIndex((item) => item.category_id === payload.category_id);
+
+    if (index < 0) throw new HaCommandError(ERROR_CODE.notFound, "Category not found");
+
+    list.splice(index, 1);
+
+    for (const entry of this.registry.values()) {
+      if (entry.categories[scope] === payload.category_id) delete entry.categories[scope];
+    }
+
+    this.emit("category_registry_updated", { action: "remove", scope });
+
+    return null;
+  }
+
+  private callService(payload: Payload): null {
+    const service = String(payload.service);
+    const target = (payload.target ?? {}) as { entity_id?: string | string[] };
+    const entityIds = [target.entity_id ?? []].flat();
+
+    for (const entityId of entityIds) {
+      const state = this.states.get(entityId);
+
+      if (!state) continue;
+
+      const toggled = state.state === "on" ? "off" : "on";
+      const next =
+        service === "toggle"
+          ? toggled
+          : service === "press" || domainOf(entityId) === "scene"
+            ? now()
+            : STATE_BY_SERVICE[service];
+
+      // "trigger" and "script.turn_on" run something but keep the state, like in HA.
+      if (next && !(domainOf(entityId) === "script" && service === "turn_on")) {
+        this.setState(entityId, next);
+      }
+    }
+
+    return null;
+  }
+
+  private setState(entityId: string, value: string, attributes: Payload = {}): void {
+    const oldState = this.states.get(entityId);
+
+    if (!oldState) return;
+
+    const newState = {
+      ...oldState,
+      state: value,
+      attributes: { ...oldState.attributes, ...attributes },
+    };
+    this.states.set(entityId, newState);
+    this.emit("state_changed", { entity_id: entityId, old_state: oldState, new_state: newState });
+  }
+
+  private translations(payload: Payload): Record<string, string> {
+    const byLanguage =
+      this.home.translations[String(payload.language)] ??
+      this.home.translations[FALLBACK_LANGUAGE] ??
+      {};
+
+    return structuredClone(byLanguage[String(payload.category)] ?? {});
+  }
+
+  private flowConfigOf(kind: FlowKind, entityId: string): Payload {
+    const entry = this.requireEntity(entityId);
+    const config = this.flowConfigs.get(kind)?.get(entry.unique_id);
+
+    if (!config) throw new HaCommandError(ERROR_CODE.notFound, "Config not found");
+
+    return structuredClone(config);
+  }
+
+  /** `input_boolean/create`, `counter/delete`, …: HA-managed helpers. */
+  private helperCommand(type: string, payload: Payload): unknown {
+    const match = HELPER_COMMAND.exec(type);
+    const helperType = match?.[1] ?? "";
+
+    if (!match || !HELPER_DOMAINS.has(helperType)) {
+      throw new HaCommandError(ERROR_CODE.unknownCommand, `Unknown command ${type}`);
+    }
+
+    if (match[2] === "delete") {
+      const helperId = String(payload[`${helperType}_id`]);
+      const entry = [...this.registry.values()].find(
+        (item) => item.platform === helperType && item.unique_id === helperId,
+      );
+
+      if (!entry) throw new HaCommandError(ERROR_CODE.notFound, "Helper not found");
+
+      this.removeEntity(entry.entity_id);
+
+      return null;
+    }
+
+    const name = text(payload.name).trim();
+    const helperId = slugify(name);
+    const entityId = this.freeEntityId(helperType, helperId);
+
+    this.addEntity({
+      entityId,
+      name,
+      state: helperType === "input_boolean" ? "off" : "unknown",
+      platform: helperType,
+      uniqueId: entityId.split(DOMAIN_SEPARATOR)[1],
+      icon: typeof payload.icon === "string" ? payload.icon : undefined,
+    });
+    this.emit("entity_registry_updated", { action: "create", entity_id: entityId });
+
+    return { id: entityId.split(DOMAIN_SEPARATOR)[1], ...payload };
+  }
+
+  private parseFlowPath(path: string): { kind: FlowKind; key: string } {
+    for (const kind of ["automation", "script"] as const) {
+      const prefix =
+        kind === "automation" ? HA_REST_PATH.automationConfig : HA_REST_PATH.scriptConfig;
+
+      if (path.startsWith(prefix)) {
+        return { kind, key: decodeURIComponent(path.slice(prefix.length)) };
+      }
+    }
+
+    throw new HaRestError(HTTP_NOT_FOUND, "Resource not found");
+  }
+
+  private emit(eventType: string, data: Payload): void {
+    const handlers = this.handlers.get(eventType) ?? [];
+
+    if (handlers.length === 0) return;
+
+    setTimeout(() => {
+      for (const handler of handlers) handler({ event_type: eventType, data });
+    }, DEMO_EVENT_DELAY_MS);
+  }
+}

@@ -1,0 +1,122 @@
+import { ref, type Ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+import type { NewFlow } from "@/services/flowsService";
+import type { NewHelper } from "@/services/helpersService";
+import { useEntriesStore } from "@/stores/entriesStore";
+import { useFoldersStore } from "@/stores/foldersStore";
+import { useMessagesStore } from "@/stores/messagesStore";
+import { useToastStore } from "@/stores/toastStore";
+import type { FlowKind } from "@/types/editor";
+
+/** Where a new folder goes: below `parent`, or at the top when it is null. */
+export type FolderDraft = { parent: string | null };
+
+type CreateActions = {
+  isBusy: Ref<boolean>;
+  /** The open "new folder" dialog; null when closed. */
+  folderDraft: Ref<FolderDraft | null>;
+  isHelperDialogOpen: Ref<boolean>;
+  startFolder: (parent: string | null) => void;
+  cancelFolder: () => void;
+  confirmFolder: (path: string) => Promise<void>;
+  deleteFolder: (path: string) => Promise<void>;
+  openHelperDialog: () => void;
+  closeHelperDialog: () => void;
+  /** @returns The entity ID of the new helper, or null when creating failed. */
+  confirmHelper: (helper: NewHelper) => Promise<string | null>;
+  /** The kind of the open "new automation / script" dialog; null when closed. */
+  newFlowKind: Ref<FlowKind | null>;
+  openFlowDialog: (kind: FlowKind) => void;
+  closeFlowDialog: () => void;
+  /** @returns The entity ID of the new flow, or null when creating failed. */
+  confirmFlow: (flow: NewFlow) => Promise<string | null>;
+};
+
+/**
+ * Creating folders, helpers, automations and scripts, with feedback as toasts and catalog texts
+ * for errors.
+ */
+export function useCreateActions(): CreateActions {
+  const { t } = useI18n();
+  const entriesStore = useEntriesStore();
+  const foldersStore = useFoldersStore();
+  const messages = useMessagesStore();
+  const toasts = useToastStore();
+
+  const isBusy = ref(false);
+  const folderDraft = ref<FolderDraft | null>(null);
+  const isHelperDialogOpen = ref(false);
+  const newFlowKind = ref<FlowKind | null>(null);
+
+  /** Runs one action with the busy flag and turns errors into an error toast. */
+  async function run<T>(action: () => Promise<T>): Promise<T | null> {
+    isBusy.value = true;
+
+    try {
+      return await action();
+    } catch (error) {
+      toasts.show(messages.textFor(error, t("errors.actionFailed")), "error");
+      return null;
+    } finally {
+      isBusy.value = false;
+    }
+  }
+
+  async function confirmFolder(path: string): Promise<void> {
+    const storedPath = await run(() => foldersStore.create(path));
+
+    if (storedPath === null) return;
+
+    toasts.show(t("toast.folderCreated", { path: storedPath }));
+    folderDraft.value = null;
+  }
+
+  async function deleteFolder(path: string): Promise<void> {
+    const isDone = await run(async () => {
+      await foldersStore.remove(path);
+      return true;
+    });
+
+    if (isDone) toasts.show(t("toast.folderDeleted", { path }));
+  }
+
+  async function confirmHelper(helper: NewHelper): Promise<string | null> {
+    const entityId = await run(() => entriesStore.createHelper(helper));
+
+    if (entityId === null) return null;
+
+    toasts.show(t("toast.helperCreated", { name: helper.name }));
+    isHelperDialogOpen.value = false;
+
+    return entityId;
+  }
+
+  async function confirmFlow(flow: NewFlow): Promise<string | null> {
+    const entityId = await run(() => entriesStore.createFlow(flow));
+
+    if (entityId === null) return null;
+
+    toasts.show(t("toast.flowCreated", { name: flow.name }));
+    newFlowKind.value = null;
+
+    return entityId;
+  }
+
+  return {
+    isBusy,
+    folderDraft,
+    isHelperDialogOpen,
+    startFolder: (parent) => (folderDraft.value = { parent }),
+    cancelFolder: () => (folderDraft.value = null),
+    confirmFolder,
+    deleteFolder,
+    openHelperDialog: () => (isHelperDialogOpen.value = true),
+    closeHelperDialog: () => (isHelperDialogOpen.value = false),
+    confirmHelper,
+    newFlowKind,
+    openFlowDialog: (kind) => (newFlowKind.value = kind),
+    closeFlowDialog: () => (newFlowKind.value = null),
+    confirmFlow,
+  };
+}

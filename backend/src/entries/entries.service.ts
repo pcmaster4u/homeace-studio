@@ -1,0 +1,112 @@
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+
+import { apiError } from "src/common/api/api-response";
+import { MESSAGE_ID } from "src/messages/message-ids";
+import { CategoriesService } from "../categories/categories.service";
+import { OVERLAY_REPOSITORY } from "../overlay/overlay.constants";
+import type { OverlayRepository } from "../overlay/repositories/overlay.repository";
+import { CATEGORY_SCOPE_BY_KIND, ENTRY_REPOSITORY, SERVICE_BY_ACTION } from "./entries.constants";
+import { applyExtras, withExtras } from "./entry-extras";
+import type { Entry, EntryAction, EntryChanges } from "./entry.model";
+import type { EntryRepository } from "./repositories/entry.repository";
+
+export type EntryExtras = { isFavorite?: boolean; note?: string | null };
+
+@Injectable()
+export class EntriesService {
+  constructor(
+    @Inject(ENTRY_REPOSITORY) private readonly entries: EntryRepository,
+    @Inject(OVERLAY_REPOSITORY) private readonly overlay: OverlayRepository,
+    private readonly categories: CategoriesService,
+  ) {}
+
+  /** All automations, scripts, scenes and helpers with the user's extras, sorted by name. */
+  async findAll(): Promise<Entry[]> {
+    const [entries, overlay] = await Promise.all([this.entries.findAll(), this.overlay.read()]);
+
+    return withExtras(entries, overlay).sort((first, second) =>
+      first.name.localeCompare(second.name, undefined, { sensitivity: "base" }),
+    );
+  }
+
+  /**
+   * Moves an entry into a folder, written straight to HA's entity registry.
+   *
+   * @param categoryPath - Target folder like "Haus/Pool"; null removes the category.
+   */
+  async moveToCategory(entityId: string, categoryPath: string | null): Promise<void> {
+    const entry = await this.requireRegistered(entityId);
+
+    await this.categories.assign({
+      entityId,
+      scope: CATEGORY_SCOPE_BY_KIND[entry.kind],
+      currentCategoryId: entry.categoryId,
+      targetPath: categoryPath,
+    });
+  }
+
+  /** Changes name, icon, area or labels in HA. @returns The entry as HA now has it. */
+  async update(entityId: string, changes: EntryChanges): Promise<Entry> {
+    await this.requireRegistered(entityId);
+    await this.entries.update(entityId, normalizeChanges(changes));
+
+    return this.requireEntry(entityId);
+  }
+
+  /**
+   * Runs an action, e.g. switches an automation off or runs a script.
+   *
+   * @throws BadRequestException `ENTRY_ACTION_UNSUPPORTED` when the domain has no such action.
+   */
+  async runAction(entityId: string, action: EntryAction): Promise<void> {
+    const entry = await this.requireEntry(entityId);
+    const service = SERVICE_BY_ACTION[action][entry.domain];
+
+    if (!service) {
+      throw new BadRequestException(
+        apiError(MESSAGE_ID.entryActionUnsupported, { params: { entityId, action } }),
+      );
+    }
+
+    await this.entries.callService(entry.domain, service, entityId);
+  }
+
+  /** Saves favorite and note (overlay only). */
+  async updateExtras(entityId: string, extras: EntryExtras): Promise<void> {
+    await this.requireEntry(entityId);
+    await this.overlay.update((overlay) => applyExtras(overlay, entityId, extras));
+  }
+
+  private async requireEntry(entityId: string): Promise<Entry> {
+    const entry = await this.entries.findOne(entityId);
+
+    if (!entry) {
+      throw new NotFoundException(apiError(MESSAGE_ID.entryNotFound, { params: { entityId } }));
+    }
+
+    const [withOverlay] = withExtras([entry], await this.overlay.read());
+
+    return withOverlay ?? entry;
+  }
+
+  /** Category, name, icon, area and labels need a registry entry; YAML-only entities have none. */
+  private async requireRegistered(entityId: string): Promise<Entry> {
+    const entry = await this.requireEntry(entityId);
+
+    if (!entry.isInRegistry) {
+      throw new BadRequestException(
+        apiError(MESSAGE_ID.entryNotInRegistry, { params: { entityId } }),
+      );
+    }
+
+    return entry;
+  }
+}
+
+/** A blank name or icon means "back to the default", which HA expects as null. */
+function normalizeChanges(changes: EntryChanges): EntryChanges {
+  const blankToNull = (value: string | null | undefined): string | null | undefined =>
+    value === undefined ? undefined : value?.trim() || null;
+
+  return { ...changes, name: blankToNull(changes.name), icon: blankToNull(changes.icon) };
+}

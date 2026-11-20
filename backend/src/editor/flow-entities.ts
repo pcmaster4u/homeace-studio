@@ -1,0 +1,34 @@
+/** Looks like an entity ID: "domain.object_id". */
+const ENTITY_ID_PATTERN = /^[a-z0-9_]+\.[a-z0-9_]+$/;
+
+/**
+ * Finds every entity a config mentions, wherever it is (target, entity_id, options like `zone`,
+ * nested actions). A string only counts when HA knows such an entity, so service names like
+ * "light.turn_on" are not mistaken for entities.
+ *
+ * @param config - Any HA config value (object, array, string).
+ * @param knownEntityIds - All entity IDs HA has right now.
+ * @returns The mentioned entity IDs, each once.
+ */
+export function collectEntityIds(config: unknown, knownEntityIds: ReadonlySet<string>): string[] {
+  const found = new Set<string>();
+  const visit = (value: unknown): void => {
+    if (typeof value === "string") {
+      if (ENTITY_ID_PATTERN.test(value) && knownEntityIds.has(value)) found.add(value);
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach(visit);
+      return;
+    }
+
+    if (value && typeof value === "object") {
+      Object.values(value).forEach(visit);
+    }
+  };
+
+  visit(config);
+
+  return [...found];
+}

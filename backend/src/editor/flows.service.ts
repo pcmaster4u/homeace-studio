@@ -1,0 +1,138 @@
+import { Inject, Injectable, Logger } from "@nestjs/common";
+
+import { CategoriesService } from "src/categories/categories.service";
+import { ENTITY_LOOKUP_WAIT } from "src/common/utils/wait";
+import { removeExtras } from "src/entries/entry-extras";
+import { OVERLAY_REPOSITORY } from "src/overlay/overlay.constants";
+import type { OverlayRepository } from "src/overlay/repositories/overlay.repository";
+import type { CreateFlowDto } from "./dto/create-flow.dto";
+import {
+  EDITOR_REPOSITORY,
+  FLOW_CLOCK,
+  FLOW_LOOKUP_ATTEMPTS,
+  FLOW_LOOKUP_DELAY_MS,
+} from "./editor.constants";
+import { FLOW_KIND, type FlowKind } from "./editor.model";
+import { EditorService } from "./editor.service";
+import { toFlowError } from "./flow-errors";
+import { firstFreeKey, scriptKeyFor } from "./flow-key";
+import type { EditorRepository } from "./repositories/editor.repository";
+
+const DEFAULT_MODE = "single";
+const ENTITY_ID_SEPARATOR = ".";
+
+/** Creating and deleting whole automations and scripts (the editor service edits them). */
+@Injectable()
+export class FlowsService {
+  private readonly logger = new Logger(FlowsService.name);
+
+  constructor(
+    @Inject(EDITOR_REPOSITORY) private readonly editor: EditorRepository,
+    private readonly editorService: EditorService,
+    private readonly categories: CategoriesService,
+    @Inject(OVERLAY_REPOSITORY) private readonly overlay: OverlayRepository,
+    @Inject(ENTITY_LOOKUP_WAIT) private readonly pause: (milliseconds: number) => Promise<void>,
+    @Inject(FLOW_CLOCK) private readonly now: () => number,
+  ) {}
+
+  /**
+   * Creates an empty automation (no triggers, so it never runs on its own) or an empty script in
+   * HA's file, then sorts it into the folder. The user fills it in the flow editor.
+   *
+   * @returns The entity ID HA gave the new flow.
+   * @throws BadRequestException `FLOW_INVALID` when HA rejects the config.
+   */
+  async create(dto: CreateFlowDto): Promise<{ entityId: string }> {
+    const name = dto.name.trim();
+    const { key, config } = await this.newConfig(dto.kind, name);
+
+    await this.editor.saveConfig(dto.kind, key, config).catch((error: unknown) => {
+      throw toFlowError(error);
+    });
+
+    const entityId = await this.waitForEntityId(dto.kind, key);
+
+    if (!entityId) {
+      // The flow exists; only the folder could not be set. HA names it after a slug of the name.
+      this.logger.warn(`Entity of new ${dto.kind} "${key}" not found; category not set`);
+      return { entityId: dto.kind + ENTITY_ID_SEPARATOR + scriptKeyFor(name) };
+    }
+
+    if (dto.categoryPath) {
+      await this.categories.assign({
+        entityId,
+        scope: dto.kind,
+        currentCategoryId: null,
+        targetPath: dto.categoryPath,
+      });
+    }
+
+    this.logger.log(`Created ${entityId}`);
+
+    return { entityId };
+  }
+
+  /**
+   * Deletes an automation or script from HA's file, then its own extras and its category if that
+   * became empty.
+   *
+   * @throws BadRequestException `FLOW_NOT_EDITABLE` for flows outside automations.yaml /
+   *   scripts.yaml (they would have to be removed from their YAML by hand).
+   */
+  async delete(entityId: string): Promise<void> {
+    const { kind, key } = await this.editorService.requireStoredFlow(entityId);
+    const categoryId = await this.editor.loadCategoryId(kind, entityId);
+
+    await this.editor.deleteConfig(kind, key);
+    await this.overlay.update((overlay) => removeExtras(overlay, entityId));
+
+    if (categoryId) await this.categories.cleanUp(kind, categoryId);
+
+    this.logger.log(`Deleted ${entityId}`);
+  }
+
+  private async newConfig(
+    kind: FlowKind,
+    name: string,
+  ): Promise<{ key: string; config: Record<string, unknown> }> {
+    if (kind === FLOW_KIND.automation) {
+      // HA's own editor uses the current time in milliseconds as id.
+      const id = String(this.now());
+      return {
+        key: id,
+        config: {
+          id,
+          alias: name,
+          description: "",
+          triggers: [],
+          conditions: [],
+          actions: [],
+          mode: DEFAULT_MODE,
+        },
+      };
+    }
+
+    const key = await firstFreeKey(scriptKeyFor(name), async (candidate) => {
+      const [stored, entityId] = await Promise.all([
+        this.editor.loadStoredConfig(kind, candidate),
+        this.editor.findEntityId(kind, candidate),
+      ]);
+      return stored !== null || entityId !== null;
+    });
+
+    return { key, config: { alias: name, sequence: [], mode: DEFAULT_MODE } };
+  }
+
+  /** HA registers the entity after reloading its automations or scripts; ask a few times. */
+  private async waitForEntityId(kind: FlowKind, key: string): Promise<string | null> {
+    for (let attempt = 0; attempt < FLOW_LOOKUP_ATTEMPTS; attempt++) {
+      const entityId = await this.editor.findEntityId(kind, key);
+
+      if (entityId) return entityId;
+
+      await this.pause(FLOW_LOOKUP_DELAY_MS);
+    }
+
+    return null;
+  }
+}

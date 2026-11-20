@@ -1,0 +1,57 @@
+# Decisions
+
+| Date | Decision | Reason |
+| --- | --- | --- |
+| 2026-11-19 | Runs as an HA add-on with ingress | Targets HA OS; no own login or token, overlay file lands in HA backups |
+| 2026-11-19 | Name "HomeAce Studio" | "HA" only as an allusion; avoids the "Home Assistant" trademark in the name |
+| 2026-11-19 | Visual editor, no YAML in the UI | Main reason the tool exists; unknown block types are kept unchanged on save |
+| 2026-11-19 | Nesting stored in HA category names (`Haus/Terrasse`) | Structure lives in HA, no own DB; readable and sorted in the HA UI too |
+| 2026-11-19 | No empty categories in HA; created and deleted automatically per scope | The user should never manage HA categories by hand; folders without entries live only in the UI (empty user folders in the overlay). Auto-delete only for categories HomeAce Studio created |
+| 2026-11-19 | Migration assistant in version 1 | Existing categories often fake nesting with dashes (`Room - Topic`); a preview with per-line confirmation converts them to `/` and merges near-duplicates |
+| 2026-11-19 | Node's built-in WebSocket, no `ws` package | Node 22+ has it; one dependency less |
+| 2026-11-19 | One lazy HA connection; reconnect loop only while events are subscribed | Commands reconnect on demand; live updates need the connection back on their own |
+| 2026-11-19 | Entries read from HA per request, no cache yet | A few hundred entries load fast; a cache only makes sense together with live updates |
+| 2026-11-19 | Frontend: relative `base`, hash router, relative API path | HA ingress serves the app under a prefix that changes per session |
+| 2026-11-19 | Plain scoped CSS on design tokens, no Sass | No UI library to theme; CSS custom properties cover light/dark |
+| 2026-11-19 | `@mdi/font` for icons | HA delivers `mdi:` icon names as data; the full font renders any of them |
+| 2026-11-19 | UI settings in localStorage for now | Moves to the overlay per HA user once the overlay exists |
+| 2026-11-19 | Message-response envelope and backend catalog as in the guidelines | One contract for all endpoints; error texts in DE and EN come from `GET /api/messages`, UI texts from vue-i18n |
+| 2026-11-19 | Move and rename as POST actions (`/entries/:id/move`, `/categories/rename`) | They create, rename and delete several HA categories on the way; not a field update of one resource |
+| 2026-11-19 | Rename checks all scopes before writing | A conflict in one scope must not leave the folder half renamed |
+| 2026-11-19 | Overlay as one JSON file, atomic writes, queued updates | No DB; the file survives in the add-on config folder and HA backups |
+| 2026-11-19 | Brand fonts bundled with @fontsource | The add-on must work without internet (no Google Fonts) |
+| 2026-11-19 | Add-on folder assembled by a script (sources copied next to config.yaml) | The Supervisor's build context is the add-on folder; the repo layout (frontend/, backend/) stays as it is |
+| 2026-11-19 | Official `node:22-alpine` image instead of the HA base image | Same Node as in development, available for amd64 and aarch64; no s6 services needed for one process |
+| 2026-11-19 | Lint and tests run in the image build | A failing check stops the build, so a broken version never replaces the running one |
+| 2026-11-19 | Blueprint editor planned on top of the visual editor | Same sentence-and-chips principle: turn any chip of an automation into a blueprint input, edit blueprints and use them without YAML |
+| 2026-11-19 | POC step 5 passed: installed as local app on HA 2026.11.2, reading works through ingress | Packaging, Supervisor build and SUPERVISOR_TOKEN access confirmed on real hardware |
+| 2026-11-19 | Creating folders and helpers before the visual editor | Users need to create things right away; helpers have simple forms, automations need the editor anyway |
+| 2026-11-19 | Helper settings checked per type in one pure function | One place mirrors HA's rules; errors name the field before HA is touched |
+| 2026-11-19 | Creating folders and helpers tested on the real HA (app 0.2.0) | Both work end to end through ingress |
+| 2026-11-19 | Name, icon, area and labels edited in the entity registry | Same place the HA UI writes them; works for automations, scripts, scenes and helpers alike |
+| 2026-11-19 | "Run" on an automation calls `automation.trigger` | Same as HA's "Run actions": skips triggers and conditions |
+| 2026-11-19 | Favorites, notes and folder colors in the overlay | HA has no place for them; they belong to HomeAce Studio |
+| 2026-11-19 | Only storage helpers can be deleted here | Template, group and other config-entry helpers need HA's config-entry flow |
+| 2026-11-19 | Live updates via SSE, UI reloads the whole list | Simple and robust; a few hundred entries load fast. Sensor states are ignored to avoid constant reloads |
+| 2026-11-19 | Visual editor built from HA's own descriptions (generic blocks), hand-made blocks only for classic triggers, delay and if | HA 2026 describes 193 triggers, 154 conditions (`trigger_platforms/subscribe`, `condition_platforms/subscribe`) and all actions (`get_services`) with fields and selectors, and translates them (`frontend/get_translations`). The owner's automations use mostly those new-style triggers and plain action calls (POC 6a) |
+| 2026-11-19 | Scenes from MQTT (Zigbee2MQTT) are not editable | HA has no config for them; only HA-native scenes can be edited |
+| 2026-11-20 | Saving sends the whole config; the UI changes single values by path (6c) | HA's REST API takes only whole flows. Editing one path on a copy keeps every unknown field, key order and shape (single item vs. list, old `trigger:`/`data_template` keys). Checked read-only: 89 of the 92 flows matched their YAML byte for byte; the other 3 are scripts with a renamed entity ID, found under their registry key |
+| 2026-11-20 | Only flows in automations.yaml / scripts.yaml are editable | REST POST would otherwise add a duplicate to those files; flows from packages and blueprints stay read-only |
+| 2026-11-20 | Unsaved edits are drafts per entry in the browser | Switching entries loses nothing, the list marks them; HA sees changes only with "In HA speichern". If HA changed the flow meanwhile, the save bar says so |
+| 2026-11-20 | Demo mode with an in-memory fake HA (`HOMEACE_DEMO`) | README screenshots must never show real data; the fake sits behind the two HA services, so every module runs unchanged and the demo also serves for trying the UI and development |
+| 2026-11-20 | Screenshots via the DevTools protocol of an installed Edge/Chrome | No Playwright or Puppeteer needed: Node 22 has WebSocket and fetch; `scripts/screenshots.mjs` regenerates all pictures |
+| 2026-11-20 | Folder colors are inherited by subfolders without an own color | Coloring every subfolder by hand took many clicks; only own colors are stored, the inherited one is computed in the tree |
+| 2026-11-20 | New automations and scripts are created in HA right away, empty (6e) | Deviation from the click dummy, where a new entry is an unsaved draft: a draft-only entry would need a fake entry in list, tree and detail. Created at once like helpers, it is a normal entry; an automation without triggers never runs, and delete removes abandoned ones |
+| 2026-11-20 | Automations and scripts can be deleted, only from automations.yaml / scripts.yaml | Same rule as editing; flows from packages must be removed from their YAML by hand |
+| 2026-11-20 | Block operations as typed changes on the draft (6d) | One `FlowChange` type for values and list operations keeps the store simple and every operation testable as a pure function |
+| 2026-11-20 | "Disable" writes `enabled: false` | HA's own way: the block stays in the config and can be enabled again |
+| 2026-11-20 | New blocks start with defaults only where obvious, missing values shown in orange | Like the click dummy; HA would reject an empty block anyway, the chip shows what is still needed. Checked: none of the 93 real flows shows a false missing chip |
+| 2026-11-20 | List groups collapsible, subfolders start collapsed | Wish of the owner: a folder reads as an overview. Search, the open entry and a single group stay expanded; hand toggles reset when another folder is selected |
+| 2026-11-20 | Flow view first read-only (6b) | Shows that every real block is understood before anything is written; all 92 flows (204 blocks) of the owner render, none unknown |
+| 2026-11-19 | POC step 1 passed (HA 2026.11.2) | All 4 scopes: names with one and two `/` stored unchanged, listed, renamed with the same id; HA refuses duplicate names |
+| 2026-11-19 | Own extras (colors, notes, favorites, UI settings per HA user) in one overlay JSON | No DB for now; the add-on config folder is part of HA backups |
+| 2026-11-19 | Scenes included next to automations, scripts and helpers | Same category concept, own config API |
+| 2026-11-19 | No Vuetify, own components | The look should clearly differ from the HA UI; no UI library to fight against |
+| 2026-11-19 | vue-i18n from the start (DE first, EN second) | A public add-on needs English |
+| 2026-11-19 | Technical details hidden by default, toggle in settings | Entity IDs, storage badges and API names would put beginners off |
+| 2026-11-19 | All panes resizable, responsive from the start | Desktop: drag splitters (keyboard too); phone: list, then detail as full screen |

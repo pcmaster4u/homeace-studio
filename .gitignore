@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+.env
+*.log
+.DS_Store
+
+# Local overlay file (in the add-on it lives in /config)
+data/
+
+# Machine-specific agent notes
+CLAUDE.local.md
+
+# Add-on folder assembled by scripts/build-addon.mjs
+dist-addon/
