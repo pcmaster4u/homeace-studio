@@ -297,6 +297,10 @@ const en: MessageSchema = {
     folder: "Folder (optional)",
   },
   list: {
+    emptyFolder:
+      "Still empty. Drag entries onto this folder in the tree on the left, or pick it for an entry under Properties → Category.",
+    newSubfolder: "New subfolder",
+    newFolder: "New folder",
     new: "New",
     newMenu: { automation: "Automation", script: "Script", helper: "Helper" },
     search: "Search name or entity ID",

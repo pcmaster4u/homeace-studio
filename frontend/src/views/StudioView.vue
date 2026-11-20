@@ -65,6 +65,7 @@
           @select="selectEntry"
           @open-nav="isNavOpen = true"
           @create="onCreate"
+          @add-folder="create.startFolder"
           @act="entryActions.act"
         />
       </div>
@@ -118,6 +119,7 @@
       :entry-actions="entryActions"
       @close-color="colorPath = null"
       @created="selectEntry"
+      @folder-created="selectCategory"
     />
   </div>
 </template>

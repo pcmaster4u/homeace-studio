@@ -201,13 +201,26 @@ const canDelete = computed(
   gap: 1px;
 }
 
+/* Shown on hover, and always on the selected folder, so they can be found. */
 .category-tree-node:hover .category-tree-node__actions,
-.category-tree-node:focus-within .category-tree-node__actions {
+.category-tree-node:focus-within .category-tree-node__actions,
+.category-tree-node--active .category-tree-node__actions {
   display: flex;
 }
 
-.category-tree-node:hover .category-tree-node__count {
+.category-tree-node:hover .category-tree-node__count,
+.category-tree-node--active .category-tree-node__count {
   display: none;
+}
+
+.category-tree-node__actions .category-tree-node__action {
+  color: var(--muted);
+}
+
+.category-tree-node__actions .category-tree-node__action:hover,
+.category-tree-node__actions .category-tree-node__action:focus-visible {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .category-tree-node__icon {

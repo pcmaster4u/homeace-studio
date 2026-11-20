@@ -301,6 +301,10 @@ export default {
     folder: "Ordner (optional)",
   },
   list: {
+    emptyFolder:
+      "Noch leer. Zieh Einträge auf diesen Ordner im Baum links, oder wähle ihn bei einem Eintrag unter Eigenschaften → Kategorie.",
+    newSubfolder: "Unterordner anlegen",
+    newFolder: "Neuer Ordner",
     new: "Neu",
     newMenu: { automation: "Automation", script: "Skript", helper: "Helfer" },
     search: "Name oder Entity-ID suchen",

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.1
+
+- "New subfolder" button right below the folder title ("New folder" in the overview); after creating
+  it, the new folder opens and the tree unfolds down to it.
+- The tree opens down to the selected folder however it was selected.
+- Folder actions in the tree are easier to see and always shown on the selected folder.
+- An empty folder explains how to fill it.
+
 ## 0.9.0
 
 - First public release: install it from the app repository; HA downloads a ready-made image for

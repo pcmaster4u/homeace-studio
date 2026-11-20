@@ -14,6 +14,10 @@
           <div v-if="title.crumb" class="entry-list__crumb">{{ title.crumb }} ›</div>
           <h2>{{ title.name }}</h2>
           <div class="entry-list__subtitle">{{ title.subtitle }}</div>
+          <button class="entry-list__folder-btn" type="button" @click="addFolder">
+            <span class="mdi mdi-folder-plus-outline" />
+            {{ isRealCategory ? t("list.newSubfolder") : t("list.newFolder") }}
+          </button>
         </div>
         <div ref="newMenu" class="entry-list__new">
           <button
@@ -64,7 +68,9 @@
     </div>
 
     <div class="entry-list__body">
-      <p v-if="entries.length === 0" class="entry-list__empty">{{ t("list.empty") }}</p>
+      <p v-if="entries.length === 0" class="entry-list__empty">
+        {{ isRealCategory && !isSearching ? t("list.emptyFolder") : t("list.empty") }}
+      </p>
 
       <template v-for="group in groups" :key="group.path ?? ''">
         <button
@@ -138,6 +144,8 @@ const emit = defineEmits<{
   act: [entry: Entry, action: EntryAction];
   /** "Neu" was picked for this kind; the page opens the matching dialog. */
   create: [kind: NewEntryKind];
+  /** New folder below `parent`; null for a top-level folder. */
+  addFolder: [parent: string | null];
 }>();
 
 const { t } = useI18n();
@@ -152,6 +160,11 @@ onClickOutside(newMenu, () => (isNewMenuOpen.value = false));
 function pickNew(kind: NewEntryKind): void {
   isNewMenuOpen.value = false;
   emit("create", kind);
+}
+
+/** Inside a folder the button makes a subfolder; elsewhere a top-level folder. */
+function addFolder(): void {
+  emit("addFolder", isRealCategory.value ? props.category : null);
 }
 
 const groups = computed(() => groupByCategory(props.entries));
@@ -320,6 +333,32 @@ function groupLabel(path: string | null): string {
   margin-top: 3px;
   color: var(--muted);
   font-size: 12.5px;
+}
+
+.entry-list__folder-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 4px 10px 4px 8px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.entry-list__folder-btn .mdi {
+  font-size: 16px;
+}
+
+.entry-list__folder-btn:hover,
+.entry-list__folder-btn:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .entry-list__search {

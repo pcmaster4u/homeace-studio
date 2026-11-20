@@ -13,7 +13,7 @@
     :all-paths="allPaths"
     :is-busy="create.isBusy.value"
     @cancel="create.cancelFolder"
-    @confirm="create.confirmFolder"
+    @confirm="createFolder"
   />
   <NewHelperDialog
     v-if="create.isHelperDialogOpen.value"
@@ -108,6 +108,8 @@ const emit = defineEmits<{
   closeColor: [];
   /** A new helper, automation or script exists; the page opens it. */
   created: [entityId: string];
+  /** A new folder exists; the page opens it. */
+  folderCreated: [path: string];
 }>();
 
 const { t } = useI18n();
@@ -126,6 +128,12 @@ async function onCleanedUp(categoryCount: number): Promise<void> {
   cleanup.close();
   toasts.show(t("toast.cleanedUp", { count: categoryCount }, categoryCount));
   await entriesStore.load();
+}
+
+async function createFolder(path: string): Promise<void> {
+  const storedPath = await props.create.confirmFolder(path);
+
+  if (storedPath) emit("folderCreated", storedPath);
 }
 
 async function createHelper(helper: NewHelper): Promise<void> {

@@ -19,7 +19,8 @@ type CreateActions = {
   isHelperDialogOpen: Ref<boolean>;
   startFolder: (parent: string | null) => void;
   cancelFolder: () => void;
-  confirmFolder: (path: string) => Promise<void>;
+  /** @returns The new folder path, or null when creating failed. */
+  confirmFolder: (path: string) => Promise<string | null>;
   deleteFolder: (path: string) => Promise<void>;
   openHelperDialog: () => void;
   closeHelperDialog: () => void;
@@ -63,13 +64,15 @@ export function useCreateActions(): CreateActions {
     }
   }
 
-  async function confirmFolder(path: string): Promise<void> {
+  async function confirmFolder(path: string): Promise<string | null> {
     const storedPath = await run(() => foldersStore.create(path));
 
-    if (storedPath === null) return;
+    if (storedPath === null) return null;
 
     toasts.show(t("toast.folderCreated", { path: storedPath }));
     folderDraft.value = null;
+
+    return storedPath;
   }
 
   async function deleteFolder(path: string): Promise<void> {

@@ -74,16 +74,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useEntryDropTarget } from "@/composables/useEntryDropTarget";
-import { CATEGORY_FILTER } from "@/constants/entries";
+import { CATEGORY_FILTER, CATEGORY_SEPARATOR } from "@/constants/entries";
 import type { CategoryNode } from "@/utils/categoryTree";
 
 import CategoryTreeNode from "./CategoryTreeNode.vue";
 
-defineProps<{
+const props = defineProps<{
   tree: CategoryNode[];
   selected: string;
   totalCount: number;
@@ -125,6 +125,23 @@ function toggleNode(path: string): void {
 
   expandedPaths.value = next;
 }
+
+/** A folder selected from elsewhere (a new folder, the list) opens the tree down to it. */
+watch(
+  () => props.selected,
+  (path) => {
+    if ((Object.values(CATEGORY_FILTER) as string[]).includes(path)) return;
+
+    const levels = path.split(CATEGORY_SEPARATOR);
+    const next = new Set(expandedPaths.value);
+
+    for (let depth = 1; depth <= levels.length; depth++) {
+      next.add(levels.slice(0, depth).join(CATEGORY_SEPARATOR));
+    }
+
+    expandedPaths.value = next;
+  },
+);
 
 /** Selecting a folder also opens it, so its subfolders become visible. */
 function selectNode(path: string): void {
