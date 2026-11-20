@@ -33,6 +33,9 @@
       </button>
     </div>
 
+    <!-- Hints above the folders, e.g. the tidy-up assistant. -->
+    <slot name="notices" />
+
     <ul class="category-tree__list">
       <CategoryTreeNode
         v-for="node in tree"

@@ -2,6 +2,7 @@
   <div class="dialog-frame" role="presentation" @click.self="emit('close')">
     <form
       class="dialog-frame__panel"
+      :class="{ 'dialog-frame__panel--wide': isWide }"
       role="dialog"
       aria-modal="true"
       :aria-label="title"
@@ -21,6 +22,8 @@ import { onKeyStroke } from "@vueuse/core";
 
 defineProps<{
   title: string;
+  /** For dialogs with long lists, like the tidy-up assistant; the buttons then stay in view. */
+  isWide?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -65,5 +68,20 @@ onKeyStroke("Escape", () => emit("close"));
   justify-content: flex-end;
   gap: 8px;
   margin-top: 4px;
+}
+
+.dialog-frame__panel--wide {
+  width: min(780px, 100%);
+}
+
+.dialog-frame__panel--wide .dialog-frame__buttons {
+  position: sticky;
+  bottom: -22px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 4px -22px -22px;
+  padding: 12px 22px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
 }
 </style>

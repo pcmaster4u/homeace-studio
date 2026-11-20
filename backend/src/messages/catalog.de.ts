@@ -34,6 +34,10 @@ export const CATALOG_DE: Catalog = {
   CATEGORY_NAME_TAKEN: "Die Kategorie „{path}“ gibt es schon.",
   CATEGORY_MOVE_INTO_ITSELF: "Eine Kategorie kann nicht in sich selbst verschoben werden.",
   CATEGORY_RENAMED: "Umbenannt.",
+  CLEANUP_APPLIED: "Kategorien umgestellt.",
+  CLEANUP_IGNORED: "Wird nicht mehr vorgeschlagen.",
+  CLEANUP_RESTORED: "Ausgeblendete Vorschläge sind wieder da.",
+  CLEANUP_DUPLICATE: "„{path}“ steht mehrfach in der Liste.",
 
   FOLDER_CREATED: "Ordner angelegt.",
   FOLDER_DELETED: "Ordner entfernt.",

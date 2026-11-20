@@ -187,6 +187,15 @@ const SHOTS = [
     },
   },
   {
+    name: "cleanup-light.png",
+    view: { ...DESKTOP, isDark: false },
+    steps: async (page) => {
+      await click(page, ".cleanup-hint .btn--primary");
+      await click(page, ".cleanup__section-head .btn", "Tick all");
+      await click(page, ".cleanup__row:has(input[type=radio]) > input[type=checkbox]");
+    },
+  },
+  {
     name: "phone-dark.png",
     view: { ...PHONE, isDark: true },
     steps: async (page) => {

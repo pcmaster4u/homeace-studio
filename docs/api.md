@@ -104,6 +104,23 @@ Renames a folder and everything below it, in all four scopes.
 - `400 CATEGORY_MOVE_INTO_ITSELF` when `to` lies below `from` (e.g. `Haus` → `Haus/Neu`).
 - Folders that are only a prefix (no HA category of their own) work too: their subcategories are renamed.
 
+## Tidy-up assistant: /api/categories/cleanup
+
+- `GET` → `{ proposals, ignoredCount }`. A proposal is either
+  `{ key: "split:Office - Heating", kind: "split", from, to: "Office/Heating", isCertain, counts }`
+  (a top-level name with a dash; `isCertain` is false for a dash without spaces, which may belong to
+  the name) or `{ key: "merge:Routine|Routines", kind: "merge", names, to, counts }` (names that only
+  differ by an ending; `to` is the one with most entries, on a tie the longer one). `counts` are entries
+  per scope. Hidden proposals are left out.
+- `POST /preview` `{ changes: [{ from, to }] }` → `{ steps: [{ scope, kind: "rename" | "merge", from, to,
+  entryCount }] }`. Per scope, in order: a rename when `to` is free there, a merge (entries move, the emptied
+  category is deleted) when `to` already exists or an earlier change produced it.
+- `POST /apply` with the same body plans again from HA's current state and runs the steps →
+  `{ categoryCount, stepCount }`, `CLEANUP_APPLIED`. Folder colors and empty folders move to the new path.
+  `400 CATEGORY_PATH_INVALID` for an empty level, `400 CLEANUP_DUPLICATE` when a name is listed twice.
+- `POST /ignore` `{ key }` hides a proposal (overlay `cleanupIgnored`, `CLEANUP_IGNORED`);
+  `DELETE /ignore` shows all again (`CLEANUP_RESTORED`).
+
 ## Folders: GET /api/folders, POST /api/folders, DELETE /api/folders?path=…
 
 Empty folders the user created in the tree. They live only in the overlay; HA has no empty categories and gets

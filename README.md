@@ -32,6 +32,13 @@ kinds of helpers in a few clicks; delete them again when they are not needed.
 
 ![Editing a value right inside the flow](docs/images/editing-light.png)
 
+**Tidy up old categories.** Many homes fake subfolders with names like `Office - Heating`.
+HomeAce Studio spots them, proposes real subfolders and merges near-duplicates such as `Routine`
+and `Routines`. You tick every line yourself and see each change in Home Assistant before it
+happens.
+
+![The tidy-up assistant proposing real subfolders and a merge](docs/images/cleanup-light.png)
+
 **Made to be used everywhere.** Light and dark mode, German and English, all columns resizable,
 and on a phone the list comes first and the details slide in full screen. Technical details such
 as entity IDs stay hidden until you switch them on.
@@ -46,8 +53,6 @@ as entity IDs stay hidden until you switch them on.
 
 ## Coming next
 
-- **Tidy-up assistant:** turns old categories like `Office - Heating` into real subfolders and
-  merges near-duplicates, line by line with a preview.
 - **Folder plans from an AI:** an optional MCP endpoint, so an assistant such as Claude can propose
   a folder structure that you review and apply in HomeAce Studio.
 - Run history and dependencies at a glance, editing helper settings, scenes, and a blueprint editor

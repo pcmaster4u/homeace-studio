@@ -547,6 +547,83 @@ const SCENES: DemoEntity[] = [
   },
 ];
 
+/**
+ * Old-style categories as many homes have them: nesting faked with dashes, and a near-duplicate.
+ * They give the tidy-up assistant something to propose.
+ */
+const LEGACY: DemoEntity[] = [
+  {
+    entityId: "automation.office_heating_in_the_morning",
+    name: "Office heating in the morning",
+    state: "on",
+    platform: "automation",
+    uniqueId: "1700100000001",
+    category: "Office - Heating",
+    labels: ["comfort"],
+    config: {
+      id: "1700100000001",
+      alias: "Office heating in the morning",
+      description: "",
+      mode: "single",
+      triggers: [{ trigger: "time", at: "07:00:00" }],
+      conditions: [{ condition: "time", weekday: ["mon", "tue", "wed", "thu", "fri"] }],
+      actions: [
+        {
+          action: "climate.set_temperature",
+          target: { entity_id: "climate.bathroom" },
+          data: { temperature: 21 },
+        },
+      ],
+    },
+  },
+  {
+    entityId: "automation.office_lights_on_presence",
+    name: "Office lights on presence",
+    state: "on",
+    platform: "automation",
+    uniqueId: "1700100000002",
+    category: "Office - Lights",
+    labels: ["lights"],
+    config: {
+      id: "1700100000002",
+      alias: "Office lights on presence",
+      description: "",
+      mode: "restart",
+      triggers: [{ trigger: "state", entity_id: "binary_sensor.anyone_home", to: "on" }],
+      conditions: [],
+      actions: [{ action: "light.turn_on", target: { entity_id: "light.living_room" } }],
+    },
+  },
+  {
+    entityId: "input_number.office_target_temperature",
+    name: "Office target temperature",
+    state: "21",
+    platform: "input_number",
+    uniqueId: "office_target_temperature",
+    category: "Office-Heating",
+    labels: ["comfort"],
+    attributes: { min: 15, max: 25, step: 0.5, unit_of_measurement: "°C" },
+  },
+  {
+    entityId: "script.morning_routine",
+    name: "Morning routine",
+    state: "off",
+    platform: "script",
+    uniqueId: "morning_routine",
+    category: "Routine",
+    labels: ["comfort"],
+    config: {
+      alias: "Morning routine",
+      mode: "single",
+      sequence: [
+        { action: "light.turn_on", target: { entity_id: "light.living_room" } },
+        { delay: duration(10) },
+        { action: "light.turn_off", target: { entity_id: "light.living_room" } },
+      ],
+    },
+  },
+];
+
 const HELPERS: DemoEntity[] = [
   {
     entityId: "input_number.terrace_brightness",
@@ -641,7 +718,14 @@ export function createDemoHome(): DemoHome {
       { label_id: "security", name: "Security", icon: null, color: "red" },
       { label_id: "comfort", name: "Comfort", icon: null, color: "teal" },
     ],
-    entities: structuredClone([...DEVICES, ...AUTOMATIONS, ...SCRIPTS, ...SCENES, ...HELPERS]),
+    entities: structuredClone([
+      ...DEVICES,
+      ...AUTOMATIONS,
+      ...SCRIPTS,
+      ...SCENES,
+      ...HELPERS,
+      ...LEGACY,
+    ]),
     helperConfigEntries: [
       { entry_id: "demo_template_solar_surplus", domain: "template", title: "Solar surplus" },
     ],

@@ -28,6 +28,8 @@ backend/src/
     categories.service.ts  assign (create/clean up automatically), rename (plan all scopes, then write)
     repositories/        CategoryRepository + HaCategoriesRepository (category and entity registry)
   categories/folders.*   empty folders of the tree (overlay only), GET/POST/DELETE /api/folders
+  categories/cleanup/    tidy-up assistant: cleanup-analysis.ts (pure: findCleanupProposals, planCleanup),
+                         CleanupService + CleanupController under /api/categories/cleanup
   helpers/               POST /api/helpers: helper-payload.ts checks settings per type, then `<type>/create`,
                          wait for the entity, sort it into the folder
   editor/                catalog.mapper.ts (HA descriptions + translations → catalog), flow-entities.ts,

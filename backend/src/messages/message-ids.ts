@@ -38,6 +38,10 @@ export const MESSAGE_ID = {
   categoryNameTaken: "CATEGORY_NAME_TAKEN",
   categoryMoveIntoItself: "CATEGORY_MOVE_INTO_ITSELF",
   categoryRenamed: "CATEGORY_RENAMED",
+  cleanupApplied: "CLEANUP_APPLIED",
+  cleanupIgnored: "CLEANUP_IGNORED",
+  cleanupRestored: "CLEANUP_RESTORED",
+  cleanupDuplicate: "CLEANUP_DUPLICATE",
 
   // Folders (empty folders of the tree)
   folderCreated: "FOLDER_CREATED",

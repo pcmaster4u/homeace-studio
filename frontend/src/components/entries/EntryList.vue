@@ -355,6 +355,8 @@ function groupLabel(path: string | null): string {
   gap: 2px;
   padding: 3px;
   overflow-x: auto;
+  /* Still scrolls by touch, wheel and keyboard; a bar would cover half the tabs. */
+  scrollbar-width: none;
   border-radius: 9px;
   background: var(--sunken);
 }

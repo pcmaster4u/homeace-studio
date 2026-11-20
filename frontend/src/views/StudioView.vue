@@ -36,7 +36,11 @@
           @add-folder="create.startFolder"
           @delete-folder="create.deleteFolder"
           @pick-color="(path) => (colorPath = path)"
-        />
+        >
+          <template #notices>
+            <CleanupHint v-if="cleanup.isHintVisible" />
+          </template>
+        </CategoryTree>
       </aside>
       <PaneSplitter
         v-model="navWidth"
@@ -123,6 +127,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import CategoryTree from "@/components/categories/CategoryTree.vue";
+import CleanupHint from "@/components/cleanup/CleanupHint.vue";
 import EntryDetail from "@/components/entries/EntryDetail.vue";
 import EntryList from "@/components/entries/EntryList.vue";
 import AppTopBar, { type ConnectionStatus } from "@/components/layout/AppTopBar.vue";
@@ -135,6 +140,7 @@ import { useLiveUpdates } from "@/composables/useLiveUpdates";
 import { useStudioData } from "@/composables/useStudioData";
 import { NEW_ENTRY_KIND, type EntryAction, type NewEntryKind } from "@/constants/entries";
 import { PANE, PANE_WIDTH_LIMITS } from "@/constants/layout";
+import { useCleanupStore } from "@/stores/cleanupStore";
 import { useEditorStore } from "@/stores/editorStore";
 import { useEntriesStore } from "@/stores/entriesStore";
 import { useFoldersStore } from "@/stores/foldersStore";
@@ -163,6 +169,7 @@ const editorStore = useEditorStore();
 const flowTexts = useFlowTexts();
 const toasts = useToastStore();
 const messages = useMessagesStore();
+const cleanup = useCleanupStore();
 
 /** Kinds whose flow the detail view shows. */
 const FLOW_KINDS = ["automation", "script"];
@@ -277,6 +284,12 @@ function selectEntry(entityId: string): void {
   studio.selectEntry(entityId);
   isDetailOpen.value = true;
 }
+
+// Proposals follow the categories: after moves, renames and live updates from HA.
+watch(
+  () => entriesStore.entries,
+  () => void cleanup.load(),
+);
 
 onMounted(() => {
   void entriesStore.load();

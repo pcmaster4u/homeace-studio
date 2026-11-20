@@ -45,6 +45,16 @@
           {{ t("settings.reset") }}
         </button>
       </div>
+
+      <div class="settings-menu__row">
+        <div>
+          <b>{{ t("settings.cleanup") }}</b>
+          <small>{{ t("settings.cleanupHint") }}</small>
+        </div>
+        <button class="btn" type="button" @click="openCleanup">
+          {{ t("settings.cleanupOpen") }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -56,6 +66,7 @@ import { useI18n } from "vue-i18n";
 
 import SwitchToggle from "@/components/common/SwitchToggle.vue";
 import { APP_LOCALES, type AppLocale } from "@/i18n";
+import { useCleanupStore } from "@/stores/cleanupStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 
 /** Language names are shown in their own language, so they are not translated. */
@@ -64,6 +75,12 @@ const LOCALE_NAMES: Record<AppLocale, string> = { de: "Deutsch", en: "English" }
 const { t } = useI18n();
 const settings = useSettingsStore();
 const isOpen = ref(false);
+const cleanup = useCleanupStore();
+
+function openCleanup(): void {
+  isOpen.value = false;
+  cleanup.open();
+}
 const root = useTemplateRef("root");
 
 onClickOutside(root, () => (isOpen.value = false));

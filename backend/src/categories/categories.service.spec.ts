@@ -59,6 +59,18 @@ class FakeCategories implements CategoryRepository {
     );
     return Promise.resolve(assigned.length);
   };
+
+  listAssignments = (scope: CategoryScope) => {
+    const byCategory = new Map<string, string[]>();
+    for (const [key, categoryId] of this.assignments.entries()) {
+      if (!key.startsWith(`${scope}:`) || !categoryId) continue;
+      byCategory.set(categoryId, [
+        ...(byCategory.get(categoryId) ?? []),
+        key.slice(scope.length + 1),
+      ]);
+    }
+    return Promise.resolve(byCategory);
+  };
 }
 
 class FakeOverlay implements OverlayRepository {

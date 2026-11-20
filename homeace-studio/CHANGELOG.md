@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0
+
+- Tidy-up assistant: old categories that fake subfolders with dashes ("Office - Heating") become
+  real subfolders, and near-duplicates ("Routine" / "Routines") are merged. Every line is your
+  choice, with a preview of each change in Home Assistant. Open it from the hint in the tree or
+  from the settings.
+- The scope tabs above the list no longer show a scrollbar.
+
 ## 0.7.2
 
 - Fixed: a strip at the bottom of the window where the columns ended too early.

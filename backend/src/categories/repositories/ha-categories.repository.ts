@@ -58,4 +58,18 @@ export class HaCategoriesRepository implements CategoryRepository {
 
     return assigned.length;
   }
+
+  async listAssignments(scope: CategoryScope): Promise<Map<string, string[]>> {
+    const entries = await this.ha.call<HaEntityRegistryEntry[]>(HA_COMMAND.entityRegistryList);
+    const byCategory = new Map<string, string[]>();
+
+    for (const entry of entries) {
+      const categoryId = entry.categories[scope];
+
+      if (categoryId)
+        byCategory.set(categoryId, [...(byCategory.get(categoryId) ?? []), entry.entity_id]);
+    }
+
+    return byCategory;
+  }
 }

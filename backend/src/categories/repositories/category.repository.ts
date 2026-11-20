@@ -10,4 +10,6 @@ export interface CategoryRepository {
   assign(entityId: string, scope: CategoryScope, categoryId: string | null): Promise<void>;
   /** How many entities have this category in this scope. */
   countAssigned(scope: CategoryScope, categoryId: string): Promise<number>;
+  /** Entity IDs per category id in this scope, from one registry read. */
+  listAssignments(scope: CategoryScope): Promise<Map<string, string[]>>;
 }

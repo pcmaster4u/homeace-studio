@@ -19,6 +19,8 @@ export type Overlay = {
   notes: Record<string, string>;
   /** Color per folder path, as "#rrggbb". */
   folderColors: Record<string, string>;
+  /** Clean-up proposals the user hid ("split:Büro - Licht", "merge:Routine|Routinen"). */
+  cleanupIgnored: string[];
 };
 
 export const EMPTY_OVERLAY: Overlay = {
@@ -28,4 +30,5 @@ export const EMPTY_OVERLAY: Overlay = {
   favorites: [],
   notes: {},
   folderColors: {},
+  cleanupIgnored: [],
 };

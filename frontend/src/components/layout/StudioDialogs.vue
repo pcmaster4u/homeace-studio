@@ -52,12 +52,19 @@
     @cancel="emit('closeColor')"
     @pick="pickColor"
   />
+  <CleanupDialog
+    v-if="cleanup.isOpen"
+    :all-paths="allPaths"
+    @close="cleanup.close()"
+    @applied="onCleanedUp"
+  />
   <ToastHost />
 </template>
 
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
+import CleanupDialog from "@/components/cleanup/CleanupDialog.vue";
 import FolderColorDialog from "@/components/categories/FolderColorDialog.vue";
 import NewFolderDialog from "@/components/categories/NewFolderDialog.vue";
 import RenameCategoryDialog from "@/components/categories/RenameCategoryDialog.vue";
@@ -70,7 +77,10 @@ import type { useCreateActions } from "@/composables/useCreateActions";
 import type { useEntryActions } from "@/composables/useEntryActions";
 import type { NewFlow } from "@/services/flowsService";
 import type { NewHelper } from "@/services/helpersService";
+import { useCleanupStore } from "@/stores/cleanupStore";
+import { useEntriesStore } from "@/stores/entriesStore";
 import { useFoldersStore } from "@/stores/foldersStore";
+import { useToastStore } from "@/stores/toastStore";
 
 /** All dialogs and toasts of the studio page, kept out of the page to keep it readable. */
 const props = defineProps<{
@@ -91,6 +101,15 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const foldersStore = useFoldersStore();
+const cleanup = useCleanupStore();
+const entriesStore = useEntriesStore();
+const toasts = useToastStore();
+
+async function onCleanedUp(categoryCount: number): Promise<void> {
+  cleanup.close();
+  toasts.show(t("toast.cleanedUp", { count: categoryCount }, categoryCount));
+  await entriesStore.load();
+}
 
 async function createHelper(helper: NewHelper): Promise<void> {
   const entityId = await props.create.confirmHelper(helper);

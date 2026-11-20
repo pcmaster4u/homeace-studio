@@ -34,6 +34,10 @@ export const CATALOG_EN: Catalog = {
   CATEGORY_NAME_TAKEN: 'The category "{path}" already exists.',
   CATEGORY_MOVE_INTO_ITSELF: "A category cannot be moved into itself.",
   CATEGORY_RENAMED: "Renamed.",
+  CLEANUP_APPLIED: "Categories converted.",
+  CLEANUP_IGNORED: "Will not be suggested again.",
+  CLEANUP_RESTORED: "Hidden suggestions are back.",
+  CLEANUP_DUPLICATE: '"{path}" is in the list more than once.',
 
   FOLDER_CREATED: "Folder created.",
   FOLDER_DELETED: "Folder removed.",
