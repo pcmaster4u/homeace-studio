@@ -7,6 +7,14 @@
     @cancel="actions.cancelRename"
     @confirm="actions.confirmRename"
   />
+  <MoveEntriesDialog
+    v-if="actions.movingIds.value"
+    :count="actions.movingIds.value.length"
+    :all-paths="allPaths"
+    :is-busy="actions.isBusy.value"
+    @cancel="actions.cancelMoveMany"
+    @confirm="(path) => actions.moveEntries(actions.movingIds.value ?? [], path)"
+  />
   <NewFolderDialog
     v-if="create.folderDraft.value"
     :parent="create.folderDraft.value.parent"
@@ -78,6 +86,7 @@ import CleanupDialog from "@/components/cleanup/CleanupDialog.vue";
 import FolderColorDialog from "@/components/categories/FolderColorDialog.vue";
 import NewFolderDialog from "@/components/categories/NewFolderDialog.vue";
 import RenameCategoryDialog from "@/components/categories/RenameCategoryDialog.vue";
+import MoveEntriesDialog from "@/components/entries/MoveEntriesDialog.vue";
 import ConfirmDialog from "@/components/common/ConfirmDialog.vue";
 import ToastHost from "@/components/common/ToastHost.vue";
 import NewFlowDialog from "@/components/flow/NewFlowDialog.vue";

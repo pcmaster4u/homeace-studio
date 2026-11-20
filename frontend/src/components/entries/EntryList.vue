@@ -52,6 +52,33 @@
         <input v-model="search" type="search" :placeholder="t('list.search')" autocomplete="off" />
       </label>
 
+      <div
+        v-if="checkedIds.size > 0"
+        class="entry-list__bulk"
+        role="toolbar"
+        :aria-label="t('list.bulk')"
+      >
+        <b>{{ t("list.checkedCount", { count: checkedIds.size }) }}</b>
+        <button class="btn btn--primary" type="button" @click="emit('moveChecked')">
+          <span class="mdi mdi-folder-move-outline" />{{ t("list.moveTo") }}
+        </button>
+        <button class="btn" type="button" @click="emit('uncategorizeChecked')">
+          {{ t("list.takeOut") }}
+        </button>
+        <button class="btn entry-list__bulk-quiet" type="button" @click="checkAll">
+          {{ t("list.checkAll") }}
+        </button>
+        <button
+          class="icon-btn"
+          type="button"
+          :aria-label="t('list.clearChecked')"
+          :title="t('list.clearChecked')"
+          @click="emit('check', [...checkedIds], false)"
+        >
+          <span class="mdi mdi-close" />
+        </button>
+      </div>
+
       <div class="entry-list__scopes" role="tablist">
         <button
           v-for="option in ENTRY_SCOPES"
@@ -90,6 +117,9 @@
           :entry="entry"
           :is-selected="entry.entityId === selectedEntityId"
           :has-unsaved-changes="unsavedIds.has(entry.entityId)"
+          :is-checked="checkedIds.has(entry.entityId)"
+          :is-check-active="checkedIds.size > 0"
+          @check="onCheck"
           :is-technical-details-visible="isTechnicalDetailsVisible"
           @select="(entityId) => emit('select', entityId)"
           @act="(item, action) => emit('act', item, action)"
@@ -122,6 +152,8 @@ import {
   type EntryGroup,
 } from "@/utils/entryFilter";
 
+import { rangeBetween } from "@/utils/selection";
+
 import EntryListRow from "./EntryListRow.vue";
 
 const search = defineModel<string>("search", { required: true });
@@ -135,6 +167,8 @@ const props = defineProps<{
   selectedEntityId: string | null;
   /** Entries whose flow has unsaved edits. */
   unsavedIds: ReadonlySet<string>;
+  /** Rows ticked for moving several entries at once. */
+  checkedIds: ReadonlySet<string>;
   isTechnicalDetailsVisible: boolean;
 }>();
 
@@ -146,6 +180,10 @@ const emit = defineEmits<{
   create: [kind: NewEntryKind];
   /** New folder below `parent`; null for a top-level folder. */
   addFolder: [parent: string | null];
+  /** Tick or untick rows. */
+  check: [entityIds: string[], isChecked: boolean];
+  moveChecked: [];
+  uncategorizeChecked: [];
 }>();
 
 const { t } = useI18n();
@@ -160,6 +198,29 @@ onClickOutside(newMenu, () => (isNewMenuOpen.value = false));
 function pickNew(kind: NewEntryKind): void {
   isNewMenuOpen.value = false;
   emit("create", kind);
+}
+
+/** Rows in the order they are shown, for shift-click ranges and "select all". */
+const visibleIds = computed(() =>
+  groups.value
+    .flatMap((group) => (isOpen(group) ? group.entries : []))
+    .filter((entry) => entry.isInRegistry)
+    .map((entry) => entry.entityId),
+);
+/** Last clicked checkbox; shift-click ticks everything from here. */
+let checkAnchor: string | null = null;
+
+function onCheck(entityId: string, withShift: boolean): void {
+  const isChecked = !props.checkedIds.has(entityId);
+  const ids = withShift ? rangeBetween(visibleIds.value, checkAnchor, entityId) : [entityId];
+
+  // A range takes the state of the clicked row, so shift-click can also untick a range.
+  emit("check", ids, isChecked);
+  checkAnchor = entityId;
+}
+
+function checkAll(): void {
+  emit("check", visibleIds.value, true);
 }
 
 /** Inside a folder the button makes a subfolder; elsewhere a top-level folder. */
@@ -359,6 +420,33 @@ function groupLabel(path: string | null): string {
   border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--accent);
+}
+
+.entry-list__bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 8px 8px 12px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+}
+
+.entry-list__bulk b {
+  margin-right: auto;
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.entry-list__bulk .btn {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+
+.entry-list__bulk-quiet {
+  border-color: transparent;
+  background: transparent;
 }
 
 .entry-list__search {

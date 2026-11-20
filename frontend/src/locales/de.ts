@@ -301,6 +301,14 @@ export default {
     folder: "Ordner (optional)",
   },
   list: {
+    check: "„{name}“ auswählen",
+    checkHint: "Auswählen, um mehrere auf einmal zu verschieben. Mit Shift einen ganzen Bereich.",
+    bulk: "Ausgewählte Einträge",
+    checkedCount: "{count} ausgewählt",
+    moveTo: "Verschieben nach …",
+    takeOut: "Aus Ordner nehmen",
+    checkAll: "Alle auswählen",
+    clearChecked: "Auswahl aufheben",
     emptyFolder:
       "Noch leer. Zieh Einträge auf diesen Ordner im Baum links, oder wähle ihn bei einem Eintrag unter Eigenschaften → Kategorie.",
     newSubfolder: "Unterordner anlegen",
@@ -502,7 +510,18 @@ export default {
     review: "Prüfen",
     navEntry: "KI-Vorschläge",
   },
+  move: {
+    title: "Einen Eintrag verschieben | {count} Einträge verschieben",
+    folder: "Zielordner",
+    hint: "Fehlende Ordner werden angelegt, z. B. Haus/Pool. Jeder Eintrag landet in seinem Bereich (Automationen, Helfer …) in diesem Ordner.",
+    confirm: "Verschieben",
+    running: "Wird verschoben …",
+  },
   toast: {
+    movedMany: "Ein Eintrag nach {path} verschoben | {count} Einträge nach {path} verschoben",
+    movedOutMany: "Ein Eintrag aus dem Ordner genommen | {count} Einträge aus dem Ordner genommen",
+    moveFailed:
+      "Ein Eintrag ließ sich nicht verschieben: {reason} | {count} Einträge ließen sich nicht verschieben: {reason}",
     aiApplied:
       "Keine Änderung übernommen | Eine Änderung übernommen | {count} Änderungen übernommen",
     aiFailed: "Ein Schritt hat nicht geklappt | {count} Schritte haben nicht geklappt",

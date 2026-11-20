@@ -63,6 +63,31 @@ export const useEntriesStore = defineStore("entries", () => {
     await load();
   }
 
+  /**
+   * Moves several entries, one after another: in parallel, two of them could both create the same
+   * new category, and HA refuses the second. Reloads once at the end.
+   *
+   * @returns The IDs that could not be moved, with their errors.
+   */
+  async function moveEntries(
+    entityIds: readonly string[],
+    categoryPath: string | null,
+  ): Promise<{ failed: { entityId: string; error: unknown }[] }> {
+    const failed: { entityId: string; error: unknown }[] = [];
+
+    for (const entityId of entityIds) {
+      try {
+        await moveEntryRequest(entityId, categoryPath);
+      } catch (error) {
+        failed.push({ entityId, error });
+      }
+    }
+
+    await load();
+
+    return { failed };
+  }
+
   /** Renames a folder in all scopes, then reloads. Errors go to the caller. */
   async function renameCategory(from: string, to: string): Promise<number> {
     const renamedCount = await renameCategoryRequest(from, to);
@@ -146,6 +171,7 @@ export const useEntriesStore = defineStore("entries", () => {
     load,
     refresh,
     moveEntry,
+    moveEntries,
     renameCategory,
     createHelper,
     updateEntry,

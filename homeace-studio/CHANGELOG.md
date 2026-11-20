@@ -2,6 +2,8 @@
 
 ## 0.9.1
 
+- Move several entries at once: tick them (Shift ticks a range), then "Move to …" or "Take out of
+  folder" in the bar above the list, or drag one of the ticked rows onto a folder.
 - "New subfolder" button right below the folder title ("New folder" in the overview); after creating
   it, the new folder opens and the tree unfolds down to it.
 - The tree opens down to the selected folder however it was selected.

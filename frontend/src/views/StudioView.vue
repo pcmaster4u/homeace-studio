@@ -32,7 +32,7 @@
           :colors="foldersStore.colors"
           @select="selectCategory"
           @rename="actions.startRename"
-          @drop-entry="(path, entityId) => actions.moveEntry(entityId, path)"
+          @drop-entry="dropEntry"
           @add-folder="create.startFolder"
           @delete-folder="create.deleteFolder"
           @pick-color="(path) => (colorPath = path)"
@@ -61,11 +61,15 @@
           :category="studio.category"
           :selected-entity-id="studio.selectedEntityId"
           :unsaved-ids="editorStore.unsavedIds"
+          :checked-ids="studio.checkedIds"
           :is-technical-details-visible="settings.isTechnicalDetailsVisible"
           @select="selectEntry"
           @open-nav="isNavOpen = true"
           @create="onCreate"
           @add-folder="create.startFolder"
+          @check="studio.setChecked"
+          @move-checked="actions.startMoveMany([...studio.checkedIds])"
+          @uncategorize-checked="actions.moveEntries([...studio.checkedIds], null)"
           @act="entryActions.act"
         />
       </div>
@@ -278,6 +282,15 @@ const connectionStatus = computed<ConnectionStatus>(() => {
 function selectCategory(path: string): void {
   studio.selectCategory(path);
   isNavOpen.value = false;
+}
+
+/** Dropping a ticked row moves every ticked row; any other row moves alone. */
+function dropEntry(path: string | null, entityId: string): void {
+  if (studio.checkedIds.has(entityId) && studio.checkedIds.size > 1) {
+    void actions.moveEntries([...studio.checkedIds], path);
+  } else {
+    void actions.moveEntry(entityId, path);
+  }
 }
 
 /** "Neu" in the list: automations and scripts get a name dialog, helpers their own dialog. */

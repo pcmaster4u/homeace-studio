@@ -297,6 +297,14 @@ const en: MessageSchema = {
     folder: "Folder (optional)",
   },
   list: {
+    check: "Select “{name}”",
+    checkHint: "Select to move several at once. With Shift, a whole range.",
+    bulk: "Selected entries",
+    checkedCount: "{count} selected",
+    moveTo: "Move to …",
+    takeOut: "Take out of folder",
+    checkAll: "Select all",
+    clearChecked: "Clear selection",
     emptyFolder:
       "Still empty. Drag entries onto this folder in the tree on the left, or pick it for an entry under Properties → Category.",
     newSubfolder: "New subfolder",
@@ -496,7 +504,18 @@ const en: MessageSchema = {
     review: "Review",
     navEntry: "AI suggestions",
   },
+  move: {
+    title: "Move one entry | Move {count} entries",
+    folder: "Target folder",
+    hint: "Missing folders are created, e.g. House/Pool. Every entry lands in this folder within its own scope (automations, helpers …).",
+    confirm: "Move",
+    running: "Moving …",
+  },
   toast: {
+    movedMany: "Moved one entry to {path} | Moved {count} entries to {path}",
+    movedOutMany: "Took one entry out of its folder | Took {count} entries out of their folders",
+    moveFailed:
+      "One entry could not be moved: {reason} | {count} entries could not be moved: {reason}",
     aiApplied: "No change applied | One change applied | {count} changes applied",
     aiFailed: "One step did not work | {count} steps did not work",
     aiRejected: "Plan rejected",

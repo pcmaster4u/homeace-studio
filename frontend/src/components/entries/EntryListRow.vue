@@ -1,10 +1,24 @@
 <template>
   <div
     class="entry-list-row"
-    :class="{ 'entry-list-row--active': isSelected, 'entry-list-row--off': isOff }"
+    :class="{
+      'entry-list-row--active': isSelected,
+      'entry-list-row--off': isOff,
+      'entry-list-row--checked': isChecked,
+      'entry-list-row--checking': isCheckActive,
+    }"
     :draggable="entry.isInRegistry"
     @dragstart="startDrag"
   >
+    <input
+      class="entry-list-row__check"
+      type="checkbox"
+      :checked="isChecked"
+      :disabled="!entry.isInRegistry"
+      :aria-label="t('list.check', { name: entry.name })"
+      :title="entry.isInRegistry ? t('list.checkHint') : t('detail.notInRegistry')"
+      @click="(event: MouseEvent) => emit('check', entry.entityId, event.shiftKey)"
+    />
     <button class="entry-list-row__open" type="button" @click="emit('select', entry.entityId)">
       <span class="entry-list-row__icon" :class="`kind-${entry.kind}`">
         <span class="mdi" :class="iconClass" />
@@ -68,11 +82,17 @@ const props = defineProps<{
   isTechnicalDetailsVisible: boolean;
   /** The flow has edits that are not saved to HA yet. */
   hasUnsavedChanges: boolean;
+  /** Ticked for moving several entries at once. */
+  isChecked: boolean;
+  /** Some row is ticked, so every checkbox is shown clearly. */
+  isCheckActive: boolean;
 }>();
 
 const emit = defineEmits<{
   select: [entityId: string];
   act: [entry: Entry, action: EntryAction];
+  /** The checkbox was clicked; `withShift` ticks a range. */
+  check: [entityId: string, withShift: boolean];
 }>();
 
 const { t } = useI18n();
@@ -101,13 +121,45 @@ function startDrag(event: DragEvent): void {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 10px 0 0;
+  padding: 0 10px 0 8px;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
 }
 
 .entry-list-row:hover {
   background: var(--surface);
+}
+
+.entry-list-row__check {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+  opacity: 0.3;
+}
+
+/* Quiet until needed: clear on hover, when ticked, or while any row is ticked. */
+.entry-list-row:hover .entry-list-row__check,
+.entry-list-row__check:focus-visible,
+.entry-list-row--checking .entry-list-row__check {
+  opacity: 1;
+}
+
+.entry-list-row__check:disabled {
+  cursor: default;
+  opacity: 0.15;
+}
+
+.entry-list-row--checked {
+  background: var(--accent-soft);
+}
+
+@media (hover: none) {
+  .entry-list-row__check {
+    opacity: 0.6;
+  }
 }
 
 .entry-list-row--active {

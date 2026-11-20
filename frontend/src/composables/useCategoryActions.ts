@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useEntriesStore } from "@/stores/entriesStore";
 import { useFoldersStore } from "@/stores/foldersStore";
 import { useMessagesStore } from "@/stores/messagesStore";
+import { useStudioStore } from "@/stores/studioStore";
 import { useToastStore } from "@/stores/toastStore";
 
 type CategoryActions = {
@@ -12,6 +13,12 @@ type CategoryActions = {
   /** The folder in the rename dialog; null when the dialog is closed. */
   renamingPath: Ref<string | null>;
   moveEntry: (entityId: string, categoryPath: string | null) => Promise<void>;
+  /** The entries in the "move to" dialog; null when it is closed. */
+  movingIds: Ref<string[] | null>;
+  startMoveMany: (entityIds: string[]) => void;
+  cancelMoveMany: () => void;
+  /** Moves several entries; null takes them out of their category. Clears the ticked rows. */
+  moveEntries: (entityIds: string[], categoryPath: string | null) => Promise<void>;
   startRename: (path: string) => void;
   cancelRename: () => void;
   confirmRename: (newPath: string) => Promise<void>;
@@ -27,9 +34,11 @@ export function useCategoryActions(): CategoryActions {
   const foldersStore = useFoldersStore();
   const messages = useMessagesStore();
   const toasts = useToastStore();
+  const studio = useStudioStore();
 
   const isBusy = ref(false);
   const renamingPath = ref<string | null>(null);
+  const movingIds = ref<string[] | null>(null);
 
   function showError(error: unknown): void {
     toasts.show(messages.textFor(error, t("errors.actionFailed")), "error");
@@ -51,6 +60,41 @@ export function useCategoryActions(): CategoryActions {
       toasts.show(text);
     } catch (error) {
       showError(error);
+    } finally {
+      isBusy.value = false;
+    }
+  }
+
+  async function moveEntries(entityIds: string[], categoryPath: string | null): Promise<void> {
+    if (entityIds.length === 0) return;
+
+    isBusy.value = true;
+
+    try {
+      const { failed } = await entriesStore.moveEntries(entityIds, categoryPath);
+      const moved = entityIds.length - failed.length;
+
+      if (moved > 0) {
+        toasts.show(
+          categoryPath
+            ? t("toast.movedMany", { count: moved, path: categoryPath }, moved)
+            : t("toast.movedOutMany", { count: moved }, moved),
+        );
+      }
+
+      if (failed.length > 0) {
+        const reason = messages.textFor(failed[0]?.error, t("errors.actionFailed"));
+        toasts.show(
+          t("toast.moveFailed", { count: failed.length, reason }, failed.length),
+          "error",
+        );
+      }
+
+      movingIds.value = null;
+      studio.setChecked(
+        entityIds.filter((id) => !failed.some((item) => item.entityId === id)),
+        false,
+      );
     } finally {
       isBusy.value = false;
     }
@@ -84,5 +128,16 @@ export function useCategoryActions(): CategoryActions {
     }
   }
 
-  return { isBusy, renamingPath, moveEntry, startRename, cancelRename, confirmRename };
+  return {
+    isBusy,
+    renamingPath,
+    moveEntry,
+    movingIds,
+    startMoveMany: (entityIds) => (movingIds.value = entityIds),
+    cancelMoveMany: () => (movingIds.value = null),
+    moveEntries,
+    startRename,
+    cancelRename,
+    confirmRename,
+  };
 }
