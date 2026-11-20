@@ -50,6 +50,6 @@ import { FAKE_HA, HA_ENDPOINT, HA_ENV } from "./ha.constants";
         fake ? new DemoHaRestService(fake) : new HaRestService(endpoint),
     },
   ],
-  exports: [HaConnectionService, HaRestService, FAKE_HA],
+  exports: [HaConnectionService, HaRestService, FAKE_HA, HA_ENDPOINT],
 })
 export class HaModule {}

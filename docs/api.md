@@ -219,6 +219,35 @@ rejects it.
 note, and its category if HomeAce Studio created it and it became empty. `FLOW_DELETED`;
 `400 FLOW_NOT_EDITABLE` for flows outside those files.
 
+## AI access: GET/PUT /api/mcp · POST /api/mcp/token
+
+`GET` → `{ isEnabled, token, path: "/mcp", containerPort, hostPort, isAddon, lastConnection }`.
+`hostPort` is the host port the user mapped in the app's network settings (Supervisor
+`/addons/self/info`), null while none is set; outside the app it is the container port. `PUT`
+`{ isEnabled }` switches access on or off (`MCP_SAVED`; the first switch-on creates a token).
+`POST /api/mcp/token` replaces the token (`MCP_TOKEN_RENEWED`). Overlay field `mcp`.
+
+## AI plans: GET /api/ai-plans · POST /api/ai-plans/:id/apply · POST /api/ai-plans/:id/reject
+
+`GET` → plans, newest first: `{ id, title, reasoning, client, createdAt, status: "open" | "applied" |
+"partial" | "rejected", operations, appliedOperationIds, decidedAt }`. An operation is
+`{ id: "op1", type: "renameFolder", from, to }` or `{ id, type: "moveEntry", entityId, entryName, to,
+currentFolder, kind }`, each with `state`: `ok`, `gone` (folder or entry no longer exists), `done`
+(already true) or `conflict` (rename target exists; entry cannot have a category).
+`apply` `{ operationIds }` runs the chosen operations that are still `ok` (renames first, through
+`POST /api/categories/rename` logic; moves like `POST /api/entries/:id/move`) →
+`{ appliedCount, failed: [{ operationId, messageId }] }`, `AI_PLAN_APPLIED`. The plan becomes `applied`
+when every operation is true afterwards, else `partial`. `reject` → `AI_PLAN_REJECTED`.
+`404 AI_PLAN_NOT_FOUND`, `409 AI_PLAN_CLOSED` for decided plans.
+
+## MCP endpoint (own port 8098, not under /api)
+
+Streamable HTTP, stateless: `POST /mcp` with `Authorization: Bearer <token>`. `503` while switched
+off, `401` for a missing or wrong token, `405` for GET/DELETE, `413` above 1 MB. Tools:
+`list_folders`, `list_entries` (`folder`, `includeSubfolders`, `kind`), `propose_folder_plan`
+(`title`, `reasoning`, `operations` with `renameFolder` / `moveEntry`, at most 200; every problem is
+returned at once and nothing is saved; at most 10 open plans) and `get_plan_status` (`planId`).
+
 ## GET /api/messages?lang=de
 
 The backend catalog: message ID → text, for `de` (default) and `en`. Placeholders like `{path}` are filled from

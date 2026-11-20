@@ -1,6 +1,7 @@
 import { useDocumentVisibility, useEventSource } from "@vueuse/core";
 import { computed, watch, type ComputedRef } from "vue";
 
+import { useAiStore } from "@/stores/aiStore";
 import { useEditorStore } from "@/stores/editorStore";
 import { useEntriesStore } from "@/stores/entriesStore";
 import { useFoldersStore } from "@/stores/foldersStore";
@@ -20,6 +21,7 @@ export function useLiveUpdates(): { isLive: ComputedRef<boolean> } {
   const entriesStore = useEntriesStore();
   const foldersStore = useFoldersStore();
   const editorStore = useEditorStore();
+  const ai = useAiStore();
   const { data, status } = useEventSource(EVENTS_URL, [], { autoReconnect: true });
   const visibility = useDocumentVisibility();
 
@@ -28,6 +30,8 @@ export function useLiveUpdates(): { isLive: ComputedRef<boolean> } {
   watch(data, () => {
     void entriesStore.refresh();
     void editorStore.refreshFlow();
+    // New folder plans from an AI arrive the same way.
+    void ai.loadPlans();
   });
 
   watch(visibility, (current) => {
@@ -35,6 +39,7 @@ export function useLiveUpdates(): { isLive: ComputedRef<boolean> } {
 
     void entriesStore.refresh();
     void foldersStore.load();
+    void ai.loadPlans();
   });
 
   return { isLive: computed(() => status.value === "OPEN") };

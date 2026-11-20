@@ -58,12 +58,22 @@
     @close="cleanup.close()"
     @applied="onCleanedUp"
   />
+  <McpSettingsDialog v-if="ai.isSettingsOpen" />
+  <AiPlanDialog
+    v-if="ai.reviewPlan"
+    :key="ai.reviewPlan.id"
+    :plan="ai.reviewPlan"
+    :all-paths="allPaths"
+    @applied="onPlanApplied"
+  />
   <ToastHost />
 </template>
 
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
+import AiPlanDialog from "@/components/ai/AiPlanDialog.vue";
+import McpSettingsDialog from "@/components/ai/McpSettingsDialog.vue";
 import CleanupDialog from "@/components/cleanup/CleanupDialog.vue";
 import FolderColorDialog from "@/components/categories/FolderColorDialog.vue";
 import NewFolderDialog from "@/components/categories/NewFolderDialog.vue";
@@ -77,6 +87,7 @@ import type { useCreateActions } from "@/composables/useCreateActions";
 import type { useEntryActions } from "@/composables/useEntryActions";
 import type { NewFlow } from "@/services/flowsService";
 import type { NewHelper } from "@/services/helpersService";
+import { useAiStore } from "@/stores/aiStore";
 import { useCleanupStore } from "@/stores/cleanupStore";
 import { useEntriesStore } from "@/stores/entriesStore";
 import { useFoldersStore } from "@/stores/foldersStore";
@@ -104,6 +115,12 @@ const foldersStore = useFoldersStore();
 const cleanup = useCleanupStore();
 const entriesStore = useEntriesStore();
 const toasts = useToastStore();
+const ai = useAiStore();
+
+async function onPlanApplied(): Promise<void> {
+  // Renamed folders keep their colors and empty subfolders in the overlay.
+  await Promise.all([entriesStore.load(), foldersStore.load()]);
+}
 
 async function onCleanedUp(categoryCount: number): Promise<void> {
   cleanup.close();

@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
 
+import { AiModule } from "./ai/ai.module";
 import { LOCAL_ENV_FILE } from "./app.constants";
 import { CategoriesModule } from "./categories/categories.module";
 import { ApiExceptionFilter } from "./common/api/api-exception.filter";
@@ -25,6 +26,7 @@ import { MessagesModule } from "./messages/messages.module";
     LookupsModule,
     LiveModule,
     EditorModule,
+    AiModule,
   ],
   providers: [
     // Every answer uses the { message, error, data } envelope (docs/api.md).

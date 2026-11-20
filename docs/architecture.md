@@ -11,6 +11,10 @@ backend/src/
   common/api/, pipes/    response envelope, error filter, validation errors
   messages/              message IDs and the de/en catalog, GET /api/messages
   ha/                    everything that talks to HA; HaModule swaps in demo/ when HOMEACE_DEMO=true
+  ai/                    AI folder plans: McpHttpServer (own node http server on MCP_PORT 8098, stateless
+                         Streamable HTTP per request), mcp-tools.ts (the four MCP tools), McpAccessService
+                         (switch, token, Supervisor port lookup), AiPlansService (propose, states, apply,
+                         reject; plans in the overlay), AiController (/api/mcp, /api/ai-plans)
   demo/                  demo mode: FakeHa (an invented home in memory that answers the WebSocket and
                          REST calls with HA's shapes and events), DemoHaConnectionService / DemoHaRestService
                          (subclasses of the real services), MemoryOverlayRepository

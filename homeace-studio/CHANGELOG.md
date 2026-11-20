@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.0
+
+- AI access (MCP): an AI like Claude can read folders and entries and propose a folder plan. You
+  review it in HomeAce Studio, untick what you do not want and apply the rest; the AI cannot change
+  anything itself. Off by default: needs a host port in the app's network settings, the switch in
+  Settings → AI access, and a token.
+- Fixed: live updates stopped after the first change in Home Assistant.
+- The tidy-up assistant no longer proposes empty categories.
+
 ## 0.8.0
 
 - Tidy-up assistant: old categories that fake subfolders with dashes ("Office - Heating") become

@@ -67,11 +67,19 @@ describe("clean-up analysis", () => {
     ).toEqual([]);
   });
 
-  it("groups singular and plural forms, also in English", () => {
+  it("groups singular and plural forms, also in English, and skips empty categories", () => {
     const { categories, assignments } = state({
-      script: { Routine: [], Routines: [], Routinen: [], Garage: [], Garten: [] },
+      script: {
+        Routine: ["script.a"],
+        Routines: ["script.b"],
+        Routinen: ["script.c"],
+        Garage: ["script.d"],
+        Garten: ["script.e"],
+        "Büro - Alt": [],
+      },
     });
 
+    // "Büro - Alt" is empty: HA keeps it, but the tree does not show it, so it is not proposed.
     const merges = findCleanupProposals(categories, assignments, new Set());
 
     expect(merges).toEqual([

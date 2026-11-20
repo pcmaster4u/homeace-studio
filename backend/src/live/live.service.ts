@@ -20,6 +20,11 @@ export class LiveService implements OnModuleInit {
 
   constructor(private readonly ha: HaConnectionService) {}
 
+  /** For changes that do not come from HA, e.g. a new folder plan from an AI. */
+  notify(): void {
+    this.changes.next();
+  }
+
   onModuleInit(): void {
     for (const eventType of LIVE_EVENT_TYPES) {
       this.ha.subscribe(eventType, (event) => {

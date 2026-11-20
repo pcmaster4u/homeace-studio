@@ -39,6 +39,13 @@ happens.
 
 ![The tidy-up assistant proposing real subfolders and a merge](docs/images/cleanup-light.png)
 
+**Let an AI suggest a folder structure.** Switch on the optional AI access (MCP) and an assistant
+such as Claude can read your folders and entries and send a plan: rename folders, sort entries
+in. It cannot change anything itself. The plan waits in HomeAce Studio, you untick what you do not
+want, check the preview and apply it. Flows, states and notes are never shown to the AI.
+
+![A folder plan from an AI, ready for review](docs/images/ai-plan-light.png)
+
 **Made to be used everywhere.** Light and dark mode, German and English, all columns resizable,
 and on a phone the list comes first and the details slide in full screen. Technical details such
 as entity IDs stay hidden until you switch them on.
@@ -53,8 +60,6 @@ as entity IDs stay hidden until you switch them on.
 
 ## Coming next
 
-- **Folder plans from an AI:** an optional MCP endpoint, so an assistant such as Claude can propose
-  a folder structure that you review and apply in HomeAce Studio.
 - Run history and dependencies at a glance, editing helper settings, scenes, and a blueprint editor
   that turns any automation into a blueprint.
 - Installing from the HA app store with ready-made images.
@@ -89,6 +94,12 @@ docs/            setup, architecture, API, decisions
 
 Local development against a real HA, tests and the app build are described in
 [docs/setup.md](docs/setup.md); the design is in [docs/architecture.md](docs/architecture.md).
+
+## Support
+
+HomeAce Studio is free and open source. If it saves you time, you can buy me a coffee:
+
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/gerrul3r)
 
 ## License
 

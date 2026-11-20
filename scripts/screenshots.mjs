@@ -192,7 +192,10 @@ const SHOTS = [
     steps: async (page) => {
       await click(page, ".cleanup-hint .btn--primary");
       await click(page, ".cleanup__section-head .btn", "Tick all");
-      await click(page, ".cleanup__row:has(input[type=radio]) > input[type=checkbox]");
+      await click(
+        page,
+        ".cleanup__row:has(input[type=radio]) > input[type=checkbox]",
+      );
     },
   },
   {
@@ -213,7 +216,74 @@ const SHOTS = [
       await click(page, ".entry-list-row__open", "Good night");
     },
   },
+  {
+    // Last, because it leaves a plan from an AI in the demo, which the other pictures should not show.
+    name: "ai-plan-light.png",
+    view: { ...DESKTOP, isDark: false },
+    before: seedAiPlan,
+    steps: async (page) => {
+      await click(page, ".ai-hint .btn--primary");
+    },
+  },
 ];
+
+/** Sends a folder plan through the MCP endpoint of the demo, as an AI client would. */
+async function seedAiPlan() {
+  const api = new URL("api/mcp", appUrl);
+  const access = await fetch(api, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ isEnabled: true }),
+  });
+  const { data } = await access.json();
+  const mcp = new URL(
+    `http://${new URL(appUrl).hostname}:${data.hostPort}${data.path}`,
+  );
+  const plan = {
+    title: "Sort by rooms",
+    reasoning:
+      "You mostly look for things by room, so security and the office move under House, and the old test goes to an archive instead of staying uncategorized.",
+    operations: [
+      { type: "renameFolder", from: "Security", to: "House/Security" },
+      {
+        type: "moveEntry",
+        entityId: "automation.office_heating_in_the_morning",
+        to: "House/Office",
+      },
+      {
+        type: "moveEntry",
+        entityId: "automation.office_lights_on_presence",
+        to: "House/Office",
+      },
+      {
+        type: "moveEntry",
+        entityId: "input_number.office_target_temperature",
+        to: "House/Office",
+      },
+      {
+        type: "moveEntry",
+        entityId: "automation.old_light_switch_test",
+        to: "Archive",
+      },
+    ],
+  };
+  const response = await fetch(mcp, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${data.token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "tools/call",
+      params: { name: "propose_folder_plan", arguments: plan },
+    }),
+  });
+  if (!response.ok) throw new Error(`MCP answered ${response.status}`);
+  await response.text();
+}
 
 function findBrowser() {
   const path = BROWSER_CANDIDATES.find((candidate) => existsSync(candidate));
@@ -258,6 +328,7 @@ async function main() {
     console.log(`Screenshots of ${appUrl} → ${outDir}`);
 
     for (const shot of SHOTS) {
+      await shot.before?.();
       await open(page, { ...shot.view, locale: "en" });
       await shot.steps(page);
       await capture(page, shot.name);

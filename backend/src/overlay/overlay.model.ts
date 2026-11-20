@@ -1,3 +1,5 @@
+import type { AiPlan, McpAccess } from "../ai/ai-plan.model";
+
 export const OVERLAY_VERSION = 1;
 
 /** Own extras that HA never sees. Grows with favorites, notes, colors, … */
@@ -21,6 +23,10 @@ export type Overlay = {
   folderColors: Record<string, string>;
   /** Clean-up proposals the user hid ("split:Büro - Licht", "merge:Routine|Routinen"). */
   cleanupIgnored: string[];
+  /** AI access over MCP: switched off until the user turns it on. */
+  mcp: McpAccess;
+  /** Folder plans from an AI, open ones and recently decided ones. */
+  aiPlans: AiPlan[];
 };
 
 export const EMPTY_OVERLAY: Overlay = {
@@ -31,4 +37,6 @@ export const EMPTY_OVERLAY: Overlay = {
   notes: {},
   folderColors: {},
   cleanupIgnored: [],
+  mcp: { isEnabled: false, token: null },
+  aiPlans: [],
 };

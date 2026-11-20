@@ -8,5 +8,6 @@ import { LiveService } from "./live.service";
   imports: [HaModule],
   controllers: [LiveController],
   providers: [LiveService],
+  exports: [LiveService],
 })
 export class LiveModule {}

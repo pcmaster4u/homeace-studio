@@ -118,8 +118,10 @@ const total = (counts: ScopeCounts): number =>
 /**
  * Finds old flat categories that fake nesting with dashes, and near-duplicate names.
  *
- * Only top-level names are looked at: a name with "/" is already a real folder. Nothing here is
- * applied automatically; the user confirms every line (dashes also occur inside plain names).
+ * Only top-level names with entries are looked at: a name with "/" is already a real folder, and an
+ * empty category (HA keeps those the user made) does not show in the tree, so converting it would
+ * change nothing visible. Nothing here is applied automatically; the user confirms every line
+ * (dashes also occur inside plain names).
  *
  * @param ignored - Keys the user hid ("split:…", "merge:…").
  */
@@ -130,7 +132,7 @@ export function findCleanupProposals(
 ): CleanupProposal[] {
   const counts = countByName(categories, assignments);
   const flatNames = [...counts.keys()]
-    .filter((name) => !name.includes(CATEGORY_SEPARATOR))
+    .filter((name) => !name.includes(CATEGORY_SEPARATOR) && total(counts.get(name) ?? {}) > 0)
     .sort((a, b) => a.localeCompare(b));
 
   const splits: SplitProposal[] = [];

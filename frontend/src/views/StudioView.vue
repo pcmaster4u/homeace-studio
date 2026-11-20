@@ -38,6 +38,7 @@
           @pick-color="(path) => (colorPath = path)"
         >
           <template #notices>
+            <AiPlanHint />
             <CleanupHint v-if="cleanup.isHintVisible" />
           </template>
         </CategoryTree>
@@ -127,6 +128,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import CategoryTree from "@/components/categories/CategoryTree.vue";
+import AiPlanHint from "@/components/ai/AiPlanHint.vue";
 import CleanupHint from "@/components/cleanup/CleanupHint.vue";
 import EntryDetail from "@/components/entries/EntryDetail.vue";
 import EntryList from "@/components/entries/EntryList.vue";
@@ -140,6 +142,7 @@ import { useLiveUpdates } from "@/composables/useLiveUpdates";
 import { useStudioData } from "@/composables/useStudioData";
 import { NEW_ENTRY_KIND, type EntryAction, type NewEntryKind } from "@/constants/entries";
 import { PANE, PANE_WIDTH_LIMITS } from "@/constants/layout";
+import { useAiStore } from "@/stores/aiStore";
 import { useCleanupStore } from "@/stores/cleanupStore";
 import { useEditorStore } from "@/stores/editorStore";
 import { useEntriesStore } from "@/stores/entriesStore";
@@ -170,6 +173,7 @@ const flowTexts = useFlowTexts();
 const toasts = useToastStore();
 const messages = useMessagesStore();
 const cleanup = useCleanupStore();
+const ai = useAiStore();
 
 /** Kinds whose flow the detail view shows. */
 const FLOW_KINDS = ["automation", "script"];
@@ -295,6 +299,7 @@ onMounted(() => {
   void entriesStore.load();
   void foldersStore.load();
   void lookups.load();
+  void ai.loadPlans();
 });
 </script>
 

@@ -55,6 +55,16 @@
           {{ t("settings.cleanupOpen") }}
         </button>
       </div>
+
+      <div class="settings-menu__row">
+        <div>
+          <b>{{ t("settings.ai") }}</b>
+          <small>{{ t("settings.aiHintOff") }}</small>
+        </div>
+        <button class="btn" type="button" @click="openAi">
+          {{ t("settings.aiOpen") }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -66,6 +76,7 @@ import { useI18n } from "vue-i18n";
 
 import SwitchToggle from "@/components/common/SwitchToggle.vue";
 import { APP_LOCALES, type AppLocale } from "@/i18n";
+import { useAiStore } from "@/stores/aiStore";
 import { useCleanupStore } from "@/stores/cleanupStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 
@@ -76,6 +87,13 @@ const { t } = useI18n();
 const settings = useSettingsStore();
 const isOpen = ref(false);
 const cleanup = useCleanupStore();
+
+const ai = useAiStore();
+
+function openAi(): void {
+  isOpen.value = false;
+  ai.openSettings();
+}
 
 function openCleanup(): void {
   isOpen.value = false;

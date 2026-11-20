@@ -12,5 +12,6 @@ import { HaEntriesRepository } from "./repositories/ha-entries.repository";
   imports: [HaModule, OverlayModule, CategoriesModule],
   controllers: [EntriesController],
   providers: [EntriesService, { provide: ENTRY_REPOSITORY, useClass: HaEntriesRepository }],
+  exports: [EntriesService],
 })
 export class EntriesModule {}

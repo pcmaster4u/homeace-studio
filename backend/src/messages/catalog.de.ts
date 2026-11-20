@@ -55,6 +55,14 @@ export const CATALOG_DE: Catalog = {
   FLOW_INVALID: "Home Assistant hat den Ablauf abgelehnt: {reason}",
   FLOW_CREATED: "In Home Assistant angelegt.",
   FLOW_DELETED: "In Home Assistant gelöscht.",
+
+  MCP_SAVED: "Gespeichert.",
+  MCP_TOKEN_RENEWED: "Neues Token erzeugt. Das alte gilt nicht mehr.",
+  AI_PLAN_APPLIED: "Plan übernommen.",
+  AI_PLAN_REJECTED: "Plan abgelehnt.",
+  AI_PLAN_NOT_FOUND: "Diesen Plan gibt es nicht mehr.",
+  AI_PLAN_CLOSED: "Über diesen Plan wurde schon entschieden.",
+  AI_OPERATION_FAILED: "Dieser Schritt hat in Home Assistant nicht geklappt.",
   HELPER_NOT_DELETABLE:
     "{entityId} lässt sich hier nicht löschen. Template- und Gruppen-Helfer löschst du vorerst in Home Assistant.",
 };

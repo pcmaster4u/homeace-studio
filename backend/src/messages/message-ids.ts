@@ -63,6 +63,15 @@ export const MESSAGE_ID = {
   flowInvalid: "FLOW_INVALID",
   flowCreated: "FLOW_CREATED",
   flowDeleted: "FLOW_DELETED",
+
+  // AI access (MCP) and folder plans
+  mcpSaved: "MCP_SAVED",
+  mcpTokenRenewed: "MCP_TOKEN_RENEWED",
+  aiPlanApplied: "AI_PLAN_APPLIED",
+  aiPlanRejected: "AI_PLAN_REJECTED",
+  aiPlanNotFound: "AI_PLAN_NOT_FOUND",
+  aiPlanClosed: "AI_PLAN_CLOSED",
+  aiOperationFailed: "AI_OPERATION_FAILED",
 } as const;
 
 export type MessageId = (typeof MESSAGE_ID)[keyof typeof MESSAGE_ID];
