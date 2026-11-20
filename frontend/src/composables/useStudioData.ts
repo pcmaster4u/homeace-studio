@@ -29,7 +29,7 @@ export function useStudioData(): StudioData {
   const foldersStore = useFoldersStore();
   const studio = useStudioStore();
 
-  // Tree and counts follow the scope tab, so "Helfer" shows only folders that contain helpers.
+  // Counts follow the scope tab; the folders themselves stay, so the tree keeps its shape.
   const scopedEntries = computed(() =>
     filterEntries(entriesStore.entries, {
       scope: studio.scope,
@@ -41,6 +41,7 @@ export function useStudioData(): StudioData {
     buildCategoryTree(
       scopedEntries.value.map((entry) => entry.categoryPath),
       foldersStore.folders,
+      entriesStore.entries.map((entry) => entry.categoryPath),
     ),
   );
   // Suggestions and the rename preview cover every scope, because a rename affects all of them.

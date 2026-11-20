@@ -7,6 +7,8 @@
 - The tree opens down to the selected folder however it was selected.
 - Folder actions in the tree are easier to see and always shown on the selected folder.
 - An empty folder explains how to fill it.
+- The tree keeps all folders when you switch between All, Automations, Scripts, Scenes and Helpers;
+  folders without entries of that kind are shown dimmed instead of disappearing.
 
 ## 0.9.0
 

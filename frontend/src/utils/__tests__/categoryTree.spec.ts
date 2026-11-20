@@ -51,4 +51,20 @@ describe("flattenCategoryPaths", () => {
 
     expect(flattenCategoryPaths(tree)).toEqual(["Bad", "Haus", "Haus/Terrasse"]);
   });
+
+  it("keeps folders of other scopes, counting only the scope shown", () => {
+    const tree = buildCategoryTree(
+      ["Haus/Garten"],
+      ["Haus/Pool"],
+      ["Haus/Garten", "Haus/Terrasse"],
+    );
+    const haus = tree[0]!;
+
+    expect(haus.children.map((node) => [node.name, node.totalCount, node.isCategory])).toEqual([
+      ["Garten", 1, true],
+      ["Pool", 0, false],
+      ["Terrasse", 0, true],
+    ]);
+    expect(haus.totalCount).toBe(1);
+  });
 });

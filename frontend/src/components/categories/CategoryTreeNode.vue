@@ -5,6 +5,7 @@
       :class="{
         'category-tree-node--active': selected === node.path,
         'category-tree-node--drop': isDropOver,
+        'category-tree-node--empty': isEmptyHere,
       }"
       :style="{ '--depth': depth }"
       :title="node.isFolderOnly ? t('nav.folderOnly') : undefined"
@@ -129,8 +130,17 @@ const hasChildren = computed(() => props.node.children.length > 0);
 const color = computed(() => folderColor(props.node.path, props.colors));
 const isExpanded = computed(() => props.expandedPaths.has(props.node.path));
 /** Only a user's empty folder can be deleted; folders with entries vanish with their last entry. */
+/** Nothing in the scope shown, but not one of the user's own empty folders. */
+const isEmptyHere = computed(
+  () => props.node.totalCount === 0 && (props.node.isCategory || !props.node.isSavedFolder),
+);
+
 const canDelete = computed(
-  () => props.node.isSavedFolder && props.node.totalCount === 0 && !hasChildren.value,
+  () =>
+    props.node.isSavedFolder &&
+    !props.node.isCategory &&
+    props.node.totalCount === 0 &&
+    !hasChildren.value,
 );
 </script>
 
@@ -154,6 +164,13 @@ const canDelete = computed(
 
 .category-tree-node:hover {
   background: var(--sunken);
+}
+
+/* Empty in the scope shown, but used in another one: still there, just quieter. */
+.category-tree-node--empty .category-tree-node__name,
+.category-tree-node--empty .category-tree-node__count,
+.category-tree-node--empty .category-tree-node__icon {
+  opacity: 0.5;
 }
 
 .category-tree-node--active {

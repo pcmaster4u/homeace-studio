@@ -17,6 +17,11 @@ export type CategoryNode = {
   isFolderOnly: boolean;
   /** Created by the user as an empty folder (overlay); it can be deleted while it holds nothing. */
   isSavedFolder: boolean;
+  /**
+   * HA has a category with this path in some scope, maybe not in the one shown. Such a folder
+   * stays in the tree for every scope and is never offered for deletion as an empty folder.
+   */
+  isCategory: boolean;
 };
 
 /**
@@ -25,6 +30,8 @@ export type CategoryNode = {
  * @param categoryPaths - One path per entry (so repeats count entries); null means "no category"
  *   and is skipped.
  * @param savedFolders - Empty folders the user created; they appear even without entries.
+ * @param allCategoryPaths - Category paths of every scope. They add folders without counting, so
+ *   the tree keeps its shape when a scope tab shows only automations or only helpers.
  * @returns Top-level nodes, each level sorted by name (case-insensitive).
  * @example buildCategoryTree(["Haus/Terrasse", "Haus"])
  *   // [{ path: "Haus", ownCount: 1, totalCount: 2, children: [{ path: "Haus/Terrasse", … }] }]
@@ -32,6 +39,7 @@ export type CategoryNode = {
 export function buildCategoryTree(
   categoryPaths: readonly (string | null)[],
   savedFolders: readonly string[] = [],
+  allCategoryPaths: readonly (string | null)[] = [],
 ): CategoryNode[] {
   const roots: CategoryNode[] = [];
   const nodesByPath = new Map<string, CategoryNode>();
@@ -40,12 +48,16 @@ export function buildCategoryTree(
     ensureNode(folder, roots, nodesByPath).isSavedFolder = true;
   }
 
-  for (const path of categoryPaths) {
+  for (const path of [...categoryPaths, ...allCategoryPaths]) {
     if (!path) continue;
 
     const node = ensureNode(path, roots, nodesByPath);
-    node.ownCount++;
     node.isFolderOnly = false;
+    node.isCategory = true;
+  }
+
+  for (const path of categoryPaths) {
+    if (path) ensureNode(path, roots, nodesByPath).ownCount++;
   }
 
   roots.forEach(sumTotalCounts);
@@ -92,6 +104,7 @@ function addNode(
     totalCount: 0,
     isFolderOnly: true,
     isSavedFolder: false,
+    isCategory: false,
   };
 
   siblings.push(node);
