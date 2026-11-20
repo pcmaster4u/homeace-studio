@@ -6,6 +6,7 @@ import { AiModule } from "./ai/ai.module";
 import { LOCAL_ENV_FILE } from "./app.constants";
 import { CheckupModule } from "./checkup/checkup.module";
 import { CategoriesModule } from "./categories/categories.module";
+import { DependenciesModule } from "./dependencies/dependencies.module";
 import { ApiExceptionFilter } from "./common/api/api-exception.filter";
 import { ResponseEnvelopeInterceptor } from "./common/api/response-envelope.interceptor";
 import { EditorModule } from "./editor/editor.module";
@@ -29,6 +30,7 @@ import { MessagesModule } from "./messages/messages.module";
     EditorModule,
     AiModule,
     CheckupModule,
+    DependenciesModule,
   ],
   providers: [
     // Every answer uses the { message, error, data } envelope (docs/api.md).

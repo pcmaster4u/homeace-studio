@@ -271,9 +271,38 @@ name, entryKind, refs: [{ entityId, name, since }], lastTriggered, isOn }` with 
 - `unused`: an HA-managed helper (input_*, counter, timer, schedule) whose entity ID appears in no
   automation or script config (templates included) and in no scene or group; dashboards are not checked;
 - `stale`: an automation whose `last_triggered` is older than 90 days, or null.
-Disabled entries are skipped. The result is cached 20 s and dropped on every live change.
+Disabled entries are skipped. The data comes from a shared snapshot (`snapshot/`), cached 20 s and
+dropped on every live change.
 `POST /ignore` `{ key }` hides a finding (overlay `checkupIgnored`, `CHECKUP_IGNORED`), `DELETE /ignore`
 shows all again (`CHECKUP_RESTORED`).
+
+## Dependencies: GET /api/dependencies/:entityId
+
+What an entry uses and who uses it. Works for every entity ID (automation, script, scene, helper, or any
+other entity, which then only has users):
+
+```json
+{
+  "entityId": "automation.terrace_light_on_motion",
+  "uses": [
+    { "entityId": "light.terrace", "name": "Terrace light", "roles": ["condition", "action"], "exists": true,
+      "alsoUsedBy": [{ "entityId": "script.terrace_evening_mood", "name": "Terrace evening mood", "roles": ["action"] }] }
+  ],
+  "usedBy": []
+}
+```
+
+- `roles`, in this order: `trigger` (a trigger listens to it), `condition` (a condition, `if`, `while`,
+  `until` or a wait checks it), `action` (an action switches or sets it), `member` (a scene or group
+  contains it), `value` (a template in an action reads it), `call` (an action starts it: script, scene,
+  automation, also `action: script.x`).
+- Sources: the configs of all automations and scripts (`entity_id` fields and targets; inside templates
+  only IDs of entities that exist, so `states.sensor` is not taken for one) and the `entity_id` attribute
+  of scenes and groups. Scripts called by their key are mapped to their entity ID. Dashboards are not
+  covered; device IDs and areas in targets are not resolved.
+- `exists`: false when neither the states nor the entity registry know the entity (the check-up's
+  `gone`); `name` is null then.
+- Reads the same shared snapshot as the check-up (20 s, dropped on every live change).
 
 ## GET /api/messages?lang=de
 

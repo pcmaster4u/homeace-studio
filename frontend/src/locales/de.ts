@@ -327,7 +327,7 @@ export default {
     resize: "Breite der Liste ändern",
   },
   detail: {
-    tabs: { flow: "Ablauf", properties: "Eigenschaften" },
+    tabs: { flow: "Ablauf", properties: "Eigenschaften", dependencies: "Abhängigkeiten" },
     back: "Zurück",
     empty: "Wähle links einen Eintrag aus.",
     identity: "Identität",
@@ -552,8 +552,7 @@ export default {
     },
     banner: {
       gone: "Dieser Ablauf benutzt {ids}. Das gibt es in Home Assistant nicht mehr; im Ablauf ist es rot markiert.",
-      unavailable:
-        "Ausgefallen {since}: {names}. Solange läuft dieser Ablauf nicht richtig.",
+      unavailable: "Ausgefallen {since}: {names}. Solange läuft dieser Ablauf nicht richtig.",
       unused: "Kein Ablauf und kein Skript benutzt diesen Helfer.",
       unusedNote:
         "Dashboards prüft HomeAce Studio nicht. Wenn du ihn dort nutzt, einfach ignorieren.",
@@ -634,6 +633,51 @@ export default {
       media_player: "Mediengeräte",
       other: "passenden Geräte",
     },
+  },
+  deps: {
+    uses: "Benutzt",
+    usedBy: "Wird benutzt von",
+    loading: "Wird geladen …",
+    error: "Die Abhängigkeiten konnten nicht geladen werden.",
+    roles: {
+      trigger: "Löst aus",
+      condition: "Wird geprüft",
+      action: "Wird gesteuert",
+      member: "Gehört dazu",
+      value: "Liefert Werte",
+      call: "Wird gestartet",
+    },
+    verbs: {
+      trigger: "reagiert darauf",
+      condition: "prüft es",
+      action: "steuert es",
+      member: "enthält es",
+      value: "liest den Wert",
+      call: "startet es",
+    },
+    summaryUses: "Benutzt eine Sache, alles da. | Benutzt {count} Dinge, alles da.",
+    summaryUsesPlain: "Benutzt eine Sache. | Benutzt {count} Dinge.",
+    summaryUsedBy:
+      "Nichts anderes benutzt das. | Ein anderer Eintrag benutzt das. | {count} andere Einträge benutzen das.",
+    more: "+{count} weitere | +1 weiterer | +{count} weitere",
+    moreTitle: "Wer benutzt das noch?",
+    gone: "gibt es nicht mehr",
+    goneHint: "Im Ablauf ersetzen oder entfernen",
+    emptyUses: {
+      helper: "Helfer benutzen selbst nichts.",
+      other: "Benutzt nichts.",
+    },
+    emptyUsedBy: {
+      automation:
+        "Kein Skript und keine andere Automation startet sie. Das ist normal: Automationen starten meist von selbst.",
+      script: "Keine Automation startet dieses Skript. Es läuft nur, wenn du es selbst startest.",
+      scene: "Keine Automation und kein Skript aktiviert diese Szene.",
+      helper: "Kein Ablauf benutzt diesen Helfer.",
+    },
+    dashboards: "Dashboards prüft HomeAce Studio nicht.",
+    deleteWarning:
+      "Wird noch benutzt. Diese Einträge zeigen danach ins Leere und erscheinen in der Durchsicht:",
+    deleteAnyway: "Trotzdem löschen",
   },
   toast: {
     findingIgnored: "Wird nicht mehr gemeldet",

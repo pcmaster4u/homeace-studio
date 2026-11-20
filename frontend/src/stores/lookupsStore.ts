@@ -26,9 +26,12 @@ export const useLookupsStore = defineStore("lookups", () => {
     }
   }
 
-  /** Loads the entity list once, when the first entity picker opens. */
-  async function loadEntities(): Promise<void> {
-    if (entities.value.length > 0) return;
+  /**
+   * Loads the entity list once, when the first entity picker opens; `isFresh` reads it again, for
+   * views that show states right now (dependencies).
+   */
+  async function loadEntities(isFresh = false): Promise<void> {
+    if (entities.value.length > 0 && !isFresh) return;
 
     try {
       entities.value = await fetchEntities();

@@ -15,9 +15,13 @@ backend/src/
                          Streamable HTTP per request), mcp-tools.ts (the four MCP tools), McpAccessService
                          (switch, token, Supervisor port lookup), AiPlansService (propose, states, apply,
                          reject; plans in the overlay), AiController (/api/mcp, /api/ai-plans)
+  snapshot/              HomeSnapshotService: entries, states, entity registry and every flow config read
+                         at once, shared by check-up and dependencies (20 s cache, cleared by live changes)
   checkup/               check-up: checkup-analysis.ts (pure: collectEntityRefs, analyzeCheckup),
-                         CheckupService (reads entries, states, registry and every flow config; 20 s
-                         cache, cleared by live changes), CheckupController (/api/checkup)
+                         CheckupService (findings per snapshot), CheckupController (/api/checkup)
+  dependencies/          dependency-analysis.ts (pure: collectRoleRefs walks a flow config with the context
+                         trigger / condition / action, buildDependencyIndex adds scene and group members),
+                         DependenciesService + Controller (GET /api/dependencies/:entityId)
   demo/                  demo mode: FakeHa (an invented home in memory that answers the WebSocket and
                          REST calls with HA's shapes and events), DemoHaConnectionService / DemoHaRestService
                          (subclasses of the real services), MemoryOverlayRepository
@@ -114,6 +118,10 @@ frontend/src/
   utils/flow/flowChanges.ts      applyFlowChange(): set a value, insert / move / duplicate / remove /
                                  disable a block in its list (every block knows its `position`)
   utils/flow/blockTypes.ts       block types to add (hand-made first, then HA's catalog) and their new config
+  components/dependencies/       DependencyView (the "Abhängigkeiten" tab of every entry: uses grouped by
+                                 role with device names and live state, "+2 weitere" users, used by),
+                                 DependencyUseRow, DependencyUserRow (also in the delete dialog);
+                                 stores/dependenciesStore.ts loads with the open entry and after live changes
   components/flow/EntityPicker   the entity editor: search (word order free, umlauts folded), criteria
                                  area / label / kind (one value each, chips stay open), area view with device
                                  cards and "All lights · Living room" (writes target.area_id), suggestions
@@ -188,7 +196,7 @@ The HA token stays in the backend. As an add-on it is `SUPERVISOR_TOKEN` with `h
 | Action forms in the visual editor | WS `get_services` (fields with selectors) |
 | Device triggers / conditions / actions | WS `device_automation/*/list` and `*/capabilities` |
 | Run history | WS `trace/list`, `trace/get` |
-| Dependencies | WS `search/related` |
+| Dependencies | computed from the flow configs and the members of scenes and groups (no extra API; `search/related` would need one call per entry and knows no roles) |
 | Live state | WS `subscribe_entities` |
 | Blueprints (planned) | WS `blueprint/list · import · save · delete · substitute` |
 

@@ -323,7 +323,7 @@ const en: MessageSchema = {
     resize: "Resize list",
   },
   detail: {
-    tabs: { flow: "Flow", properties: "Properties" },
+    tabs: { flow: "Flow", properties: "Properties", dependencies: "Dependencies" },
     back: "Back",
     empty: "Pick an entry on the left.",
     identity: "Identity",
@@ -627,6 +627,51 @@ const en: MessageSchema = {
       media_player: "media players",
       other: "matching devices",
     },
+  },
+  deps: {
+    uses: "Uses",
+    usedBy: "Used by",
+    loading: "Loading …",
+    error: "The dependencies could not be loaded.",
+    roles: {
+      trigger: "Triggers",
+      condition: "Checked",
+      action: "Controlled",
+      member: "Part of it",
+      value: "Provides values",
+      call: "Started",
+    },
+    verbs: {
+      trigger: "reacts to it",
+      condition: "checks it",
+      action: "controls it",
+      member: "contains it",
+      value: "reads its value",
+      call: "starts it",
+    },
+    summaryUses: "Uses one thing, all there. | Uses {count} things, all there.",
+    summaryUsesPlain: "Uses one thing. | Uses {count} things.",
+    summaryUsedBy:
+      "Nothing else uses this. | One other entry uses this. | {count} other entries use this.",
+    more: "+{count} more | +1 more | +{count} more",
+    moreTitle: "Who else uses this?",
+    gone: "no longer exists",
+    goneHint: "Replace or remove it in the flow",
+    emptyUses: {
+      helper: "Helpers do not use anything themselves.",
+      other: "Uses nothing.",
+    },
+    emptyUsedBy: {
+      automation:
+        "No script and no other automation starts it. That is normal: automations usually start on their own.",
+      script: "No automation starts this script. It only runs when you start it yourself.",
+      scene: "No automation and no script activates this scene.",
+      helper: "No flow uses this helper.",
+    },
+    dashboards: "HomeAce Studio does not check dashboards.",
+    deleteWarning:
+      "Still in use. These entries will then point into the void and show up in the check-up:",
+    deleteAnyway: "Delete anyway",
   },
   toast: {
     findingIgnored: "Will not be reported again",

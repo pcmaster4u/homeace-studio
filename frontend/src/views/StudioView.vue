@@ -118,6 +118,7 @@
           @discard-flow="editorStore.discard"
           :findings="checkup.findingsFor(data.selectedEntry.value?.entityId)"
           @ignore-finding="ignoreFinding"
+          @open="selectEntry"
         />
       </div>
     </main>
@@ -167,6 +168,7 @@ import { PANE, PANE_WIDTH_LIMITS } from "@/constants/layout";
 import { useAiStore } from "@/stores/aiStore";
 import { useCheckupStore } from "@/stores/checkupStore";
 import { useCleanupStore } from "@/stores/cleanupStore";
+import { useDependenciesStore } from "@/stores/dependenciesStore";
 import { useEditorStore } from "@/stores/editorStore";
 import { useEntriesStore } from "@/stores/entriesStore";
 import { useFoldersStore } from "@/stores/foldersStore";
@@ -199,6 +201,7 @@ const messages = useMessagesStore();
 const cleanup = useCleanupStore();
 const ai = useAiStore();
 const checkup = useCheckupStore();
+const dependencies = useDependenciesStore();
 
 /** Kinds whose flow the detail view shows. */
 const FLOW_KINDS = ["automation", "script"];
@@ -347,6 +350,7 @@ watch(
   () => {
     void cleanup.load();
     void checkup.load();
+    void dependencies.refresh();
   },
 );
 

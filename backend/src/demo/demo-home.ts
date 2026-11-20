@@ -549,7 +549,7 @@ const SCRIPTS: DemoEntity[] = [
         {
           action: "light.turn_on",
           target: { entity_id: "light.terrace" },
-          data: { brightness_pct: 40 },
+          data: { brightness_pct: "{{ states('input_number.terrace_brightness') | int }}" },
         },
         { action: "light.turn_on", target: { entity_id: "light.garden_paths" } },
         { delay: duration(0, 2) },
@@ -615,6 +615,7 @@ const SCENES: DemoEntity[] = [
     category: "House/Terrace",
     areaId: "terrace",
     labels: ["lights"],
+    attributes: { entity_id: ["light.terrace", "light.garden_paths", "cover.awning"] },
   },
   {
     entityId: "scene.nobody_home",
@@ -634,6 +635,7 @@ const SCENES: DemoEntity[] = [
     category: "House",
     areaId: "living_room",
     labels: ["lights", "comfort"],
+    attributes: { entity_id: ["light.living_room", "light.living_room_floor_lamp"] },
   },
 ];
 

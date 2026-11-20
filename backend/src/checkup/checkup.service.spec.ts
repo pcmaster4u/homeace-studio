@@ -8,6 +8,7 @@ import { HaEditorRepository } from "../editor/repositories/ha-editor.repository"
 import { EntriesService } from "../entries/entries.service";
 import { HaEntriesRepository } from "../entries/repositories/ha-entries.repository";
 import { LiveService } from "../live/live.service";
+import { HomeSnapshotService } from "../snapshot/home-snapshot.service";
 import { CheckupService } from "./checkup.service";
 
 /** The check-up over the demo home, through the real services. */
@@ -19,7 +20,8 @@ function setup() {
   const entries = new EntriesService(new HaEntriesRepository(ha), overlay, categories);
   const editor = new HaEditorRepository(ha, new DemoHaRestService(fake));
   let time = Date.parse("2026-11-20T12:00:00Z");
-  const service = new CheckupService(entries, ha, editor, overlay, () => time, new LiveService(ha));
+  const snapshots = new HomeSnapshotService(entries, ha, editor, () => time, new LiveService(ha));
+  const service = new CheckupService(snapshots, overlay);
 
   return { service, advance: (ms: number) => (time += ms) };
 }

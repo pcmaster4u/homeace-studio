@@ -48,11 +48,24 @@
         name: entryActions.deletingEntry.value.name,
       })
     "
-    :confirm-label="t('delete.confirm')"
+    :confirm-label="deleteUsers.length ? t('deps.deleteAnyway') : t('delete.confirm')"
     :is-busy="entryActions.isBusy.value"
     @cancel="entryActions.cancelDelete"
     @confirm="entryActions.confirmDelete"
-  />
+  >
+    <template v-if="deleteUsers.length">
+      <p class="studio-dialogs__warn">{{ t("deps.deleteWarning") }}</p>
+      <div class="studio-dialogs__users">
+        <DependencyUserRow
+          v-for="user in deleteUsers"
+          :key="user.entityId"
+          :user="user"
+          :entry="entriesStore.entries.find((item) => item.entityId === user.entityId) ?? null"
+          is-plain
+        />
+      </div>
+    </template>
+  </ConfirmDialog>
   <FolderColorDialog
     v-if="colorPath"
     :path="colorPath"
@@ -78,6 +91,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import AiPlanDialog from "@/components/ai/AiPlanDialog.vue";
@@ -88,6 +102,7 @@ import NewFolderDialog from "@/components/categories/NewFolderDialog.vue";
 import RenameCategoryDialog from "@/components/categories/RenameCategoryDialog.vue";
 import MoveEntriesDialog from "@/components/entries/MoveEntriesDialog.vue";
 import ConfirmDialog from "@/components/common/ConfirmDialog.vue";
+import DependencyUserRow from "@/components/dependencies/DependencyUserRow.vue";
 import ToastHost from "@/components/common/ToastHost.vue";
 import NewFlowDialog from "@/components/flow/NewFlowDialog.vue";
 import NewHelperDialog from "@/components/helpers/NewHelperDialog.vue";
@@ -98,6 +113,7 @@ import type { NewFlow } from "@/services/flowsService";
 import type { NewHelper } from "@/services/helpersService";
 import { useAiStore } from "@/stores/aiStore";
 import { useCleanupStore } from "@/stores/cleanupStore";
+import { useDependenciesStore } from "@/stores/dependenciesStore";
 import { useEntriesStore } from "@/stores/entriesStore";
 import { useFoldersStore } from "@/stores/foldersStore";
 import { useToastStore } from "@/stores/toastStore";
@@ -127,6 +143,14 @@ const cleanup = useCleanupStore();
 const entriesStore = useEntriesStore();
 const toasts = useToastStore();
 const ai = useAiStore();
+const dependencies = useDependenciesStore();
+
+/** Who still uses the entry about to be deleted (it is the open one, so its dependencies are loaded). */
+const deleteUsers = computed(() => {
+  const entityId = props.entryActions.deletingEntry.value?.entityId;
+  const current = dependencies.current;
+  return entityId && current?.entityId === entityId ? current.usedBy : [];
+});
 
 async function onPlanApplied(): Promise<void> {
   // Renamed folders keep their colors and empty subfolders in the overlay.
@@ -164,3 +188,17 @@ async function pickColor(color: string | null): Promise<void> {
   emit("closeColor");
 }
 </script>
+
+<style scoped>
+.studio-dialogs__warn {
+  margin: 14px 0 8px;
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.studio-dialogs__users {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+</style>

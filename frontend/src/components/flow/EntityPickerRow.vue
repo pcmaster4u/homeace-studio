@@ -24,8 +24,9 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useI18n } from "vue-i18n";
 
+import { useStateText } from "@/composables/useStateText";
+import { DOMAIN_ICON, FALLBACK_DOMAIN_ICON } from "@/constants/domainIcons";
 import type { EntityOption } from "@/types/editor";
 
 /** One entity in the picker: icon, name, where it is, and its state right now. */
@@ -42,50 +43,9 @@ const emit = defineEmits<{
   pick: [entityId: string];
 }>();
 
-const DOMAIN_ICON: Record<string, string> = {
-  light: "mdi-lightbulb-outline",
-  switch: "mdi-toggle-switch-outline",
-  cover: "mdi-window-shutter",
-  valve: "mdi-valve",
-  climate: "mdi-thermostat",
-  sensor: "mdi-gauge",
-  binary_sensor: "mdi-radar",
-  media_player: "mdi-speaker",
-  alarm_control_panel: "mdi-shield-home-outline",
-  fan: "mdi-fan",
-  lock: "mdi-lock-outline",
-  person: "mdi-account-outline",
-  device_tracker: "mdi-crosshairs-gps",
-  scene: "mdi-palette-outline",
-  script: "mdi-script-text-outline",
-  automation: "mdi-robot-outline",
-  input_boolean: "mdi-toggle-switch-outline",
-  input_number: "mdi-ray-vertex",
-  input_select: "mdi-format-list-bulleted",
-  input_text: "mdi-form-textbox",
-  input_datetime: "mdi-calendar-clock",
-  input_button: "mdi-gesture-tap-button",
-  counter: "mdi-counter",
-  timer: "mdi-timer-outline",
-  schedule: "mdi-calendar-week",
-  button: "mdi-gesture-tap-button",
-  camera: "mdi-video-outline",
-  weather: "mdi-weather-partly-cloudy",
-  sun: "mdi-white-balance-sunny",
-  zone: "mdi-map-marker-radius-outline",
-};
-
-const { t, te } = useI18n();
-
-const icon = computed(() => DOMAIN_ICON[props.entity.domain] ?? "mdi-circle-outline");
-const stateText = computed(() => {
-  const { state, unit } = props.entity;
-
-  if (te(`picker.states.${state}`)) return t(`picker.states.${state}`);
-  if (te(`flow.choices.${state}`)) return t(`flow.choices.${state}`);
-
-  return unit ? `${state} ${unit}` : state;
-});
+const icon = computed(() => DOMAIN_ICON[props.entity.domain] ?? FALLBACK_DOMAIN_ICON);
+const toStateText = useStateText();
+const stateText = computed(() => toStateText(props.entity.state, props.entity.unit));
 </script>
 
 <style scoped>

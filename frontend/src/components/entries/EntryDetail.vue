@@ -35,9 +35,9 @@
         @ignore="(key) => emit('ignoreFinding', key)"
       />
 
-      <div v-if="hasFlow" class="entry-detail__tabs" role="tablist">
+      <div class="entry-detail__tabs" role="tablist">
         <button
-          v-for="tab in TABS"
+          v-for="tab in tabs"
           :key="tab"
           type="button"
           role="tab"
@@ -47,6 +47,9 @@
           @click="activeTab = tab"
         >
           {{ t(`detail.tabs.${tab}`) }}
+          <span v-if="tab === TAB.dependencies && dependencyCount" class="entry-detail__badge">
+            {{ dependencyCount }}
+          </span>
         </button>
       </div>
 
@@ -62,6 +65,15 @@
           :catalog="catalog"
           :area-id="entry.area?.areaId ?? null"
           @change="(change) => emit('changeFlow', change)"
+        />
+      </div>
+
+      <div v-else-if="activeTab === TAB.dependencies" class="entry-detail__body">
+        <DependencyView
+          :entry="entry"
+          :has-finding-banner="hasProblemFinding"
+          :is-technical-details-visible="isTechnicalDetailsVisible"
+          @open="(id) => emit('open', id)"
         />
       </div>
 
@@ -119,9 +131,11 @@ import { useI18n } from "vue-i18n";
 
 import { ENTRY_ACTION, ENTRY_KIND_ICON, type EntryAction } from "@/constants/entries";
 import CheckupBanner from "@/components/checkup/CheckupBanner.vue";
+import DependencyView from "@/components/dependencies/DependencyView.vue";
 import FlowSaveBar from "@/components/flow/FlowSaveBar.vue";
 import FlowView from "@/components/flow/FlowView.vue";
 import type { CheckupFinding } from "@/services/checkupService";
+import { useDependenciesStore } from "@/stores/dependenciesStore";
 import type { DisplayFlow, EditorCatalog, FlowChange } from "@/types/editor";
 import type { Area, Entry, EntryChanges, Label } from "@/types/entry";
 
@@ -168,22 +182,44 @@ const emit = defineEmits<{
   saveFlow: [];
   discardFlow: [];
   ignoreFinding: [key: string];
+  /** Open another entry (from the dependencies). */
+  open: [entityId: string];
 }>();
 
 const { t } = useI18n();
 
-const TAB = { flow: "flow", properties: "properties" } as const;
-const TABS = [TAB.flow, TAB.properties] as const;
+const TAB = { flow: "flow", properties: "properties", dependencies: "dependencies" } as const;
+type Tab = (typeof TAB)[keyof typeof TAB];
 /** Kinds that have a flow (triggers, conditions, actions) to show. */
 const FLOW_KINDS = ["automation", "script"];
 
-const activeTab = ref<(typeof TABS)[number]>(TAB.flow);
+const deps = useDependenciesStore();
 const hasFlow = computed(() => FLOW_KINDS.includes(props.entry?.kind ?? ""));
+const tabs = computed((): Tab[] =>
+  hasFlow.value ? [TAB.flow, TAB.properties, TAB.dependencies] : [TAB.properties, TAB.dependencies],
+);
+const activeTab = ref<Tab>(TAB.flow);
 
-// Every newly opened entry starts on its flow.
+// Every newly opened entry starts on its flow (or its properties) and loads its dependencies.
 watch(
   () => props.entry?.entityId,
-  () => (activeTab.value = TAB.flow),
+  (entityId) => {
+    activeTab.value = hasFlow.value ? TAB.flow : TAB.properties;
+    void deps.load(entityId ?? null);
+  },
+  { immediate: true },
+);
+
+/** Uses and users together, for the tab badge. */
+const dependencyCount = computed(() => {
+  const current = deps.current;
+  if (!current || current.entityId !== props.entry?.entityId) return 0;
+  return current.uses.length + current.usedBy.length;
+});
+
+/** Gone or unavailable things are already named in the check-up banner. */
+const hasProblemFinding = computed(() =>
+  props.findings.some((finding) => finding.kind === "gone" || finding.kind === "unavailable"),
 );
 
 const yesNo = (value: boolean): string => (value ? t("detail.yes") : t("detail.no"));
@@ -249,6 +285,16 @@ const statusRows = computed((): DetailRow[] => {
 
 .entry-detail__tab:hover {
   color: var(--fg);
+}
+
+.entry-detail__badge {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--sunken);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
 }
 
 .entry-detail__tab--active {

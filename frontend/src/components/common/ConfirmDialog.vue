@@ -1,6 +1,7 @@
 <template>
   <DialogFrame :title="title" @close="emit('cancel')" @submit="emit('confirm')">
     <p class="confirm-dialog__text">{{ text }}</p>
+    <slot />
 
     <template #buttons>
       <button class="btn" type="button" :disabled="isBusy" @click="emit('cancel')">

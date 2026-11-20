@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Dependencies: every automation, script, scene and helper has a tab "Abhängigkeiten". It shows what
+  the entry uses, grouped by what it does with it (triggers on, checks, controls, reads values,
+  starts), with device names, areas and the current state; "+2 more" shows who else uses a device.
+  And it shows who uses the entry itself, e.g. which automations read a helper.
+- Deleting a helper or script that is still used names the flows that would then point into the void.
+- Helpers and scenes now have tabs too (properties, dependencies).
+
 ## 0.10.0
 
 - Check-up ("Durchsicht"): shows what needs a look, without any setup. Automations and scripts
