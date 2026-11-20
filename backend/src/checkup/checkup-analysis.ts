@@ -43,6 +43,11 @@ export type CheckupInput = {
   states: HaState[];
   /** Entity IDs in the registry, also disabled ones that have no state. */
   registryIds: ReadonlySet<string>;
+  /**
+   * Keys of scripts in scripts.yaml. `action: script.<key>` calls a script by this key, which stays
+   * the same when its entity ID is renamed; such a call still works.
+   */
+  scriptKeys: ReadonlySet<string>;
   /** Config of every automation and script that could be read, by entity ID. */
   configs: ReadonlyMap<string, unknown>;
   now: Date;
@@ -53,6 +58,7 @@ export type CheckupInput = {
 const ENTITY_ID = /^[a-z_]+\.[a-z0-9_]+$/;
 const ENTITY_ID_KEY = "entity_id";
 const ACTION_KEY = "action";
+const SCRIPT_PREFIX = "script.";
 const STATE_UNAVAILABLE = "unavailable";
 const STATE_OFF = "off";
 /** Script services that are not a call of one script ("script.turn_on" names it in the target). */
@@ -149,7 +155,11 @@ export function analyzeCheckup(input: CheckupInput): CheckupFinding[] {
 
     if (config !== undefined) {
       const refs = [...collectEntityRefs(config)].filter((id) => id !== entry.entityId);
-      const gone = refs.filter((id) => !stateById.has(id) && !input.registryIds.has(id));
+      const exists = (id: string): boolean =>
+        stateById.has(id) ||
+        input.registryIds.has(id) ||
+        (id.startsWith(SCRIPT_PREFIX) && input.scriptKeys.has(id.slice(SCRIPT_PREFIX.length)));
+      const gone = refs.filter((id) => !exists(id));
       const unavailable = refs.filter((id) => stateById.get(id)?.state === STATE_UNAVAILABLE);
 
       if (gone.length > 0) {

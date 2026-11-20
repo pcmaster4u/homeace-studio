@@ -75,13 +75,18 @@ describe("check-up", () => {
         state("input_boolean.gast", "off"),
       ],
       registryIds: new Set(["light.disabled"]),
+      scriptKeys: new Set(["alter_name"]),
       configs: new Map([
         [
           "automation.flur",
           {
             triggers: [{ entity_id: "sensor.akku" }],
             conditions: [{ value_template: "{{ is_state('input_boolean.gast', 'off') }}" }],
-            actions: [{ target: { entity_id: ["light.weg", "light.disabled"] } }],
+            actions: [
+              { target: { entity_id: ["light.weg", "light.disabled"] } },
+              // A renamed script, called by its key: still works.
+              { action: "script.alter_name" },
+            ],
           },
         ],
         ["automation.alt", { actions: [] }],
@@ -114,6 +119,7 @@ describe("check-up", () => {
         state("group.alle", "on", { attributes: { entity_id: ["input_boolean.in_group"] } }),
       ],
       registryIds: new Set(),
+      scriptKeys: new Set(),
       configs: new Map(),
       now: NOW,
       ignored: new Set(),
@@ -127,6 +133,7 @@ describe("check-up", () => {
       entries: [entry("input_boolean.a"), entry("input_boolean.b", { isDisabled: true })],
       states: [state("input_boolean.a"), state("input_boolean.b")],
       registryIds: new Set(),
+      scriptKeys: new Set(),
       configs: new Map(),
       now: NOW,
       ignored: new Set(["unused:input_boolean.a"]),

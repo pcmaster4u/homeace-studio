@@ -98,6 +98,11 @@ export class CheckupService implements OnModuleInit {
       entries,
       states,
       registryIds: new Set(registry.map((entry) => entry.entity_id)),
+      scriptKeys: new Set(
+        registry
+          .filter((entry) => entry.platform === FLOW_KIND.script)
+          .map((entry) => entry.unique_id),
+      ),
       configs,
       now: new Date(now),
       ignored: new Set(),

@@ -253,7 +253,8 @@ returned at once and nothing is saved; at most 10 open plans) and `get_plan_stat
 `GET` → `{ findings, ignoredCount, checkedAt }`. A finding is `{ key: "gone:automation.x", kind, entityId,
 name, entryKind, refs: [{ entityId, name, since }], lastTriggered, isOn }` with `kind`:
 - `gone`: the flow names an entity (in an `entity_id` field, a target, or `action: script.x`) that is
-  neither in the states nor in the entity registry;
+  neither in the states nor in the entity registry (`action: script.x` also counts when `x` is the key of a
+  script in scripts.yaml, which stays the same when the script entity is renamed);
 - `unavailable`: such an entity is `unavailable`; `since` is its `last_changed`;
 - `unused`: an HA-managed helper (input_*, counter, timer, schedule) whose entity ID appears in no
   automation or script config (templates included) and in no scene or group; dashboards are not checked;
