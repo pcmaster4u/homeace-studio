@@ -29,6 +29,7 @@
           :total-count="data.scopedEntries.value.length"
           :uncategorized-count="data.uncategorizedCount.value"
           :favorite-count="data.favoriteCount.value"
+          :checkup-count="checkup.hasLoaded ? checkup.findings.length : null"
           :colors="foldersStore.colors"
           @select="selectCategory"
           @rename="actions.startRename"
@@ -53,7 +54,14 @@
       />
 
       <div class="studio-view__list">
+        <CheckupList
+          v-if="studio.category === CATEGORY_FILTER.checkup"
+          :selected-entity-id="studio.selectedEntityId"
+          @select="selectEntry"
+          @open-nav="isNavOpen = true"
+        />
         <EntryList
+          v-else
           v-model:search="studio.search"
           v-model:scope="studio.scope"
           :entries="data.visibleEntries.value"
@@ -108,6 +116,8 @@
           @change-flow="editorStore.applyChange"
           @save-flow="onSaveFlow"
           @discard-flow="editorStore.discard"
+          :findings="checkup.findingsFor(data.selectedEntry.value?.entityId)"
+          @ignore-finding="ignoreFinding"
         />
       </div>
     </main>
@@ -134,6 +144,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import CategoryTree from "@/components/categories/CategoryTree.vue";
+import CheckupList from "@/components/checkup/CheckupList.vue";
 import AiPlanHint from "@/components/ai/AiPlanHint.vue";
 import CleanupHint from "@/components/cleanup/CleanupHint.vue";
 import EntryDetail from "@/components/entries/EntryDetail.vue";
@@ -146,9 +157,15 @@ import { useEntryActions } from "@/composables/useEntryActions";
 import { useFlowTexts } from "@/composables/useFlowTexts";
 import { useLiveUpdates } from "@/composables/useLiveUpdates";
 import { useStudioData } from "@/composables/useStudioData";
-import { NEW_ENTRY_KIND, type EntryAction, type NewEntryKind } from "@/constants/entries";
+import {
+  CATEGORY_FILTER,
+  NEW_ENTRY_KIND,
+  type EntryAction,
+  type NewEntryKind,
+} from "@/constants/entries";
 import { PANE, PANE_WIDTH_LIMITS } from "@/constants/layout";
 import { useAiStore } from "@/stores/aiStore";
+import { useCheckupStore } from "@/stores/checkupStore";
 import { useCleanupStore } from "@/stores/cleanupStore";
 import { useEditorStore } from "@/stores/editorStore";
 import { useEntriesStore } from "@/stores/entriesStore";
@@ -159,6 +176,7 @@ import { useSettingsStore } from "@/stores/settingsStore";
 import { useStudioStore } from "@/stores/studioStore";
 import { useToastStore } from "@/stores/toastStore";
 import type { Entry, EntryChanges } from "@/types/entry";
+import { markGoneChips } from "@/utils/flow/markGoneChips";
 import { toDisplayFlow } from "@/utils/flow/toDisplayFlow";
 
 import StudioDialogs from "@/components/layout/StudioDialogs.vue";
@@ -180,6 +198,7 @@ const toasts = useToastStore();
 const messages = useMessagesStore();
 const cleanup = useCleanupStore();
 const ai = useAiStore();
+const checkup = useCheckupStore();
 
 /** Kinds whose flow the detail view shows. */
 const FLOW_KINDS = ["automation", "script"];
@@ -215,11 +234,20 @@ const displayFlow = computed(() => {
   const areaNames = Object.fromEntries(lookups.areas.map((area) => [area.areaId, area.name]));
   const entityNames = { ...areaNames, ...lookups.entityNames, ...flow.entityNames };
 
-  return toDisplayFlow(
+  const display = toDisplayFlow(
     { ...flow, entityNames },
     editorStore.catalogs[settings.locale] ?? null,
     flowTexts.value,
   );
+  // Entities the check-up found missing show in red.
+  const gone = new Set(
+    checkup
+      .findingsFor(flow.entityId)
+      .filter((finding) => finding.kind === "gone")
+      .flatMap((finding) => finding.refs.map((ref) => ref.entityId)),
+  );
+
+  return display ? markGoneChips(display, gone) : display;
 });
 
 // Unsaved edits live only in this tab; the browser asks before they are lost.
@@ -284,6 +312,15 @@ function selectCategory(path: string): void {
   isNavOpen.value = false;
 }
 
+async function ignoreFinding(key: string): Promise<void> {
+  try {
+    await checkup.ignore(key);
+    toasts.show(t("toast.findingIgnored"));
+  } catch (error) {
+    toasts.show(messages.textFor(error, t("errors.actionFailed")), "error");
+  }
+}
+
 /** Dropping a ticked row moves every ticked row; any other row moves alone. */
 function dropEntry(path: string | null, entityId: string): void {
   if (studio.checkedIds.has(entityId) && studio.checkedIds.size > 1) {
@@ -307,7 +344,10 @@ function selectEntry(entityId: string): void {
 // Proposals follow the categories: after moves, renames and live updates from HA.
 watch(
   () => entriesStore.entries,
-  () => void cleanup.load(),
+  () => {
+    void cleanup.load();
+    void checkup.load();
+  },
 );
 
 onMounted(() => {

@@ -1,0 +1,191 @@
+import type { Entry, EntryKind } from "../entries/entry.model";
+import type { HaState } from "../ha/ha.types";
+
+/** What the check-up reports, in the order the UI shows it. */
+export const CHECKUP_KIND = {
+  /** Uses an entity that no longer exists in HA. */
+  gone: "gone",
+  /** Uses an entity that is unavailable right now. */
+  unavailable: "unavailable",
+  /** A helper no automation or script uses. */
+  unused: "unused",
+  /** An automation that has not run for a long time, or never. */
+  stale: "stale",
+} as const;
+
+export type CheckupKind = (typeof CHECKUP_KIND)[keyof typeof CHECKUP_KIND];
+
+export type CheckupRef = {
+  entityId: string;
+  /** Friendly name when the entity still exists. */
+  name: string | null;
+  /** Unavailable only: since when. */
+  since: string | null;
+};
+
+export type CheckupFinding = {
+  /** "gone:automation.x"; used to hide a finding. */
+  key: string;
+  kind: CheckupKind;
+  entityId: string;
+  name: string;
+  entryKind: EntryKind;
+  /** gone / unavailable: the entities it refers to. */
+  refs: CheckupRef[];
+  /** stale: when it last ran; null when never. */
+  lastTriggered: string | null;
+  /** Automations: switched on. */
+  isOn: boolean;
+};
+
+export type CheckupInput = {
+  entries: Entry[];
+  states: HaState[];
+  /** Entity IDs in the registry, also disabled ones that have no state. */
+  registryIds: ReadonlySet<string>;
+  /** Config of every automation and script that could be read, by entity ID. */
+  configs: ReadonlyMap<string, unknown>;
+  now: Date;
+  ignored: ReadonlySet<string>;
+};
+
+/** A plain entity ID; values with templates or `!input` are skipped. */
+const ENTITY_ID = /^[a-z_]+\.[a-z0-9_]+$/;
+const ENTITY_ID_KEY = "entity_id";
+const ACTION_KEY = "action";
+const STATE_UNAVAILABLE = "unavailable";
+const STATE_OFF = "off";
+/** Script services that are not a call of one script ("script.turn_on" names it in the target). */
+const SCRIPT_SERVICES = new Set(["turn_on", "turn_off", "toggle", "reload"]);
+/** Helpers HA manages itself, made to be used by automations. Template or group helpers often only
+ * feed dashboards, which HomeAce Studio cannot see, so they are left out. */
+const CHECKED_HELPER_DOMAINS = new Set([
+  "input_boolean",
+  "input_button",
+  "input_datetime",
+  "input_number",
+  "input_select",
+  "input_text",
+  "counter",
+  "timer",
+  "schedule",
+]);
+export const STALE_AFTER_DAYS = 90;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const KIND_ORDER: CheckupKind[] = Object.values(CHECKUP_KIND);
+
+/**
+ * Every entity ID a flow config names in an `entity_id` field (also in targets and lists), plus
+ * scripts it calls directly (`action: script.good_night`).
+ */
+export function collectEntityRefs(config: unknown): Set<string> {
+  const refs = new Set<string>();
+  const addIds = (value: unknown): void => {
+    const values = Array.isArray(value) ? value : typeof value === "string" ? value.split(",") : [];
+
+    for (const item of values) {
+      const id = typeof item === "string" ? item.trim() : "";
+      if (ENTITY_ID.test(id)) refs.add(id);
+    }
+  };
+  const walk = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      node.forEach(walk);
+      return;
+    }
+
+    if (!node || typeof node !== "object") return;
+
+    for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
+      if (key === ENTITY_ID_KEY) addIds(value);
+
+      if (key === ACTION_KEY && typeof value === "string" && value.startsWith("script.")) {
+        const service = value.slice("script.".length);
+        if (!SCRIPT_SERVICES.has(service)) addIds(value);
+      }
+
+      walk(value);
+    }
+  };
+
+  walk(config);
+  return refs;
+}
+
+/**
+ * Finds what needs a look, without any setup: flows pointing at entities that are gone or
+ * unavailable, helpers nothing uses, automations that have not run for months.
+ */
+export function analyzeCheckup(input: CheckupInput): CheckupFinding[] {
+  const stateById = new Map(input.states.map((state) => [state.entity_id, state]));
+  const nameOf = (id: string): string | null => stateById.get(id)?.attributes.friendly_name ?? null;
+  const findings: CheckupFinding[] = [];
+  const add = (entry: Entry, kind: CheckupKind, extra: Partial<CheckupFinding> = {}): void => {
+    findings.push({
+      key: `${kind}:${entry.entityId}`,
+      kind,
+      entityId: entry.entityId,
+      name: entry.name,
+      entryKind: entry.kind,
+      refs: [],
+      lastTriggered: null,
+      isOn: entry.state !== STATE_OFF,
+      ...extra,
+    });
+  };
+  // A helper counts as used when its ID appears anywhere in a flow (templates included), or as a
+  // member of a scene or group (HA lists those in their entity_id attribute).
+  const members = input.states
+    .filter((item) => /^(scene|group)\./.test(item.entity_id))
+    .map((item) => item.attributes.entity_id ?? []);
+  const allConfigText = [...input.configs.values(), ...members]
+    .map((config) => JSON.stringify(config))
+    .join("\n");
+
+  for (const entry of input.entries) {
+    if (entry.isDisabled) continue;
+
+    const config = input.configs.get(entry.entityId);
+
+    if (config !== undefined) {
+      const refs = [...collectEntityRefs(config)].filter((id) => id !== entry.entityId);
+      const gone = refs.filter((id) => !stateById.has(id) && !input.registryIds.has(id));
+      const unavailable = refs.filter((id) => stateById.get(id)?.state === STATE_UNAVAILABLE);
+
+      if (gone.length > 0) {
+        add(entry, CHECKUP_KIND.gone, {
+          refs: gone.map((id) => ({ entityId: id, name: null, since: null })),
+        });
+      }
+
+      if (unavailable.length > 0) {
+        add(entry, CHECKUP_KIND.unavailable, {
+          refs: unavailable.map((id) => ({
+            entityId: id,
+            name: nameOf(id),
+            since: stateById.get(id)?.last_changed ?? null,
+          })),
+        });
+      }
+    }
+
+    if (entry.kind === "helper" && CHECKED_HELPER_DOMAINS.has(entry.domain)) {
+      if (!allConfigText.includes(entry.entityId)) add(entry, CHECKUP_KIND.unused);
+    }
+
+    if (entry.kind === "automation") {
+      const lastTriggered = stateById.get(entry.entityId)?.attributes.last_triggered ?? null;
+      const age = lastTriggered ? input.now.getTime() - Date.parse(lastTriggered) : Infinity;
+
+      if (age > STALE_AFTER_DAYS * DAY_MS) add(entry, CHECKUP_KIND.stale, { lastTriggered });
+    }
+  }
+
+  return findings
+    .filter((finding) => !input.ignored.has(finding.key))
+    .sort(
+      (a, b) =>
+        KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) ||
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    );
+}

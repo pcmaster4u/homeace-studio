@@ -63,6 +63,9 @@ export const CATALOG_DE: Catalog = {
   AI_PLAN_NOT_FOUND: "Diesen Plan gibt es nicht mehr.",
   AI_PLAN_CLOSED: "Über diesen Plan wurde schon entschieden.",
   AI_OPERATION_FAILED: "Dieser Schritt hat in Home Assistant nicht geklappt.",
+
+  CHECKUP_IGNORED: "Wird nicht mehr gemeldet.",
+  CHECKUP_RESTORED: "Ausgeblendete Funde sind wieder da.",
   HELPER_NOT_DELETABLE:
     "{entityId} lässt sich hier nicht löschen. Template- und Gruppen-Helfer löschst du vorerst in Home Assistant.",
 };

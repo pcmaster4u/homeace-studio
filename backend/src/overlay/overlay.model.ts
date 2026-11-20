@@ -23,6 +23,8 @@ export type Overlay = {
   folderColors: Record<string, string>;
   /** Clean-up proposals the user hid ("split:Büro - Licht", "merge:Routine|Routinen"). */
   cleanupIgnored: string[];
+  /** Check-up findings the user hid ("gone:automation.x", "unused:input_boolean.y"). */
+  checkupIgnored: string[];
   /** AI access over MCP: switched off until the user turns it on. */
   mcp: McpAccess;
   /** Folder plans from an AI, open ones and recently decided ones. */
@@ -37,6 +39,7 @@ export const EMPTY_OVERLAY: Overlay = {
   notes: {},
   folderColors: {},
   cleanupIgnored: [],
+  checkupIgnored: [],
   mcp: { isEnabled: false, token: null },
   aiPlans: [],
 };

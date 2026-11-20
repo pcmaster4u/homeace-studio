@@ -19,6 +19,8 @@ export type DemoEntity = {
   configEntryId?: string;
   isDisabled?: boolean;
   attributes?: Record<string, unknown>;
+  /** When the state last changed; defaults to now. */
+  lastChanged?: string;
   /** Automation or script config, as automations.yaml / scripts.yaml store it. */
   config?: Record<string, unknown>;
 };
@@ -154,6 +156,11 @@ function toTranslationKeys(texts: Record<string, string>): HaTranslations {
   );
 }
 
+/** An ISO time some days back, for states and last runs. */
+function daysAgo(days: number): string {
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+}
+
 function sensor(entityId: string, name: string, state: string, unit?: string): DemoEntity {
   return {
     entityId,
@@ -179,7 +186,10 @@ const DEVICES: DemoEntity[] = [
   sensor("sensor.solar_power", "Solar power", "3420", "W"),
   sensor("sensor.house_consumption", "House consumption", "1580", "W"),
   sensor("switch.wallbox", "Wallbox", "off"),
-  sensor("sensor.washing_machine_power", "Washing machine power", "2", "W"),
+  {
+    ...sensor("sensor.washing_machine_power", "Washing machine power", "unavailable", "W"),
+    lastChanged: daysAgo(3),
+  },
   sensor("climate.bathroom", "Bathroom heating", "heat"),
   sensor("alarm_control_panel.home", "Alarm system", "disarmed"),
 ];
@@ -365,6 +375,7 @@ const AUTOMATIONS: DemoEntity[] = [
   },
   {
     entityId: "automation.preheat_bathroom",
+    attributes: { last_triggered: daysAgo(160) },
     name: "Preheat the bathroom",
     state: "off",
     platform: "automation",
@@ -424,6 +435,7 @@ const AUTOMATIONS: DemoEntity[] = [
   },
   {
     entityId: "automation.old_light_switch_test",
+    attributes: { last_triggered: null },
     name: "Old light switch test",
     state: "off",
     platform: "automation",
@@ -437,6 +449,38 @@ const AUTOMATIONS: DemoEntity[] = [
       triggers: [{ trigger: "state", entity_id: "binary_sensor.front_door", to: "on" }],
       conditions: [],
       actions: [{ action: "light.turn_on", target: { entity_id: "light.terrace" } }],
+    },
+  },
+];
+
+/** Still uses a motion sensor and a lamp that were removed from HA: the check-up reports it. */
+const BROKEN: DemoEntity[] = [
+  {
+    entityId: "automation.hallway_light_at_night",
+    name: "Hallway light at night",
+    state: "on",
+    platform: "automation",
+    uniqueId: "1712000000001",
+    category: "House/Entrance",
+    areaId: "hallway",
+    labels: ["lights"],
+    attributes: { last_triggered: daysAgo(40) },
+    config: {
+      id: "1712000000001",
+      alias: "Hallway light at night",
+      description: "",
+      mode: "restart",
+      triggers: [{ trigger: "state", entity_id: "binary_sensor.hallway_motion", to: "on" }],
+      conditions: [{ condition: "sun", after: "sunset" }],
+      actions: [
+        {
+          action: "light.turn_on",
+          target: { entity_id: "light.hallway_ceiling_old" },
+          data: { brightness_pct: 20 },
+        },
+        { delay: duration(2) },
+        { action: "light.turn_off", target: { entity_id: "light.hallway_ceiling_old" } },
+      ],
     },
   },
 ];
@@ -725,6 +769,7 @@ export function createDemoHome(): DemoHome {
       ...SCENES,
       ...HELPERS,
       ...LEGACY,
+      ...BROKEN,
     ]),
     helperConfigEntries: [
       { entry_id: "demo_template_solar_surplus", domain: "template", title: "Solar surplus" },

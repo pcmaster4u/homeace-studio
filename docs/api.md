@@ -248,6 +248,20 @@ off, `401` for a missing or wrong token, `405` for GET/DELETE, `413` above 1 MB.
 (`title`, `reasoning`, `operations` with `renameFolder` / `moveEntry`, at most 200; every problem is
 returned at once and nothing is saved; at most 10 open plans) and `get_plan_status` (`planId`).
 
+## Check-up: GET /api/checkup · POST/DELETE /api/checkup/ignore
+
+`GET` → `{ findings, ignoredCount, checkedAt }`. A finding is `{ key: "gone:automation.x", kind, entityId,
+name, entryKind, refs: [{ entityId, name, since }], lastTriggered, isOn }` with `kind`:
+- `gone`: the flow names an entity (in an `entity_id` field, a target, or `action: script.x`) that is
+  neither in the states nor in the entity registry;
+- `unavailable`: such an entity is `unavailable`; `since` is its `last_changed`;
+- `unused`: an HA-managed helper (input_*, counter, timer, schedule) whose entity ID appears in no
+  automation or script config (templates included) and in no scene or group; dashboards are not checked;
+- `stale`: an automation whose `last_triggered` is older than 90 days, or null.
+Disabled entries are skipped. The result is cached 20 s and dropped on every live change.
+`POST /ignore` `{ key }` hides a finding (overlay `checkupIgnored`, `CHECKUP_IGNORED`), `DELETE /ignore`
+shows all again (`CHECKUP_RESTORED`).
+
 ## GET /api/messages?lang=de
 
 The backend catalog: message ID → text, for `de` (default) and `en`. Placeholders like `{path}` are filled from

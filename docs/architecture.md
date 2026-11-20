@@ -15,6 +15,9 @@ backend/src/
                          Streamable HTTP per request), mcp-tools.ts (the four MCP tools), McpAccessService
                          (switch, token, Supervisor port lookup), AiPlansService (propose, states, apply,
                          reject; plans in the overlay), AiController (/api/mcp, /api/ai-plans)
+  checkup/               check-up: checkup-analysis.ts (pure: collectEntityRefs, analyzeCheckup),
+                         CheckupService (reads entries, states, registry and every flow config; 20 s
+                         cache, cleared by live changes), CheckupController (/api/checkup)
   demo/                  demo mode: FakeHa (an invented home in memory that answers the WebSocket and
                          REST calls with HA's shapes and events), DemoHaConnectionService / DemoHaRestService
                          (subclasses of the real services), MemoryOverlayRepository

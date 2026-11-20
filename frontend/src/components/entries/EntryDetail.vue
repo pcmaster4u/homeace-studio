@@ -24,6 +24,17 @@
         @discard="emit('discardFlow')"
       />
 
+      <CheckupBanner
+        v-if="findings.length"
+        :findings="findings"
+        :has-flow="hasFlow"
+        :is-busy="isBusy"
+        @show-flow="activeTab = TAB.flow"
+        @turn-off="emit('act', ENTRY_ACTION.turnOff)"
+        @delete="emit('delete')"
+        @ignore="(key) => emit('ignoreFinding', key)"
+      />
+
       <div v-if="hasFlow" class="entry-detail__tabs" role="tablist">
         <button
           v-for="tab in TABS"
@@ -105,9 +116,11 @@
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { ENTRY_KIND_ICON, type EntryAction } from "@/constants/entries";
+import { ENTRY_ACTION, ENTRY_KIND_ICON, type EntryAction } from "@/constants/entries";
+import CheckupBanner from "@/components/checkup/CheckupBanner.vue";
 import FlowSaveBar from "@/components/flow/FlowSaveBar.vue";
 import FlowView from "@/components/flow/FlowView.vue";
+import type { CheckupFinding } from "@/services/checkupService";
 import type { DisplayFlow, EditorCatalog, FlowChange } from "@/types/editor";
 import type { Area, Entry, EntryChanges, Label } from "@/types/entry";
 
@@ -138,6 +151,8 @@ const props = defineProps<{
   hasUnsavedChanges: boolean;
   hasRemoteChange: boolean;
   isFlowSaving: boolean;
+  /** Check-up findings for this entry, shown above the tabs. */
+  findings: CheckupFinding[];
 }>();
 
 const emit = defineEmits<{
@@ -151,6 +166,7 @@ const emit = defineEmits<{
   changeFlow: [change: FlowChange];
   saveFlow: [];
   discardFlow: [];
+  ignoreFinding: [key: string];
 }>();
 
 const { t } = useI18n();

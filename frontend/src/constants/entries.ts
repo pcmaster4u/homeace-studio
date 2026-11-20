@@ -37,6 +37,8 @@ export const CATEGORY_FILTER = {
   all: "__all",
   favorites: "__favorites",
   uncategorized: "__uncategorized",
+  /** Not a folder: the check-up view (what needs a look). */
+  checkup: "__checkup",
 } as const;
 
 export const ENTRY_ACTION = {

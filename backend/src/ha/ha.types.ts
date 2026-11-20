@@ -25,7 +25,17 @@ export type HaState = {
   entity_id: string;
   state: string;
   /** `options` exists on select-like entities; unchecked, so read it as unknown. */
-  attributes: { friendly_name?: string; icon?: string; options?: unknown };
+  attributes: {
+    friendly_name?: string;
+    icon?: string;
+    options?: unknown;
+    /** Automations and scripts: when they last ran; null when never. */
+    last_triggered?: string | null;
+    /** Scenes and groups: their member entities. */
+    entity_id?: unknown;
+  };
+  /** When the state itself last changed (ISO time). */
+  last_changed?: string;
 };
 
 export type HaLabel = {

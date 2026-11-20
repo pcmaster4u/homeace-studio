@@ -4,6 +4,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
 
 import { AiModule } from "./ai/ai.module";
 import { LOCAL_ENV_FILE } from "./app.constants";
+import { CheckupModule } from "./checkup/checkup.module";
 import { CategoriesModule } from "./categories/categories.module";
 import { ApiExceptionFilter } from "./common/api/api-exception.filter";
 import { ResponseEnvelopeInterceptor } from "./common/api/response-envelope.interceptor";
@@ -27,6 +28,7 @@ import { MessagesModule } from "./messages/messages.module";
     LiveModule,
     EditorModule,
     AiModule,
+    CheckupModule,
   ],
   providers: [
     // Every answer uses the { message, error, data } envelope (docs/api.md).

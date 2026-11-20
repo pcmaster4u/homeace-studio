@@ -20,6 +20,23 @@
       <span class="category-tree__count">{{ favoriteCount }}</span>
     </div>
 
+    <div
+      class="category-tree__special"
+      :class="{ 'category-tree__special--active': selected === CATEGORY_FILTER.checkup }"
+      @click="emit('select', CATEGORY_FILTER.checkup)"
+    >
+      <span class="mdi mdi-shield-check-outline" />
+      <span>{{ t("nav.checkup") }}</span>
+      <span
+        v-if="checkupCount !== null"
+        class="category-tree__badge"
+        :class="{ 'category-tree__badge--ok': checkupCount === 0 }"
+      >
+        <span v-if="checkupCount === 0" class="mdi mdi-check" />
+        <template v-else>{{ checkupCount }}</template>
+      </span>
+    </div>
+
     <div class="category-tree__heading">
       <span>{{ t("nav.categories") }}</span>
       <button
@@ -89,6 +106,8 @@ const props = defineProps<{
   totalCount: number;
   uncategorizedCount: number;
   favoriteCount: number;
+  /** Findings of the check-up; null while not loaded yet. */
+  checkupCount: number | null;
   colors: Record<string, string>;
 }>();
 
@@ -227,6 +246,25 @@ function selectNode(path: string): void {
 .category-tree__special--drop {
   background: var(--accent-soft);
   box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.category-tree__badge {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.category-tree__badge--ok {
+  background: var(--ok-soft);
+  color: var(--ok);
 }
 
 .category-tree__count {

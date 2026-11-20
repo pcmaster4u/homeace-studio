@@ -29,6 +29,7 @@ const en: MessageSchema = {
     aiOpen: "Open",
   },
   nav: {
+    checkup: "Check-up",
     open: "Open categories",
     all: "All entries",
     uncategorized: "Uncategorized",
@@ -512,7 +513,54 @@ const en: MessageSchema = {
     confirm: "Move",
     running: "Moving …",
   },
+  checkup: {
+    title: "Check-up",
+    subtitle: "What is wrong in your home. No setup needed, checked again after every change.",
+    loading: "Checking …",
+    allFine: "All good",
+    allFineText: "Nothing points into the void, no forgotten helpers.",
+    hidden: "{count} hidden",
+    showHidden: "Show again",
+    ignore: "Ignore",
+    ignoreTitle: "Ignore, do not report again",
+    kinds: {
+      gone: "Points into the void",
+      unavailable: "Unavailable",
+      unused: "Not used anywhere",
+      stale: "Idle for a long time",
+    },
+    hints: {
+      gone: "Uses a device that no longer exists in Home Assistant, so it does not run, or only partly.",
+      unavailable: "Uses a device that cannot be reached right now (empty battery, offline).",
+      unused: "No automation or script uses this helper. HomeAce Studio does not check dashboards.",
+      stale: "Not triggered for more than 90 days, or never. Is it still needed?",
+    },
+    rows: {
+      gone: "Uses what no longer exists:",
+      unavailable: "Unavailable:",
+      unused: "Not used by any flow",
+      never: "Never ran",
+      lastRun: "Last {time}",
+      off: "switched off",
+    },
+    banner: {
+      gone: "This flow uses {ids}, which no longer exists in Home Assistant; the flow shows it in red.",
+      unavailable:
+        "{names} has been unavailable since {since}. Until then this flow does not work properly.",
+      unused: "No automation or script uses this helper.",
+      unusedNote:
+        "HomeAce Studio does not check dashboards. If you use it there, just ignore this.",
+      staleNever: "This automation has never run.",
+      stale: "Last triggered {time}.",
+      stillNeeded: "Is it still needed?",
+      isOff: "It is switched off.",
+      showFlow: "Show flow",
+      turnOff: "Switch off",
+      delete: "Delete",
+    },
+  },
   toast: {
+    findingIgnored: "Will not be reported again",
     movedMany: "Moved one entry to {path} | Moved {count} entries to {path}",
     movedOutMany: "Took one entry out of its folder | Took {count} entries out of their folders",
     moveFailed:

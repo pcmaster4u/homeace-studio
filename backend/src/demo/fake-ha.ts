@@ -76,6 +76,10 @@ function now(): string {
   return new Date().toISOString();
 }
 
+function hoursAgo(hours: number): string {
+  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+}
+
 /**
  * A small Home Assistant in memory for demo mode.
  *
@@ -245,7 +249,12 @@ export class FakeHa {
     this.states.set(entity.entityId, {
       entity_id: entity.entityId,
       state: entity.state,
-      attributes: { friendly_name: entity.name, ...entity.attributes },
+      attributes: {
+        friendly_name: entity.name,
+        ...(domainOf(entity.entityId) === "automation" ? { last_triggered: hoursAgo(3) } : {}),
+        ...entity.attributes,
+      },
+      last_changed: entity.lastChanged ?? now(),
     });
 
     if (entity.config) {

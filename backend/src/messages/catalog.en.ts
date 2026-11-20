@@ -63,6 +63,9 @@ export const CATALOG_EN: Catalog = {
   AI_PLAN_NOT_FOUND: "This plan no longer exists.",
   AI_PLAN_CLOSED: "This plan has been decided already.",
   AI_OPERATION_FAILED: "This step did not work in Home Assistant.",
+
+  CHECKUP_IGNORED: "Will not be reported again.",
+  CHECKUP_RESTORED: "Hidden findings are back.",
   HELPER_NOT_DELETABLE:
     "{entityId} cannot be deleted here. Delete template and group helpers in Home Assistant for now.",
 };

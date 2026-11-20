@@ -93,6 +93,8 @@ export type BlockChip = {
   edit?: ChipEdit;
   /** A required value is not set yet; the chip shows the field name and asks for it. */
   isMissing?: boolean;
+  /** Names an entity HA no longer has (check-up); shown in red. */
+  isGone?: boolean;
 };
 
 /** A block as the flow view shows it; built from HA config by `toDisplayFlow`. */

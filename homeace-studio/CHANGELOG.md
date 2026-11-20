@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Check-up ("Durchsicht"): shows what needs a look, without any setup. Automations and scripts
+  that use devices which no longer exist (shown in red in the flow) or are unavailable, helpers no
+  automation or script uses, and automations idle for more than 90 days. Every finding can be
+  ignored; the entry shows the finding with what to do about it.
+- Local test environment outside Home Assistant: `node scripts/local.mjs` or `docker compose`.
+
 ## 0.9.1
 
 - The settings (gear icon) show the app version.

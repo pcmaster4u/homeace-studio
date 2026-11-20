@@ -18,6 +18,7 @@
             {
               'flow-block__chip--editable': isChipEditable(chip),
               'flow-block__chip--missing': chip.isMissing,
+              'flow-block__chip--gone': chip.isGone,
             },
           ]"
           @click="(event: MouseEvent) => openChip(chip, event)"
@@ -232,6 +233,13 @@ button.flow-block__chip {
 }
 
 /* A required value is still empty: outlined in the warning color, like in the click dummy. */
+.flow-block__chip--gone,
+.flow-block__chip--gone.flow-block__chip--entity {
+  background: var(--err-soft);
+  color: var(--err);
+  box-shadow: inset 0 0 0 1.5px var(--err);
+}
+
 .flow-block__chip--missing,
 .flow-block__chip--missing.flow-block__chip--entity {
   background: transparent;

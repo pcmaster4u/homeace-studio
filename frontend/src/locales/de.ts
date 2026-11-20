@@ -29,6 +29,7 @@ export default {
     aiOpen: "Öffnen",
   },
   nav: {
+    checkup: "Durchsicht",
     open: "Kategorien öffnen",
     all: "Alle Einträge",
     uncategorized: "Ohne Kategorie",
@@ -518,7 +519,55 @@ export default {
     confirm: "Verschieben",
     running: "Wird verschoben …",
   },
+  checkup: {
+    title: "Durchsicht",
+    subtitle: "Was in deinem Haus nicht stimmt. Ohne Einrichtung, bei jeder Änderung neu geprüft.",
+    loading: "Wird geprüft …",
+    allFine: "Alles in Ordnung",
+    allFineText: "Keine Verweise ins Leere, keine vergessenen Helfer.",
+    hidden: "{count} ausgeblendet",
+    showHidden: "Wieder zeigen",
+    ignore: "Ignorieren",
+    ignoreTitle: "Ignorieren, nicht mehr melden",
+    kinds: {
+      gone: "Zeigt ins Leere",
+      unavailable: "Nicht erreichbar",
+      unused: "Wird nirgends benutzt",
+      stale: "Lange nicht gelaufen",
+    },
+    hints: {
+      gone: "Benutzt ein Gerät, das es in Home Assistant nicht mehr gibt. Läuft deshalb nicht oder nur halb.",
+      unavailable: "Benutzt ein Gerät, das gerade nicht erreichbar ist (Akku leer, offline).",
+      unused:
+        "Kein Ablauf und kein Skript benutzt diesen Helfer. Dashboards prüft HomeAce Studio nicht.",
+      stale: "Seit mehr als 90 Tagen nicht ausgelöst, oder noch nie. Wird sie noch gebraucht?",
+    },
+    rows: {
+      gone: "Benutzt, was es nicht mehr gibt:",
+      unavailable: "Nicht erreichbar:",
+      unused: "Von keinem Ablauf benutzt",
+      never: "Noch nie gelaufen",
+      lastRun: "Zuletzt {time}",
+      off: "ausgeschaltet",
+    },
+    banner: {
+      gone: "Dieser Ablauf benutzt {ids}. Das gibt es in Home Assistant nicht mehr; im Ablauf ist es rot markiert.",
+      unavailable:
+        "{names} ist nicht erreichbar, seit {since}. Solange läuft dieser Ablauf nicht richtig.",
+      unused: "Kein Ablauf und kein Skript benutzt diesen Helfer.",
+      unusedNote:
+        "Dashboards prüft HomeAce Studio nicht. Wenn du ihn dort nutzt, einfach ignorieren.",
+      staleNever: "Diese Automation ist noch nie gelaufen.",
+      stale: "Zuletzt ausgelöst {time}.",
+      stillNeeded: "Wird sie noch gebraucht?",
+      isOff: "Sie ist ausgeschaltet.",
+      showFlow: "Ablauf ansehen",
+      turnOff: "Ausschalten",
+      delete: "Löschen",
+    },
+  },
   toast: {
+    findingIgnored: "Wird nicht mehr gemeldet",
     movedMany: "Ein Eintrag nach {path} verschoben | {count} Einträge nach {path} verschoben",
     movedOutMany: "Ein Eintrag aus dem Ordner genommen | {count} Einträge aus dem Ordner genommen",
     moveFailed:

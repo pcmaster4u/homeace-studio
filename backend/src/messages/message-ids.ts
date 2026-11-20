@@ -72,6 +72,10 @@ export const MESSAGE_ID = {
   aiPlanNotFound: "AI_PLAN_NOT_FOUND",
   aiPlanClosed: "AI_PLAN_CLOSED",
   aiOperationFailed: "AI_OPERATION_FAILED",
+
+  // Check-up
+  checkupIgnored: "CHECKUP_IGNORED",
+  checkupRestored: "CHECKUP_RESTORED",
 } as const;
 
 export type MessageId = (typeof MESSAGE_ID)[keyof typeof MESSAGE_ID];
