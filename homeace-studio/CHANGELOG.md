@@ -2,6 +2,7 @@
 
 ## 0.9.1
 
+- The settings (gear icon) show the app version.
 - Move several entries at once: tick them (Shift ticks a range), then "Move to …" or "Take out of
   folder" in the bar above the list, or drag one of the ticked rows onto a folder.
 - "New subfolder" button right below the folder title ("New folder" in the overview); after creating

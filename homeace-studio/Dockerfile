@@ -17,7 +17,9 @@ WORKDIR /build/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend/ ./
-RUN npm run lint:check && npm test && npm run build
+# Shown in the settings; the Supervisor and the GitHub workflow pass it.
+ARG BUILD_VERSION=dev
+RUN npm run lint:check && npm test && BUILD_VERSION=$BUILD_VERSION npm run build
 
 # ---- 2. Backend: lint, test, build, keep only runtime dependencies ----------------------
 FROM --platform=$BUILDPLATFORM node:22-alpine AS backend

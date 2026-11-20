@@ -12,7 +12,12 @@
     </button>
 
     <div v-if="isOpen" class="settings-menu__panel" role="dialog" :aria-label="t('settings.title')">
-      <div class="settings-menu__title">{{ t("settings.title") }}</div>
+      <div class="settings-menu__title">
+        {{ t("settings.title") }}
+        <span class="settings-menu__version">{{
+          t("settings.version", { version: APP_VERSION })
+        }}</span>
+      </div>
 
       <div class="settings-menu__row">
         <div>
@@ -83,6 +88,9 @@ import { useSettingsStore } from "@/stores/settingsStore";
 /** Language names are shown in their own language, so they are not translated. */
 const LOCALE_NAMES: Record<AppLocale, string> = { de: "Deutsch", en: "English" };
 
+/** Set at build time from the app version (vite.config.ts). */
+const APP_VERSION = __APP_VERSION__;
+
 const { t } = useI18n();
 const settings = useSettingsStore();
 const isOpen = ref(false);
@@ -124,12 +132,24 @@ onKeyStroke("Escape", () => (isOpen.value = false));
 }
 
 .settings-menu__title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
   padding: 6px 8px 8px;
   font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--faint);
+}
+
+.settings-menu__version {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  user-select: all;
 }
 
 .settings-menu__row {

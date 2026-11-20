@@ -12,6 +12,7 @@ export default {
   settings: {
     open: "Einstellungen",
     title: "Einstellungen",
+    version: "Version {version}",
     technicalDetails: "Technische Details",
     technicalDetailsHint:
       "Entity-IDs, Speicherorte und API-Aufrufe anzeigen. Für den Einstieg ausgeschaltet.",

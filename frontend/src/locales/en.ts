@@ -13,6 +13,7 @@ const en: MessageSchema = {
   settings: {
     open: "Settings",
     title: "Settings",
+    version: "Version {version}",
     technicalDetails: "Technical details",
     technicalDetailsHint: "Show entity IDs, storage locations and API calls. Off for beginners.",
     language: "Language",
