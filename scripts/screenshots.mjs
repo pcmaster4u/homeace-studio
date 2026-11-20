@@ -199,6 +199,32 @@ const SHOTS = [
     },
   },
   {
+    name: "checkup-light.png",
+    view: { ...DESKTOP, isDark: false },
+    steps: async (page) => {
+      await click(page, ".category-tree__special", "Check-up");
+      await click(page, ".checkup-list__open", "Hallway light at night");
+    },
+  },
+  {
+    name: "picker-dark.png",
+    view: { ...DESKTOP, isDark: true },
+    steps: async (page) => {
+      await click(page, ".category-tree-node", "House");
+      await click(page, ".category-tree-node", "Terrace");
+      await click(page, ".entry-list-row__open", "Terrace light on motion");
+      // The light of the "Turn on" action; the same name also appears in other blocks.
+      await evaluate(
+        page,
+        `[...document.querySelectorAll(".flow-block__chip--entity")]
+          .find((chip) => chip.closest(".flow-block")?.textContent.includes("Turn on"))
+          ?.click()`,
+      );
+      await sleep(SETTLE_MS);
+      await click(page, ".entity-picker__chip", "Living room");
+    },
+  },
+  {
     name: "phone-dark.png",
     view: { ...PHONE, isDark: true },
     steps: async (page) => {

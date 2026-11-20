@@ -46,6 +46,21 @@ want, check the preview and apply it. Flows, states and notes are never shown to
 
 ![A folder plan from an AI, ready for review](docs/images/ai-plan-light.png)
 
+**Pick devices like a person, not like a database.** Choosing a light or sensor for a flow starts
+with the room: pick an area, see its devices with their functions ("Front door sensor → Battery")
+and their state right now, or search with words in any order. Filter by area, label or kind; the
+devices the flow already uses come first. "All lights · Living room" targets the whole room,
+including lights you add later.
+
+![Picking a light by room, with live states](docs/images/picker-dark.png)
+
+**Check-up, no setup needed.** Even if you never sort anything, HomeAce Studio shows what needs a
+look: automations that use devices which no longer exist (marked red in the flow) or are offline
+right now, helpers no automation or script uses, and automations that have not run for months.
+Ignore what is fine as it is.
+
+![The check-up with a flow that points to a removed device](docs/images/checkup-light.png)
+
 **Made to be used everywhere.** Light and dark mode, German and English, all columns resizable,
 and on a phone the list comes first and the details slide in full screen. Technical details such
 as entity IDs stay hidden until you switch them on.
@@ -60,9 +75,10 @@ as entity IDs stay hidden until you switch them on.
 
 ## Coming next
 
-- Run history and dependencies at a glance, editing helper settings, scenes, and a blueprint editor
-  that turns any automation into a blueprint.
-- Installing from the HA app store with ready-made images.
+- Dependencies at a glance: what an automation uses, and what uses this helper.
+- A view by area or device for homes without folders, and turning it into folders in one click.
+- Run history, editing helper settings, scenes.
+- A full visual blueprint editor: build blueprints from scratch or from any automation.
 
 ## Try it without Home Assistant
 

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.10.0
 
 - Check-up ("Durchsicht"): shows what needs a look, without any setup. Automations and scripts
   that use devices which no longer exist (shown in red in the flow) or are unavailable, helpers no

@@ -544,9 +544,9 @@ const en: MessageSchema = {
       off: "switched off",
     },
     banner: {
-      gone: "This flow uses {ids}, which no longer exists in Home Assistant; the flow shows it in red.",
+      gone: "This flow uses {ids}. Home Assistant no longer has this; the flow marks it in red.",
       unavailable:
-        "{names} has been unavailable since {since}. Until then this flow does not work properly.",
+        "Went offline {since}: {names}. Until that is fixed, this flow does not work properly.",
       unused: "No automation or script uses this helper.",
       unusedNote:
         "HomeAce Studio does not check dashboards. If you use it there, just ignore this.",

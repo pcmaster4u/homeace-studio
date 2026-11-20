@@ -553,7 +553,7 @@ export default {
     banner: {
       gone: "Dieser Ablauf benutzt {ids}. Das gibt es in Home Assistant nicht mehr; im Ablauf ist es rot markiert.",
       unavailable:
-        "{names} ist nicht erreichbar, seit {since}. Solange läuft dieser Ablauf nicht richtig.",
+        "Ausgefallen {since}: {names}. Solange läuft dieser Ablauf nicht richtig.",
       unused: "Kein Ablauf und kein Skript benutzt diesen Helfer.",
       unusedNote:
         "Dashboards prüft HomeAce Studio nicht. Wenn du ihn dort nutzt, einfach ignorieren.",
