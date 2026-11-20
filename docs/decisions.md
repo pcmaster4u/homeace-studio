@@ -39,6 +39,10 @@
 | 2026-11-20 | Only flows in automations.yaml / scripts.yaml are editable | REST POST would otherwise add a duplicate to those files; flows from packages and blueprints stay read-only |
 | 2026-11-20 | Unsaved edits are drafts per entry in the browser | Switching entries loses nothing, the list marks them; HA sees changes only with "In HA speichern". If HA changed the flow meanwhile, the save bar says so |
 | 2026-11-20 | Check-up for users who do not organize | Many users barely use categories or labels; the check-up gives them value without setup by finding broken references, unused helpers and idle automations |
+| 2026-11-20 | Entity picker: area → device → function instead of one long list | Users think in rooms and devices, not entity IDs; HA's own picker is a flat search over thousands of rows. Checked in click dummy v13 with the owner |
+| 2026-11-20 | Picker criteria are single-select, the chips stay open | Multi-select felt like clicking ballast in tests ("I meant to pick one"); a panel that closes after each pick felt worse. One value per criterion, a second click clears it |
+| 2026-11-20 | The picker only shows what the field allows, without "show all" | HA rejects other kinds there anyway; a hint names the allowed kinds instead |
+| 2026-11-20 | "All lights in the area" writes `target.area_id` | HA's own area target also covers devices added later; the entity list of that target is removed so nothing is targeted twice |
 | 2026-11-20 | "Unused" only for HA-managed helpers | Template and group helpers often only feed dashboards, which HomeAce Studio cannot see; checking them would flood the list with false findings |
 | 2026-11-20 | No version bump before a release is approved | A version change on main builds and publishes the images at once; unreleased work goes under "Unreleased" in the changelog and is tested with scripts/local.mjs first |
 | 2026-11-20 | Released as an app repository with ready-made images on ghcr.io | Installing needs only the repository URL; HA downloads instead of building for minutes. The workflow builds on version changes, the JavaScript stages natively and only the runtime stage per arch |

@@ -1,0 +1,81 @@
+import type { HaArea, HaDevice, HaEntityRegistryEntry, HaLabel, HaState } from "../ha/ha.types";
+
+/** One entity as the picker of the flow editor shows it. */
+export type EntityOption = {
+  entityId: string;
+  /** Full friendly name, e.g. "Terrace motion sensor Battery". */
+  name: string;
+  /** Name within its device, e.g. "Battery"; the full name for entities without a device. */
+  shortName: string;
+  domain: string;
+  /** Current state, offered as a suggestion when a block asks for a state. */
+  state: string;
+  unit: string | null;
+  /** The possible states of select-like entities (input_select, select, enum sensors). */
+  options: string[] | null;
+  deviceId: string | null;
+  deviceName: string | null;
+  /** The entity's own area, else its device's. */
+  areaId: string | null;
+  areaName: string | null;
+  labels: string[];
+};
+
+export type EntitySources = {
+  states: HaState[];
+  registry: HaEntityRegistryEntry[];
+  devices: HaDevice[];
+  areas: HaArea[];
+  labels: HaLabel[];
+};
+
+const DOMAIN_SEPARATOR = ".";
+
+const stringList = (value: unknown): string[] | null =>
+  Array.isArray(value) && value.every((item) => typeof item === "string") ? value : null;
+
+/** "Terrace motion sensor Battery" in device "Terrace motion sensor" → "Battery". */
+export function nameWithinDevice(name: string, deviceName: string | null): string {
+  if (!deviceName) return name;
+
+  const prefix = `${deviceName} `;
+  const rest = name.startsWith(prefix) ? name.slice(prefix.length).trim() : "";
+
+  return rest || name;
+}
+
+/** Every entity with a state, with what makes it recognizable: device, area, labels, unit. */
+export function toEntityOptions(sources: EntitySources): EntityOption[] {
+  const registry = new Map(sources.registry.map((entry) => [entry.entity_id, entry]));
+  const devices = new Map(sources.devices.map((device) => [device.id, device]));
+  const areaNames = new Map(sources.areas.map((area) => [area.area_id, area.name]));
+  const labelNames = new Map(sources.labels.map((label) => [label.label_id, label.name]));
+
+  const options = sources.states.map((state): EntityOption => {
+    const entry = registry.get(state.entity_id);
+    const device = entry?.device_id ? devices.get(entry.device_id) : undefined;
+    const deviceName = device ? (device.name_by_user ?? device.name ?? null) : null;
+    const areaId = entry?.area_id ?? device?.area_id ?? null;
+    const name = state.attributes.friendly_name ?? state.entity_id;
+    const unit = state.attributes.unit_of_measurement;
+
+    return {
+      entityId: state.entity_id,
+      name,
+      shortName: nameWithinDevice(name, deviceName),
+      domain: state.entity_id.split(DOMAIN_SEPARATOR)[0] ?? "",
+      state: state.state,
+      unit: typeof unit === "string" ? unit : null,
+      options: stringList(state.attributes.options),
+      deviceId: device?.id ?? null,
+      deviceName,
+      areaId,
+      areaName: areaId ? (areaNames.get(areaId) ?? null) : null,
+      labels: (entry?.labels ?? []).map((id) => labelNames.get(id) ?? id),
+    };
+  });
+
+  return options.sort((first, second) =>
+    first.name.localeCompare(second.name, undefined, { sensitivity: "base" }),
+  );
+}

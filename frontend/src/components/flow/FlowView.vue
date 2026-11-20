@@ -59,7 +59,10 @@
       :edit="openEdit.edit"
       :anchor="openEdit.anchor"
       :is-technical-details-visible="isTechnicalDetailsVisible"
+      :used-ids="usedEntityIds"
+      :area-id="areaId"
       @apply="onApply"
+      @apply-area="onApplyArea"
       @close="openEdit = null"
     />
   </div>
@@ -83,6 +86,7 @@ import {
   type FlowKind,
 } from "@/types/editor";
 import { blockTypes, newBlock } from "@/utils/flow/blockTypes";
+import { entityIdsInFlow } from "@/utils/flow/entityIdsInFlow";
 
 import AddBlockButton from "./AddBlockButton.vue";
 import ChipEditorPopover from "./ChipEditorPopover.vue";
@@ -132,6 +136,8 @@ const props = defineProps<{
   isTechnicalDetailsVisible: boolean;
   /** Block types for adding; null until HA sent them (then only hand-made ones are offered). */
   catalog: EditorCatalog | null;
+  /** The entry's area, for suggestions in the entity picker. */
+  areaId: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -247,6 +253,19 @@ function openTypePicker(target: AddTarget, anchor: HTMLElement): void {
 function closeAndEmit(change: FlowChange | null): void {
   openEdit.value = null;
   if (change) emit("change", change);
+}
+
+/** Every entity the flow names, for the picker's suggestions. */
+const usedEntityIds = computed(() => (props.flow ? entityIdsInFlow(props.flow) : []));
+
+/** "All lights in the living room": the target gets the area, its entity list goes. */
+function onApplyArea(areaPath: ConfigPath, areaId: string): void {
+  const current = openEdit.value;
+
+  if (!current) return;
+
+  closeAndEmit({ type: "set", path: areaPath, value: areaId });
+  emit("change", { type: "set", path: current.edit.path, value: undefined });
 }
 
 function onApply(value: unknown): void {

@@ -45,7 +45,8 @@ backend/src/
                          POST /api/flows (new empty flow), DELETE /api/flows/:id; flow-key.ts (script keys)
   ha/ha-rest.service.ts  REST calls to HA (only where the WebSocket API has no command, e.g. saving
                          automations.yaml / scripts.yaml)
-  lookups/               GET /api/areas, /api/labels, /api/entities
+  lookups/               GET /api/areas, /api/labels, /api/entities (entity-options.ts joins states,
+                         entity registry, devices, areas and labels into picker rows)
   live/                  LiveService subscribes to state_changed and the registry events, filters them
                          (live-events.ts), debounces 500 ms; LiveController streams GET /api/events (SSE)
   entries/entry-extras.ts  withExtras / applyExtras / removeExtras: favorites and notes from the overlay
@@ -113,6 +114,11 @@ frontend/src/
   utils/flow/flowChanges.ts      applyFlowChange(): set a value, insert / move / duplicate / remove /
                                  disable a block in its list (every block knows its `position`)
   utils/flow/blockTypes.ts       block types to add (hand-made first, then HA's catalog) and their new config
+  components/flow/EntityPicker   the entity editor: search (word order free, umlauts folded), criteria
+                                 area / label / kind (one value each, chips stay open), area view with device
+                                 cards and "All lights · Living room" (writes target.area_id), suggestions
+                                 (entities the flow uses, then the entry's area), live state per row;
+                                 pure parts in utils/entityPicker.ts, entityIdsInFlow.ts
   components/flow/               FlowView (mode bar, sections Wenn / Und nur wenn / Dann, opens the editor),
                                  recursive FlowBlock (chips as buttons, "+ Option", ⋮ menu), AddBlockButton, ChipEditorPopover
                                  (+ ChoiceList), FlowSaveBar; FlowView provides the editing callbacks to
@@ -173,6 +179,7 @@ The HA token stays in the backend. As an add-on it is `SUPERVISOR_TOKEN` with `h
 | Categories (per scope: automation, script, scene, helpers) | WS `config/category_registry/list · create · update · delete` |
 | Entity properties: name, icon, area, labels, category, aliases, hidden, disabled, entity ID | WS `config/entity_registry/list · get · update` |
 | Labels, areas | WS `config/label_registry/*`, `config/area_registry/*` |
+| Devices (name and area, for the entity picker) | WS `config/device_registry/list` |
 | Automation config | REST `GET/POST/DELETE /api/config/automation/config/<id>` |
 | Script config | REST `/api/config/script/config/<object_id>` |
 | Scene config | REST `/api/config/scene/config/<id>` |

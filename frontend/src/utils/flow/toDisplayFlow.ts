@@ -477,7 +477,7 @@ function entityChip(
     edit: {
       path,
       title: label ?? context.texts.entity,
-      editor: { type: "entity", domains, isMultiple },
+      editor: { type: "entity", domains, isMultiple, areaPath: targetAreaPath(path) },
       value,
       isRemovable,
     },
@@ -575,6 +575,14 @@ function targetChips(
   }
 
   return chips;
+}
+
+/** For `…target.entity_id` the sibling `…target.area_id`; HA then acts on everything in the area. */
+function targetAreaPath(path: ConfigPath): ConfigPath | undefined {
+  const isTarget =
+    path.length >= 2 && path[path.length - 2] === "target" && path[path.length - 1] === "entity_id";
+
+  return isTarget ? [...path.slice(0, -1), "area_id"] : undefined;
 }
 
 /** Set fields as "name: value"; fields still at their default are left out to keep it short. */

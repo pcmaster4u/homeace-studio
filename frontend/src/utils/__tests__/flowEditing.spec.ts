@@ -224,15 +224,33 @@ describe("turning input into config values", () => {
   });
 
   it("suggests states from options, the domain and the current state", () => {
+    const extra = {
+      unit: null,
+      deviceId: null,
+      deviceName: null,
+      areaId: null,
+      areaName: null,
+      labels: [],
+    };
     const entities = [
       {
+        ...extra,
         entityId: "input_select.modus",
         name: "Modus",
+        shortName: "Modus",
         domain: "input_select",
         state: "Tag",
         options: ["Tag", "Nacht"],
       },
-      { entityId: "light.a", name: "A", domain: "light", state: "on", options: null },
+      {
+        ...extra,
+        entityId: "light.a",
+        name: "A",
+        shortName: "A",
+        domain: "light",
+        state: "on",
+        options: null,
+      },
     ];
 
     expect(stateSuggestions(["input_select.modus"], entities)).toEqual(["Tag", "Nacht"]);

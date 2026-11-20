@@ -17,8 +17,19 @@ export type HaEntityRegistryEntry = {
   categories: Partial<Record<string, string>>;
   labels: string[];
   area_id: string | null;
+  /** The device the entity belongs to; null for entities without one (helpers, templates). */
+  device_id?: string | null;
   disabled_by: string | null;
   hidden_by: string | null;
+};
+
+/** A device from `config/device_registry/list`. */
+export type HaDevice = {
+  id: string;
+  name: string | null;
+  /** Name set by the user; wins over `name`. */
+  name_by_user: string | null;
+  area_id: string | null;
 };
 
 export type HaState = {
@@ -29,6 +40,7 @@ export type HaState = {
     friendly_name?: string;
     icon?: string;
     options?: unknown;
+    unit_of_measurement?: string;
     /** Automations and scripts: when they last ran; null when never. */
     last_triggered?: string | null;
     /** Scenes and groups: their member entities. */

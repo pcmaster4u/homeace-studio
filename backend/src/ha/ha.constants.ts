@@ -38,6 +38,7 @@ export const HA_COMMAND = {
   categoryRegistryDelete: "config/category_registry/delete",
   labelRegistryList: "config/label_registry/list",
   areaRegistryList: "config/area_registry/list",
+  deviceRegistryList: "config/device_registry/list",
   configEntriesGet: "config_entries/get",
   callService: "call_service",
   subscribeEvents: "subscribe_events",

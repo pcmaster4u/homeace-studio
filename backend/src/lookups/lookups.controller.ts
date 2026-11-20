@@ -2,28 +2,14 @@ import { Controller, Get } from "@nestjs/common";
 
 import { HaConnectionService } from "../ha/ha-connection.service";
 import { HA_COMMAND } from "../ha/ha.constants";
-import type { HaArea, HaLabel, HaState } from "../ha/ha.types";
+import type { HaArea, HaDevice, HaEntityRegistryEntry, HaLabel, HaState } from "../ha/ha.types";
+import { toEntityOptions, type EntityOption } from "./entity-options";
 
 export type Area = { areaId: string; name: string; icon: string | null };
 export type Label = { labelId: string; name: string; icon: string | null; color: string | null };
 
-export type EntityOption = {
-  entityId: string;
-  name: string;
-  domain: string;
-  /** Current state, offered as a suggestion when a block asks for a state. */
-  state: string;
-  /** The possible states of select-like entities (input_select, select, enum sensors). */
-  options: string[] | null;
-};
-
-const DOMAIN_SEPARATOR = ".";
-
 const byName = (first: { name: string }, second: { name: string }): number =>
   first.name.localeCompare(second.name, undefined, { sensitivity: "base" });
-
-const stringList = (value: unknown): string[] | null =>
-  Array.isArray(value) && value.every((item) => typeof item === "string") ? value : null;
 
 /**
  * HA's areas, labels and entities, for the pickers in the detail view and the flow editor. Read-only and a plain mapping, so the
@@ -45,19 +31,18 @@ export class LookupsController {
     return mapped.sort(byName);
   }
 
-  /** Every entity HA has right now, for the entity picker of the flow editor. */
+  /** Every entity HA has right now, with device, area and labels, for the flow editor's picker. */
   @Get("entities")
   async entities(): Promise<EntityOption[]> {
-    const states = await this.ha.call<HaState[]>(HA_COMMAND.getStates);
-    const mapped = states.map((state) => ({
-      entityId: state.entity_id,
-      name: state.attributes.friendly_name ?? state.entity_id,
-      domain: state.entity_id.split(DOMAIN_SEPARATOR)[0] ?? "",
-      state: state.state,
-      options: stringList(state.attributes.options),
-    }));
+    const [states, registry, devices, areas, labels] = await Promise.all([
+      this.ha.call<HaState[]>(HA_COMMAND.getStates),
+      this.ha.call<HaEntityRegistryEntry[]>(HA_COMMAND.entityRegistryList),
+      this.ha.call<HaDevice[]>(HA_COMMAND.deviceRegistryList),
+      this.ha.call<HaArea[]>(HA_COMMAND.areaRegistryList),
+      this.ha.call<HaLabel[]>(HA_COMMAND.labelRegistryList),
+    ]);
 
-    return mapped.sort(byName);
+    return toEntityOptions({ states, registry, devices, areas, labels });
   }
 
   @Get("labels")

@@ -60,6 +60,7 @@
           :is-editable="isFlowEditable"
           :is-technical-details-visible="isTechnicalDetailsVisible"
           :catalog="catalog"
+          :area-id="entry.area?.areaId ?? null"
           @change="(change) => emit('changeFlow', change)"
         />
       </div>

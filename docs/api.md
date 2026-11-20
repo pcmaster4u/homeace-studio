@@ -70,9 +70,21 @@ stops a running `script`. Returns `null` with `ENTRY_ACTION_DONE`;
 
 HA's areas `[{ areaId, name, icon }]` and labels `[{ labelId, name, icon, color }]`, sorted by name.
 
-`GET /api/entities` lists every entity HA has, for the entity picker of the flow editor:
-`[{ entityId, name, domain, state, options }]`, sorted by name. `options` holds the possible states of
-select-like entities (input_select, select, enum sensors), otherwise `null`.
+`GET /api/entities` lists every entity HA has, for the entity picker of the flow editor, sorted by name:
+
+```json
+[{ "entityId": "sensor.front_door_battery", "name": "Front door sensor Battery", "shortName": "Battery",
+   "domain": "sensor", "state": "91", "unit": "%", "options": null,
+   "deviceId": "…", "deviceName": "Front door sensor", "areaId": "hallway", "areaName": "Hallway",
+   "labels": [] }]
+```
+
+- `shortName` is the name within its device ("Battery"), or the full name when it does not start with
+  the device name.
+- `areaId` / `areaName` are the entity's own area, otherwise its device's area, otherwise `null`.
+- `labels` are label names; `unit` is `unit_of_measurement` or `null`.
+- `options` holds the possible states of select-like entities (input_select, select, enum sensors),
+  otherwise `null`.
 
 ## POST /api/entries/:entityId/move
 

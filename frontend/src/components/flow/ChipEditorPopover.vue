@@ -3,7 +3,7 @@
     <div
       ref="popover"
       class="chip-editor"
-      :class="{ 'chip-editor--sheet': isNarrow }"
+      :class="{ 'chip-editor--sheet': isNarrow, 'chip-editor--wide': editor.type === 'entity' }"
       :style="positionStyle"
       role="dialog"
       :aria-label="edit.title"
@@ -11,8 +11,21 @@
     >
       <div class="chip-editor__title">{{ edit.title }}</div>
 
+      <EntityPicker
+        v-if="editor.type === 'entity'"
+        :entities="lookups.entities"
+        :selected="selected"
+        :domains="editor.domains"
+        :used-ids="usedIds"
+        :area-id="areaId"
+        :can-pick-area="editor.areaPath !== undefined"
+        :is-technical-details-visible="isTechnicalDetailsVisible"
+        @pick="pick"
+        @pick-area="pickArea"
+      />
+
       <ChoiceList
-        v-if="listOptions"
+        v-else-if="listOptions"
         :options="listOptions"
         :selected="selected"
         :is-multiple="isMultiple"
@@ -93,12 +106,12 @@
 </template>
 
 <script setup lang="ts">
-import { onClickOutside, useEventListener, useMediaQuery } from "@vueuse/core";
+import { onClickOutside, useEventListener, useMediaQuery, useResizeObserver } from "@vueuse/core";
 import { computed, nextTick, onMounted, reactive, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useLookupsStore } from "@/stores/lookupsStore";
-import type { ChipEdit } from "@/types/editor";
+import type { ChipEdit, ConfigPath } from "@/types/editor";
 import {
   listValue,
   numberValue,
@@ -110,17 +123,24 @@ import { joinDuration, splitDuration } from "@/utils/flow/formatValue";
 import { stateSuggestions } from "@/utils/flow/stateSuggestions";
 
 import ChoiceList, { type ListOption } from "./ChoiceList.vue";
+import EntityPicker from "./EntityPicker.vue";
 
 const props = defineProps<{
   edit: ChipEdit;
   /** The clicked chip; the popover opens next to it. */
   anchor: HTMLElement;
   isTechnicalDetailsVisible: boolean;
+  /** Entities the flow already uses, suggested first by the entity picker. */
+  usedIds: string[];
+  /** The automation's area, for suggestions. */
+  areaId: string | null;
 }>();
 
 const emit = defineEmits<{
   /** The new value; undefined removes it. */
   apply: [value: unknown];
+  /** A whole area instead of entities, at the target's area path. */
+  applyArea: [areaPath: ConfigPath, areaId: string];
   close: [];
 }>();
 
@@ -166,19 +186,8 @@ const choiceLabel = (value: string): string =>
 const listOptions = computed((): ListOption[] | null => {
   const current = editor.value;
 
-  if (current.type === "entity") {
-    const domains = new Set(current.domains);
-    const options = lookups.entities
-      .filter((entity) => domains.size === 0 || domains.has(entity.domain))
-      .map((entity) => ({
-        value: entity.entityId,
-        label: entity.name,
-        sub: props.isTechnicalDetailsVisible ? entity.entityId : undefined,
-      }));
-    const missing = selected.value.filter((id) => !options.some((o) => o.value === id));
-
-    return [...missing.map((id) => ({ value: id, label: id })), ...options];
-  }
+  // Entities have their own picker (EntityPicker).
+  if (current.type === "entity") return null;
 
   if (current.type === "area") {
     return lookups.areas.map((area) => ({ value: area.areaId, label: area.name }));
@@ -227,7 +236,9 @@ const inputStep = computed(() => {
 });
 
 const canRemove = computed(() => props.edit.isRemovable && props.edit.value !== undefined);
-const needsApply = computed(() => listOptions.value === null || isMultiple.value);
+const needsApply = computed(
+  () => (listOptions.value === null && editor.value.type !== "entity") || isMultiple.value,
+);
 
 const positionStyle = computed(() =>
   isNarrow.value || !position.value
@@ -244,6 +255,12 @@ function pick(value: string): void {
   selected.value = selected.value.includes(value)
     ? selected.value.filter((item) => item !== value)
     : [...selected.value, value];
+}
+
+function pickArea(areaId: string): void {
+  const current = editor.value;
+
+  if (current.type === "entity" && current.areaPath) emit("applyArea", current.areaPath, areaId);
 }
 
 function applyInput(): void {
@@ -293,6 +310,8 @@ onClickOutside(popover, () => emit("close"), { ignore: [toRef(props, "anchor")] 
 useEventListener(window, "resize", place);
 // The detail pane scrolls; the popover follows its chip.
 useEventListener(window, "scroll", place, { capture: true, passive: true });
+// The content grows after opening (entities load, a criterion opens); stay inside the window.
+useResizeObserver(popover, place);
 
 onMounted(async () => {
   const current = editor.value;
@@ -310,6 +329,11 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.chip-editor--wide {
+  width: 440px;
+  max-height: min(600px, 80vh);
+}
+
 .chip-editor {
   position: fixed;
   z-index: 100;

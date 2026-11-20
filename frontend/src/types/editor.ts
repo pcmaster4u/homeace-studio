@@ -35,10 +35,20 @@ export type Flow = {
 /** An entity from `GET /api/entities`, for the entity picker. */
 export type EntityOption = {
   entityId: string;
+  /** Full friendly name. */
   name: string;
+  /** Name within its device ("Batterie"); the full name without a device. */
+  shortName: string;
   domain: string;
   state: string;
+  unit: string | null;
   options: string[] | null;
+  deviceId: string | null;
+  deviceName: string | null;
+  /** Own area, else the device's. */
+  areaId: string | null;
+  areaName: string | null;
+  labels: string[];
 };
 
 export type BlockSection = "trigger" | "condition" | "action";
@@ -59,7 +69,13 @@ export type ChoiceOption = {
 
 /** How a value is edited; derived from HA's selector or, for classic blocks, from the field. */
 export type ValueEditor =
-  | { type: "entity"; domains: string[]; isMultiple: boolean }
+  | {
+      type: "entity";
+      domains: string[];
+      isMultiple: boolean;
+      /** Action targets only: where an area goes instead ("all lights in the living room"). */
+      areaPath?: ConfigPath;
+    }
   | { type: "area"; isMultiple: boolean }
   | { type: "number"; min?: number; max?: number; step?: number; unit?: string }
   | { type: "boolean" }

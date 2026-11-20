@@ -9,6 +9,7 @@ import type {
   HaEvent,
   HaLabel,
   HaArea,
+  HaDevice,
   HaState,
 } from "../ha/ha.types";
 import { DEMO_EVENT_DELAY_MS } from "./demo.constants";
@@ -96,6 +97,7 @@ export class FakeHa {
     ["script", new Map()],
   ]);
   private readonly handlers = new Map<string, EventHandler[]>();
+  private readonly devices = new Map<string, HaDevice>();
   private readonly areas: HaArea[];
   private readonly labels: HaLabel[];
   private nextId = 1;
@@ -129,6 +131,8 @@ export class FakeHa {
         return this.deleteCategory(payload);
       case HA_COMMAND.labelRegistryList:
         return structuredClone(this.labels);
+      case HA_COMMAND.deviceRegistryList:
+        return structuredClone([...this.devices.values()]);
       case HA_COMMAND.areaRegistryList:
         return structuredClone(this.areas);
       case HA_COMMAND.configEntriesGet:
@@ -232,6 +236,9 @@ export class FakeHa {
       categories[scope] = this.ensureCategory(scope, entity.category).category_id;
     }
 
+    // Like HA: a device carries the area, its entities inherit it.
+    const device = entity.device ? this.ensureDevice(entity.device, entity.areaId ?? null) : null;
+
     this.registry.set(entity.entityId, {
       entity_id: entity.entityId,
       unique_id: entity.uniqueId ?? entity.entityId,
@@ -242,7 +249,8 @@ export class FakeHa {
       config_entry_id: configEntryId,
       categories,
       labels: entity.labels ?? [],
-      area_id: entity.areaId ?? null,
+      area_id: device ? null : (entity.areaId ?? null),
+      device_id: device?.id ?? null,
       disabled_by: entity.isDisabled ? "user" : null,
       hidden_by: null,
     });
@@ -261,6 +269,22 @@ export class FakeHa {
       const kind = domainOf(entity.entityId) as FlowKind;
       this.flowConfigs.get(kind)?.set(entity.uniqueId ?? entity.entityId, entity.config);
     }
+  }
+
+  private ensureDevice(name: string, areaId: string | null): HaDevice {
+    const existing = [...this.devices.values()].find((device) => device.name === name);
+
+    if (existing) return existing;
+
+    const device = {
+      id: `demo_device_${this.nextId++}`,
+      name,
+      name_by_user: null,
+      area_id: areaId,
+    };
+    this.devices.set(device.id, device);
+
+    return device;
   }
 
   private removeEntity(entityId: string): void {

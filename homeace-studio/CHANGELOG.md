@@ -6,6 +6,10 @@
   that use devices which no longer exist (shown in red in the flow) or are unavailable, helpers no
   automation or script uses, and automations idle for more than 90 days. Every finding can be
   ignored; the entry shows the finding with what to do about it.
+- New device picker in the flow editor: pick by area, then device, then its function ("Front door
+  sensor → Battery"), or search with words in any order. Filter by area, label or kind; suggestions
+  from the flow and the automation's area; every row shows the current state. "All lights · Living
+  room" targets the whole area, including lights added later.
 - Local test environment outside Home Assistant: `node scripts/local.mjs` or `docker compose`.
 
 ## 0.9.1

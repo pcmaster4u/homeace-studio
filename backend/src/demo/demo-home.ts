@@ -10,6 +10,8 @@ export type DemoEntity = {
   /** Integration that owns it; automations, scripts and helpers use their domain. */
   platform: string;
   uniqueId?: string;
+  /** Device it belongs to (its name); its area goes to the device, like HA does it. */
+  device?: string;
   /** Category path in the entity's scope, e.g. "House/Terrace". */
   category?: string;
   areaId?: string;
@@ -161,37 +163,81 @@ function daysAgo(days: number): string {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 }
 
-function sensor(entityId: string, name: string, state: string, unit?: string): DemoEntity {
+function sensor(
+  entityId: string,
+  name: string,
+  state: string,
+  unit?: string,
+  place?: { device: string; areaId?: string },
+): DemoEntity {
   return {
     entityId,
     name,
     state,
     platform: "demo",
     attributes: unit ? { unit_of_measurement: unit } : {},
+    device: place?.device,
+    areaId: place?.areaId,
   };
 }
 
 /** Devices the flows refer to. They are not listed themselves, but give the chips their names. */
+const MOTION = { device: "Terrace motion sensor", areaId: "terrace" };
+const DOOR = { device: "Front door sensor", areaId: "hallway" };
+const IRRIGATION = { device: "Lawn irrigation", areaId: "garden" };
+const INVERTER = { device: "Inverter", areaId: "garage" };
+
 const DEVICES: DemoEntity[] = [
-  sensor("binary_sensor.terrace_motion", "Terrace motion", "off"),
-  sensor("binary_sensor.front_door", "Front door", "off"),
+  sensor("binary_sensor.terrace_motion", "Terrace motion", "off", undefined, MOTION),
+  sensor("sensor.terrace_motion_battery", "Terrace motion sensor Battery", "78", "%", MOTION),
+  sensor(
+    "sensor.terrace_motion_temperature",
+    "Terrace motion sensor Temperature",
+    "12.4",
+    "°C",
+    MOTION,
+  ),
+  sensor("binary_sensor.front_door", "Front door", "off", undefined, DOOR),
+  sensor("sensor.front_door_battery", "Front door sensor Battery", "91", "%", DOOR),
   sensor("binary_sensor.anyone_home", "Anyone home", "on"),
-  sensor("light.terrace", "Terrace light", "off"),
-  sensor("light.garden_paths", "Garden path lights", "off"),
-  sensor("light.living_room", "Living room light", "on"),
-  sensor("cover.awning", "Awning", "open"),
-  sensor("sensor.wind_speed", "Wind speed", "12", "km/h"),
-  sensor("sensor.lawn_moisture", "Lawn moisture", "34", "%"),
-  sensor("valve.lawn_irrigation", "Lawn irrigation", "closed"),
-  sensor("sensor.solar_power", "Solar power", "3420", "W"),
-  sensor("sensor.house_consumption", "House consumption", "1580", "W"),
-  sensor("switch.wallbox", "Wallbox", "off"),
+  sensor("light.terrace", "Terrace light", "off", undefined, {
+    device: "Terrace light",
+    areaId: "terrace",
+  }),
+  sensor("light.garden_paths", "Garden path lights", "off", undefined, {
+    device: "Garden path lights",
+    areaId: "garden",
+  }),
+  sensor("light.living_room", "Living room light", "on", undefined, {
+    device: "Ceiling light",
+    areaId: "living_room",
+  }),
+  sensor("light.living_room_floor_lamp", "Floor lamp", "off", undefined, {
+    device: "Floor lamp",
+    areaId: "living_room",
+  }),
+  sensor("cover.awning", "Awning", "open", undefined, { device: "Awning", areaId: "terrace" }),
+  sensor("sensor.wind_speed", "Wind speed", "12", "km/h", {
+    device: "Weather station",
+    areaId: "terrace",
+  }),
+  sensor("sensor.lawn_moisture", "Lawn moisture", "34", "%", IRRIGATION),
+  sensor("valve.lawn_irrigation", "Lawn irrigation", "closed", undefined, IRRIGATION),
+  sensor("sensor.solar_power", "Solar power", "3420", "W", INVERTER),
+  sensor("sensor.house_consumption", "House consumption", "1580", "W", INVERTER),
+  sensor("switch.wallbox", "Wallbox", "off", undefined, { device: "Wallbox", areaId: "garage" }),
   {
     ...sensor("sensor.washing_machine_power", "Washing machine power", "unavailable", "W"),
     lastChanged: daysAgo(3),
   },
-  sensor("climate.bathroom", "Bathroom heating", "heat"),
-  sensor("alarm_control_panel.home", "Alarm system", "disarmed"),
+  sensor("climate.bathroom", "Bathroom heating", "heat", undefined, {
+    device: "Bathroom thermostat",
+    areaId: "bathroom",
+  }),
+  sensor("alarm_control_panel.home", "Alarm system", "disarmed", undefined, {
+    device: "Alarm panel",
+    areaId: "hallway",
+  }),
 ];
 
 const AUTOMATIONS: DemoEntity[] = [
