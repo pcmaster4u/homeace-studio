@@ -8,15 +8,23 @@ A clearer UI for automations, scripts, scenes and helpers.
   categories are created and emptied ones (created by HomeAce Studio) are removed automatically.
 - **Rename** a folder and everything below it in one go, with a preview.
 
-## Installation (local app)
+## Installation
 
 Since HA 2026.2, add-ons are called **apps** in the UI; it is the same thing.
 
-1. Copy the add-on folder to `/addons/homeace_studio` on your HA (e.g. with the "Samba share" app).
-2. Settings → Apps → App store → ⋮ → Check for updates, then reload the page.
-3. Open "HomeAce Studio" under "Local apps", install, start, and turn on "Show in sidebar".
+1. Settings → Apps → App store → ⋮ → Repositories: add
+   `https://github.com/shadowtsw/homeace-studio`.
+2. Open "HomeAce Studio" in the app store, install, start, and turn on "Show in sidebar".
 
-The first build takes a few minutes, because the image is built on your HA.
+HA downloads a ready-made image (amd64 or aarch64); nothing is built on your HA.
+
+### Coming from a local install
+
+A local install keeps its extras (folder colors, favorites, notes) in
+`/addon_configs/local_homeace_studio/overlay.json`. The installed app uses its own folder, ending in
+`_homeace_studio`, which appears after its first start. Copy `overlay.json` over (e.g. with the
+"Samba share" app), restart the app, then uninstall the local one. Categories live in Home Assistant
+itself and need no copying.
 
 ## AI access (MCP)
 

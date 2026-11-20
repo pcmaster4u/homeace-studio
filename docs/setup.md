@@ -84,13 +84,24 @@ Start the backend first (`cd backend && npm run start:dev`). Moving entries writ
 `frontend/package-lock.json`. `create-vue` sets `engines.node` to `^22.18.0 || >=24.12.0`; older local
 Node 24 versions only print a warning.
 
-## As an add-on (local app on HA OS)
+## Releases
+
+Raising `version` in `homeace-studio/config.yaml` on `main` starts the workflow
+`.github/workflows/build-images.yml`: it builds the images for amd64 and aarch64 and pushes them to
+`ghcr.io/shadowtsw/homeace-studio-<arch>:<version>`. `config.yaml` names that image (`image:`), so HA
+downloads it. Push the version change only together with a CHANGELOG entry; HA shows the update right
+away, and the download works once the workflow is done (a few minutes). The packages on ghcr.io must be
+public (GitHub → profile → Packages → package → Package settings → Change visibility).
+
+## As an add-on (local app on HA OS, for development)
 
 Since HA 2026.2 the UI calls add-ons **apps** (Settings → Apps). The "Marketplace" (2026.11) is the former
 HACS for integrations and cards and is not involved here.
 
 The Supervisor builds the image on HA, from the add-on folder only. That folder therefore needs the sources
-next to `config.yaml` and the `Dockerfile`; `scripts/build-addon.mjs` assembles it.
+next to `config.yaml` and the `Dockerfile`; `scripts/build-addon.mjs` assembles it and removes the
+`image:` line, so HA builds the local app from source instead of downloading the released image.
+A local app and the installed one can exist side by side; they have separate config folders.
 
 1. On HA, install the **Samba share** app (or **Advanced SSH & Web Terminal**) so `/addons` is reachable.
    Settings → Apps → App store (direct: `/config/apps/available`); Samba needs a username and password.

@@ -1,4 +1,4 @@
-# HomeAce Studio
+<h1 align="center"><img src="homeace-studio/logo.png" alt="HomeAce Studio" width="300"></h1>
 
 **A calmer, clearer home for your Home Assistant automations, scripts, scenes and helpers.**
 Real folders instead of one long list, flows you read like sentences, and no YAML in sight.
@@ -79,8 +79,17 @@ from this demo.
 
 ## Install on Home Assistant
 
-For now HomeAce Studio installs as a *local app* on HA OS: [docs/setup.md](docs/setup.md#as-an-add-on-local-app-on-ha-os)
-explains it step by step. An app repository you can simply add in HA follows soon.
+HomeAce Studio needs Home Assistant OS or Supervised (the app store), on amd64 or aarch64
+(Raspberry Pi 4/5, HA Green and Yellow).
+
+[![Add the repository to your Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fshadowtsw%2Fhomeace-studio)
+
+1. Click the button above, or add the repository by hand: Settings → Apps → App store → ⋮ →
+   Repositories → `https://github.com/shadowtsw/homeace-studio`.
+2. Open **HomeAce Studio** in the app store, install and start it, and turn on **Show in sidebar**.
+
+Updates arrive like for any other app. The app documentation explains the AI access:
+[homeace-studio/DOCS.md](homeace-studio/DOCS.md).
 
 ## For developers
 
@@ -99,7 +108,8 @@ Local development against a real HA, tests and the app build are described in
 
 HomeAce Studio is free and open source. If it saves you time, you can buy me a coffee:
 
-[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/gerrul3r)
+<a href="https://ko-fi.com/gerrul3r"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi" height="36"></a>
+<a href="https://buymeacoffee.com/gerrul3r"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy me a coffee" height="36"></a>
 
 ## License
 

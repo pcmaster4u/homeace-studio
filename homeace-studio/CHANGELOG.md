@@ -2,6 +2,8 @@
 
 ## 0.9.0
 
+- First public release: install it from the app repository; HA downloads a ready-made image for
+  amd64 or aarch64 instead of building it.
 - AI access (MCP): an AI like Claude can read folders and entries and propose a folder plan. You
   review it in HomeAce Studio, untick what you do not want and apply the rest; the AI cannot change
   anything itself. Off by default: needs a host port in the app's network settings, the switch in

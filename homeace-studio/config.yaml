@@ -7,6 +7,9 @@ url: https://github.com/shadowtsw/homeace-studio
 arch:
   - amd64
   - aarch64
+# Ready-made images from GitHub; HA downloads instead of building. Local development builds from
+# source: scripts/build-addon.mjs removes this line.
+image: ghcr.io/shadowtsw/homeace-studio-{arch}
 init: false
 startup: application
 boot: auto

@@ -1,0 +1,5 @@
+# Makes this repository an app repository for Home Assistant:
+# Settings → Apps → App store → ⋮ → Repositories → add https://github.com/shadowtsw/homeace-studio
+name: HomeAce Studio
+url: https://github.com/shadowtsw/homeace-studio
+maintainer: shadowtsw

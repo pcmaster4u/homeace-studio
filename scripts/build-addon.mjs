@@ -9,7 +9,7 @@
 //   node scripts/build-addon.mjs --to \\homeassistant.local\addons
 //                                                        → <share>/homeace_studio (e.g. Samba share)
 
-import { cpSync, existsSync, rmSync } from "node:fs";
+import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 
 const ADDON_SLUG = "homeace_studio";
@@ -41,6 +41,11 @@ cpSync(ADDON_SOURCE, target, { recursive: true });
 for (const part of SOURCE_PARTS) {
   cpSync(join(PROJECT_ROOT, part), join(target, part), { recursive: true, filter: keep });
 }
+
+// Released versions name a ready-made image; a local app must build from these sources instead.
+const configPath = join(target, "config.yaml");
+const config = readFileSync(configPath, "utf8");
+writeFileSync(configPath, config.replace(/^image:.*\r?\n/m, ""));
 
 console.log(`Add-on folder ready: ${target}`);
 console.log("In HA: Settings → Apps → App store → ⋮ → Check for updates → Local apps.");

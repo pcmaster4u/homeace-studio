@@ -1,9 +1,18 @@
-# Built by the HA Supervisor from the folder that scripts/build-addon.mjs assembles:
+# Built from the folder that scripts/build-addon.mjs assembles:
 #   config.yaml, Dockerfile, frontend/, backend/  (sources only, no node_modules)
-# The Supervisor passes BUILD_FROM; we use the official Node image instead, which every arch has.
+# Released images come from the GitHub workflow (.github/workflows/build-images.yml); a local app
+# (development) is built by the HA Supervisor itself. BUILD_FROM is ignored: the official Node image
+# exists for every arch.
+#
+# Stages 1 and 2 produce plain JavaScript, so they run on the platform of the build machine
+# (BUILDPLATFORM); only the small runtime stage is built for the target arch. That keeps the
+# aarch64 image fast to build on an amd64 runner. No dependency has native code.
+
+# Set by BuildKit; the default only helps an old builder that does not set it.
+ARG BUILDPLATFORM=linux/amd64
 
 # ---- 1. Frontend: lint, test, build -------------------------------------------------------
-FROM node:22-alpine AS frontend
+FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend
 WORKDIR /build/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
@@ -11,7 +20,7 @@ COPY frontend/ ./
 RUN npm run lint:check && npm test && npm run build
 
 # ---- 2. Backend: lint, test, build, keep only runtime dependencies ----------------------
-FROM node:22-alpine AS backend
+FROM --platform=$BUILDPLATFORM node:22-alpine AS backend
 WORKDIR /build/backend
 COPY backend/package.json backend/package-lock.json ./
 RUN npm ci
