@@ -1,0 +1,35 @@
+# Local test environment outside Home Assistant: the same image as the app, built from this repo.
+#
+#   docker compose --profile demo up --build   → http://localhost:8099 with the invented demo home
+#   docker compose --profile ha up --build     → http://localhost:8099 against your own HA
+#
+# The "ha" profile reads HA_URL and HA_TOKEN from .env (see .env.example) and really changes your HA,
+# exactly like the installed app. Its extras (folder colors, notes, AI plans) go to data/overlay.json.
+# Port 8098 is the AI access (MCP); switch it on in the app's settings to use it.
+# Without Docker: node scripts/local.mjs [--demo]  (docs/setup.md).
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: homeace-studio/Dockerfile
+    args:
+      BUILD_VERSION: local
+  ports:
+    - "8099:8099"
+    - "8098:8098"
+
+services:
+  demo:
+    <<: *app
+    profiles: [demo]
+    environment:
+      HOMEACE_DEMO: "true"
+
+  ha:
+    <<: *app
+    profiles: [ha]
+    env_file: .env
+    environment:
+      HOMEACE_DEMO: "false"
+    volumes:
+      - ./data:/config

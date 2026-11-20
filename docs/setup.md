@@ -6,6 +6,20 @@
    (HA profile → Security → Long-lived access tokens). `.env` is git-ignored.
 2. Node.js 22 or newer (has a built-in `WebSocket`, so the POC scripts need no packages).
 
+## Local test environment (outside Home Assistant)
+
+Test a change the way the app runs, before a release: one server for UI and API on port 8099, the AI
+access (MCP) on 8098.
+
+- **Without Docker:** `node scripts/local.mjs --demo` (invented home) or `node scripts/local.mjs`
+  (your HA from `.env`). Installs missing packages, builds both parts, starts the backend with the
+  built UI. `--skip-build` starts the last build again.
+- **With Docker:** `docker compose --profile demo up --build` or `docker compose --profile ha up --build`
+  (`compose.yaml`). Builds the same image as the release workflow, from the repo root.
+
+Against your HA both really change things, like the installed app; extras go to `data/overlay.json`.
+Open http://localhost:8099.
+
 ## Demo mode (no Home Assistant needed)
 
 With `HOMEACE_DEMO=true` the backend uses an invented home kept in memory (`backend/src/demo/`):

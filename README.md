@@ -101,7 +101,8 @@ scripts/         build-addon.mjs (assembles the app folder), screenshots.mjs (RE
 docs/            setup, architecture, API, decisions
 ```
 
-Local development against a real HA, tests and the app build are described in
+Local development against a real HA, a local test environment (`node scripts/local.mjs`, or
+`docker compose`), tests and the app build are described in
 [docs/setup.md](docs/setup.md); the design is in [docs/architecture.md](docs/architecture.md).
 
 ## Support

@@ -1,0 +1,11 @@
+# Build context for compose.yaml (repo root): sources only, like scripts/build-addon.mjs copies them.
+**/node_modules
+**/dist
+**/coverage
+**/.eslintcache
+.env
+.git
+data
+dist-addon
+docs
+poc
