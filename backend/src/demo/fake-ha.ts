@@ -264,7 +264,8 @@ export class FakeHa {
       device_id: device?.id ?? null,
       disabled_by: entity.isDisabled ? "user" : null,
       hidden_by: null,
-      aliases: [],
+      // Like newer HA versions: null stands for the entity's own name.
+      aliases: [null],
     });
     this.states.set(entity.entityId, {
       entity_id: entity.entityId,

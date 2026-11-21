@@ -19,6 +19,19 @@ describe("HaEntriesRepository", () => {
     });
   });
 
+  it("keeps HA's null for the entity's own name and never shows it", async () => {
+    const ha = new DemoHaConnectionService(new FakeHa(createDemoHome()));
+    const repository = new HaEntriesRepository(ha);
+
+    expect(await repository.findDetails("input_boolean.guest_mode")).toEqual({ aliases: [] });
+
+    await repository.update("input_boolean.guest_mode", { aliases: ["Visitors"] });
+    const raw = await ha.call<{ aliases: unknown[] }>("config/entity_registry/get", {
+      entity_id: "input_boolean.guest_mode",
+    });
+    expect(raw.aliases).toEqual([null, "Visitors"]);
+  });
+
   it("hides and disables as the user; a disabled entity loses its state until enabled", async () => {
     const repository = setup();
 

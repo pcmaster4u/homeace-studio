@@ -52,13 +52,19 @@ export class HaEntriesRepository implements EntryRepository {
   }
 
   async update(entityId: string, changes: EntryChanges): Promise<void> {
+    // HA's null in the aliases means "the name itself"; it must survive our list of names.
+    const aliases =
+      changes.aliases === undefined
+        ? undefined
+        : [...(await this.namePlaceholders(entityId)), ...changes.aliases];
+
     // Only fields that are set go to HA; undefined means "leave as it is".
     const fields = {
       name: changes.name,
       icon: changes.icon,
       area_id: changes.areaId,
       labels: changes.labelIds,
-      aliases: changes.aliases,
+      aliases,
       // Only "user" is ours to set; null gives the switch back to HA.
       hidden_by: changes.isHidden === undefined ? undefined : changes.isHidden ? "user" : null,
       disabled_by:
@@ -77,7 +83,17 @@ export class HaEntriesRepository implements EntryRepository {
       entity_id: entityId,
     });
 
-    return { aliases: entry.aliases ?? [] };
+    return {
+      aliases: (entry.aliases ?? []).filter((alias): alias is string => typeof alias === "string"),
+    };
+  }
+
+  private async namePlaceholders(entityId: string): Promise<null[]> {
+    const entry = await this.ha.call<HaEntityRegistryEntry>(HA_COMMAND.entityRegistryGet, {
+      entity_id: entityId,
+    });
+
+    return (entry.aliases ?? []).some((alias) => alias === null) ? [null] : [];
   }
 
   async callService(domain: string, service: string, entityId: string): Promise<void> {

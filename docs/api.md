@@ -59,7 +59,8 @@ Changes what HA keeps in its entity registry. Every field is optional; missing o
   a disabled entity, so it has no state until it is enabled again.
 
 `GET /api/entries/:entityId/details` → `{ aliases }`: HA leaves aliases out of the registry list, so
-they are read for the open entry only (`config/entity_registry/get`).
+they are read for the open entry only (`config/entity_registry/get`). Newer HA versions keep a `null` in the
+aliases that stands for the entity's own name: it is never shown and is kept when the aliases are saved.
 - Returns the updated entry with `ENTRY_UPDATED`. `400 ENTRY_NOT_IN_REGISTRY` for YAML-only entities.
 
 ## Entity ID: GET /api/entries/:entityId/references · POST /api/entries/:entityId/rename
