@@ -56,10 +56,33 @@ including lights you add later.
 
 **Check-up, no setup needed.** Even if you never sort anything, HomeAce Studio shows what needs a
 look: automations that use devices which no longer exist (marked red in the flow) or are offline
-right now, helpers no automation or script uses, and automations that have not run for months.
+right now, flows whose last run stopped with an error, helpers no automation or script uses, and
+automations that have not run for months.
 Ignore what is fine as it is.
 
 ![The check-up with a flow that points to a removed device](docs/images/checkup-light.png)
+
+**What happened, step by step.** The *History* tab lists the runs Home Assistant kept: finished,
+condition not met, stopped by an error, still running, restarted or ignored. Pick one and it goes
+through the flow block by block: what triggered it, what each condition found ("was 14, wanted
+below 20"), which branch an *if* took, how long it waited, and errors in plain words. *Show on the
+flow* puts the run right onto the blocks you edit. One click lets HA keep 20 runs instead of 5.
+
+![The run history of an automation, block by block](docs/images/history-dark.png)
+
+**Areas without any setup.** Switch the tree from folders to areas. An entry without an area of its
+own counts in the areas of the devices it uses, a helper in those of the flows that use it, and
+every row says why ("through Alarm panel"). Create, rename and delete areas right there, drag
+entries onto an area, and *Tidy up in one click* turns the areas into real folders after a preview.
+
+![The area view: every entry with the reason it belongs to the area](docs/images/areas-light.png)
+
+**See what depends on what.** Every automation, script, scene and helper has a *Dependencies* tab:
+what it uses, grouped by what it does with it (triggers on, checks, controls, reads values,
+starts), with the current state, and who uses it in turn. Deleting something that is still used
+names the flows that would break.
+
+![The dependencies of an automation](docs/images/dependencies-light.png)
 
 **Made to be used everywhere.** Light and dark mode, German and English, all columns resizable,
 and on a phone the list comes first and the details slide in full screen. Technical details such
@@ -75,9 +98,9 @@ as entity IDs stay hidden until you switch them on.
 
 ## Coming next
 
-- Dependencies at a glance: what an automation uses, and what uses this helper.
-- A view by area or device for homes without folders, and turning it into folders in one click.
-- Run history, editing helper settings, scenes.
+- Rename an entity ID together with every flow that refers to it; aliases, hidden and disabled.
+- Editing helper settings, and scenes.
+- Settings per Home Assistant user.
 - A full visual blueprint editor: build blueprints from scratch or from any automation.
 
 ## Try it without Home Assistant

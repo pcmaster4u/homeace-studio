@@ -225,6 +225,37 @@ const SHOTS = [
     },
   },
   {
+    name: "history-dark.png",
+    view: { ...DESKTOP, isDark: true },
+    steps: async (page) => {
+      await click(page, ".category-tree-node", "House");
+      await click(page, ".category-tree-node", "Garden");
+      await click(page, ".entry-list-row__open", "Morning garden watering");
+      await click(page, ".entry-detail__tab", "History");
+      // Yesterday's run took the "then" branch: the dry-soil case.
+      await click(page, ".history__run", "30 min");
+    },
+  },
+  {
+    name: "areas-light.png",
+    view: { ...DESKTOP, isDark: false },
+    steps: async (page) => {
+      await click(page, ".category-tree__modes button", "Areas");
+      await click(page, ".area-node__main", "Hallway");
+      await click(page, ".entry-list-row__open", "Good night");
+    },
+  },
+  {
+    name: "dependencies-light.png",
+    view: { ...DESKTOP, isDark: false },
+    steps: async (page) => {
+      await click(page, ".category-tree-node", "House");
+      await click(page, ".category-tree-node", "Terrace");
+      await click(page, ".entry-list-row__open", "Terrace light on motion");
+      await click(page, ".entry-detail__tab", "Dependencies");
+    },
+  },
+  {
     name: "phone-dark.png",
     view: { ...PHONE, isDark: true },
     steps: async (page) => {

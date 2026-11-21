@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.11.0
 
 - Dependencies: every automation, script, scene and helper has a tab "Abhängigkeiten". It shows what
   the entry uses, grouped by what it does with it (triggers on, checks, controls, reads values,
