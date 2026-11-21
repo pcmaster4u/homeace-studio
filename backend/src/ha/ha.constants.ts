@@ -41,6 +41,8 @@ export const HA_COMMAND = {
   areaRegistryCreate: "config/area_registry/create",
   areaRegistryUpdate: "config/area_registry/update",
   areaRegistryDelete: "config/area_registry/delete",
+  traceList: "trace/list",
+  traceGet: "trace/get",
   deviceRegistryList: "config/device_registry/list",
   configEntriesGet: "config_entries/get",
   callService: "call_service",

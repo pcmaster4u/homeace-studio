@@ -327,7 +327,12 @@ export default {
     resize: "Breite der Liste ändern",
   },
   detail: {
-    tabs: { flow: "Ablauf", properties: "Eigenschaften", dependencies: "Abhängigkeiten" },
+    tabs: {
+      flow: "Ablauf",
+      properties: "Eigenschaften",
+      history: "Verlauf",
+      dependencies: "Abhängigkeiten",
+    },
     back: "Zurück",
     empty: "Wähle links einen Eintrag aus.",
     identity: "Identität",
@@ -732,6 +737,84 @@ export default {
       apply: "Übernehmen",
       running: "Wird einsortiert …",
       done: "Ein Eintrag in {folders} sortiert | {count} Einträge in {folders} sortiert",
+    },
+  },
+  history: {
+    loading: "Durchläufe werden geladen …",
+    error: "Die Durchläufe ließen sich nicht laden. Öffne den Tab gleich noch einmal.",
+    flowLoading: "Der Ablauf wird geladen …",
+    empty: {
+      automation:
+        "Noch kein Durchlauf gespeichert. Sobald die Automation das nächste Mal auslöst, steht hier, was passiert ist.",
+      script:
+        "Noch kein Durchlauf gespeichert. Sobald das Skript das nächste Mal startet, steht hier, was passiert ist.",
+    },
+    keep: {
+      automation: "Home Assistant merkt sich die letzten {count} Durchläufe dieser Automation.",
+      script: "Home Assistant merkt sich die letzten {count} Durchläufe dieses Skripts.",
+    },
+    today: "Heute",
+    yesterday: "Gestern",
+    took: "Dauer {duration}",
+    runningSince: "läuft noch",
+    runningShort: "läuft",
+    result: {
+      finished: "Durchgelaufen",
+      conditionsFailed: "Bedingung nicht erfüllt",
+      error: "Mit Fehler abgebrochen",
+      running: "Läuft gerade",
+      cancelled: "Unterbrochen",
+      ignored: "Ignoriert, lief schon",
+      stopped: "Angehalten",
+      unknown: "Beendet",
+    },
+    hint: {
+      cancelled:
+        "Der Durchlauf wurde von außen beendet, meist weil ein neuer Auslöser ihn neu gestartet hat (Modus „Neu starten“) oder weil die Automation ausgeschaltet wurde.",
+      ignored:
+        "Sie lief gerade schon. Im Modus „Ignorieren“ startet ein neuer Auslöser keinen zweiten Durchlauf. Soll sie stattdessen neu starten, stell den Modus im Ablauf um.",
+    },
+    start: {
+      entity: "{name}: „{state}“",
+      trigger: "Ausgelöst: {text}",
+      user: "Von Hand gestartet",
+      flow: "Von einer Automation oder einem Skript gestartet",
+      unknown: "Gestartet",
+    },
+    section: {
+      triggers: "Wenn",
+      conditions: "Und nur wenn",
+      actions: "Dann",
+      sequence: "Ablauf",
+    },
+    kind: {
+      trigger: "Auslöser",
+      condition: "Bedingung",
+      action: "Aktion",
+    },
+    status: {
+      fired: "Hat ausgelöst",
+      notFired: "Nicht beteiligt",
+      passed: "Erfüllt",
+      passedWas: "Erfüllt: war „{value}“",
+      passedWith: "Erfüllt: war „{value}“ (verlangt: {wanted})",
+      option: "Möglichkeit {number} genommen",
+      branchThen: "„Dann“ genommen",
+      branchElse: "„Sonst“ genommen",
+      failed: "Nicht erfüllt. Hier endet dieser Teil.",
+      failedWith: "Nicht erfüllt: war „{value}“, verlangt: {wanted}",
+      done: "Ausgeführt",
+      waited: "{duration} gewartet",
+      error: "Abgebrochen",
+      running: "Läuft gerade hier",
+      interrupted: "Hier unterbrochen",
+      notReached: "Nicht erreicht",
+      notTaken: "Zweig nicht genommen",
+      disabled: "Übersprungen (deaktiviert)",
+    },
+    errors: {
+      unavailable: "{name} war nicht erreichbar. Diese Aktion und alles danach liefen nicht.",
+      other: "Home Assistant meldet: {error}",
     },
   },
   deps: {

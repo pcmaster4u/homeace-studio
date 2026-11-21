@@ -26,6 +26,8 @@ backend/src/
   areas/                 entry-areas.ts (pure: deriveEntryAreas, own area, else areas of what is used, else
                          of the users), EntryAreasService + Controller (GET /api/entry-areas), AreasService +
                          Controller (POST/PATCH/DELETE /api/areas, names checked ignoring case first)
+  traces/                run history: trace-mapper.ts (pure: HA trace → Run with result word, start, steps),
+                         TracesService + Controller (GET /api/traces/:entityId)
   demo/                  demo mode: FakeHa (an invented home in memory that answers the WebSocket and
                          REST calls with HA's shapes and events), DemoHaConnectionService / DemoHaRestService
                          (subclasses of the real services), MemoryOverlayRepository
@@ -132,6 +134,10 @@ frontend/src/
                                  utils/areaTidy.ts (planAreaTidy, folderForArea), utils/areaNotes.ts (row
                                  reasons), stores/entryAreasStore.ts; the switch folders / areas is in
                                  CategoryTree, the mode stays in the browser (settingsStore.navMode)
+  components/history/            RunHistoryView (the "Verlauf" tab of automations and scripts: runs by day,
+                                 the selected run block by block), RunStepRow; utils/runStates.ts maps a run
+                                 onto the display flow (tracePathOf, runStatesFor), utils/runTime.ts formats;
+                                 stores/tracesStore.ts loads with the open entry and after live changes
   components/dependencies/       DependencyView (the "Abhängigkeiten" tab of every entry: uses grouped by
                                  role with device names and live state, "+2 weitere" users, used by),
                                  DependencyUseRow, DependencyUserRow (also in the delete dialog);

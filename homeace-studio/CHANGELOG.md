@@ -11,6 +11,11 @@
 - Area view: a switch above the tree shows areas instead of folders. Entries without an area of
   their own count in the areas of the devices they use, helpers in those of the flows that use
   them; every row says why ("über Bewegungsmelder Terrasse · auch in Garten"). Nothing to set up.
+- Run history: automations and scripts have a tab "Verlauf" with the runs Home Assistant kept, by
+  day: finished, condition not met, stopped by an error, running, interrupted (restarted), ignored
+  (was already running). The selected run goes block by block: what triggered it, what each
+  condition found ("war ‚an‘, verlangt: aus"), which branch an if took, how long it waited, and
+  errors in plain words.
 - Create areas right here: "+" next to "Bereiche", "+ Neuer Bereich …" in an entry's properties, or
   from "Bereich" for ticked entries. Name and icon (guessed from the name, e.g. Schlafzimmer → bed).
   Edit and delete them in the area tree. Drag entries onto an area to give them their own area;

@@ -341,6 +341,30 @@ The areas of every entry, own or derived, for the area view:
   dropped on every live change). Sorting into folders uses the normal move
   (`POST /api/entries/:entityId/move`), one entry after another.
 
+## Run history: GET /api/traces/:entityId
+
+The runs HA kept of an automation or script (`trace/list`, then `trace/get` for each), newest first:
+
+```json
+{ "entityId": "automation.solar_surplus_to_wallbox", "storedTraces": 5,
+  "runs": [{ "runId": "…", "startedAt": "2026-11-21T11:20:00Z", "finishedAt": "2026-11-21T11:20:00.4Z",
+    "result": "error", "lastStep": "action/0", "error": "Entity switch.wallbox is unavailable",
+    "start": { "triggerIndex": 0, "entityId": "sensor.solar_surplus", "from": null, "to": "1840",
+               "description": "numeric state of sensor.solar_surplus", "by": "trigger" },
+    "steps": [{ "path": "condition/0", "at": "…", "result": { "result": true }, "error": null }] }] }
+```
+
+- `result`: `finished`, `conditionsFailed`, `error`, `running`, `cancelled` (ended from outside, e.g.
+  restarted by a new trigger), `ignored` (was already running: HA's `failed_single` / `failed_max_runs`),
+  `stopped` (a stop action), `unknown`.
+- `steps`: every recorded step in time order with HA's path and HA's `result` as it is (conditions:
+  `result`, one level deeper `state` / `wanted_state`; if / choose: `choice`; delays: `delay`).
+  The UI maps a path to its block: `action/1/then/0` is `actions[1].then[0]`; if-conditions sit under
+  `action/1/if/condition/0`.
+- `start.by`: `trigger`, `user` (run by hand), `flow` (started by another automation or script).
+- `storedTraces`: the config's `trace.stored_traces`, HA's default 5.
+- Other kinds, and flows without an `id` / key (HA keeps no runs for them): `runs: []`.
+
 ## GET /api/messages?lang=de
 
 The backend catalog: message ID → text, for `de` (default) and `en`. Placeholders like `{path}` are filled from

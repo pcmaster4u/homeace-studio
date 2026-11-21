@@ -203,6 +203,7 @@ import { useLookupsStore } from "@/stores/lookupsStore";
 import { useMessagesStore } from "@/stores/messagesStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useStudioStore } from "@/stores/studioStore";
+import { useTracesStore } from "@/stores/tracesStore";
 import { useToastStore } from "@/stores/toastStore";
 import type { Area, Entry, EntryChanges } from "@/types/entry";
 import { areaNote, type AreaListView } from "@/utils/areaNotes";
@@ -232,6 +233,7 @@ const cleanup = useCleanupStore();
 const ai = useAiStore();
 const checkup = useCheckupStore();
 const dependencies = useDependenciesStore();
+const traces = useTracesStore();
 const entryAreas = useEntryAreasStore();
 const areas = useAreasStore();
 const areaActions = useAreaActions();
@@ -452,6 +454,7 @@ watch(
     void cleanup.load();
     void checkup.load();
     void dependencies.refresh();
+    void traces.refresh();
     void entryAreas.load();
   },
 );

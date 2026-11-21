@@ -1,6 +1,7 @@
 import type { HaPlatformDescription, HaServices, HaTranslations } from "../editor/catalog.mapper";
 import type { HaArea, HaConfigEntry, HaLabel } from "../ha/ha.types";
 import type { Overlay } from "../overlay/overlay.model";
+import { createDemoTraces, type DemoTrace } from "./demo-traces";
 
 /** One entity of the demo home, in a compact form the fake HA turns into registry entries and states. */
 export type DemoEntity = {
@@ -35,6 +36,8 @@ export type DemoHome = {
   services: HaServices;
   /** Per language, per translation category ("services"), HA's flat translation keys. */
   translations: Record<string, Record<string, HaTranslations>>;
+  /** Runs of automations and scripts (trace/list, trace/get). */
+  traces: DemoTrace[];
   /** Own extras the demo starts with: folder colors, favorites, notes. */
   overlay: Pick<Overlay, "folderColors" | "favorites" | "notes">;
 };
@@ -792,8 +795,9 @@ const HELPERS: DemoEntity[] = [
  * An invented home for demo mode: a few rooms, nested folders, flows with all common block types.
  * No real data; safe for screenshots in the public repo.
  */
-export function createDemoHome(): DemoHome {
+export function createDemoHome(now = Date.now()): DemoHome {
   return {
+    traces: createDemoTraces(now),
     areas: [
       { area_id: "living_room", name: "Living room", icon: null },
       { area_id: "terrace", name: "Terrace", icon: null },

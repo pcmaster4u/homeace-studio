@@ -14,6 +14,7 @@ import type {
 } from "../ha/ha.types";
 import { DEMO_EVENT_DELAY_MS } from "./demo.constants";
 import type { DemoEntity, DemoHome } from "./demo-home";
+import type { DemoTrace } from "./demo-traces";
 
 type Payload = Record<string, unknown>;
 type EventHandler = (event: HaEvent) => void;
@@ -135,6 +136,10 @@ export class FakeHa {
         return structuredClone([...this.devices.values()]);
       case HA_COMMAND.areaRegistryList:
         return structuredClone(this.areas);
+      case HA_COMMAND.traceList:
+        return this.listTraces(payload);
+      case HA_COMMAND.traceGet:
+        return this.getTrace(payload);
       case HA_COMMAND.areaRegistryCreate:
         return this.createArea(payload);
       case HA_COMMAND.areaRegistryUpdate:
@@ -291,6 +296,33 @@ export class FakeHa {
     this.devices.set(device.id, device);
 
     return device;
+  }
+
+  /** Like HA: summaries without steps and context, of one item or of a whole domain. */
+  private listTraces(payload: Payload): unknown[] {
+    return this.home.traces
+      .filter(
+        (trace) =>
+          (!payload.domain || trace.domain === payload.domain) &&
+          (payload.item_id === undefined || trace.item_id === payload.item_id),
+      )
+      .map((trace) => {
+        const summary: Partial<DemoTrace> = structuredClone(trace);
+        delete summary.trace;
+        delete summary.context;
+        return summary;
+      });
+  }
+
+  private getTrace(payload: Payload): unknown {
+    const trace = this.home.traces.find(
+      (item) =>
+        item.domain === payload.domain &&
+        item.item_id === payload.item_id &&
+        item.run_id === payload.run_id,
+    );
+    if (!trace) throw new HaCommandError(ERROR_CODE.notFound, "The trace could not be found");
+    return structuredClone(trace);
   }
 
   /** Like HA: names are unique (ignoring case), the ID comes from the name. */

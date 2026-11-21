@@ -68,6 +68,14 @@
         />
       </div>
 
+      <div v-else-if="activeTab === TAB.history" class="entry-detail__body">
+        <RunHistoryView
+          :entry="entry"
+          :flow="displayFlow"
+          :is-technical-details-visible="isTechnicalDetailsVisible"
+        />
+      </div>
+
       <div v-else-if="activeTab === TAB.dependencies" class="entry-detail__body">
         <DependencyView
           :entry="entry"
@@ -132,6 +140,7 @@ import { useI18n } from "vue-i18n";
 import { ENTRY_ACTION, ENTRY_KIND_ICON, type EntryAction } from "@/constants/entries";
 import CheckupBanner from "@/components/checkup/CheckupBanner.vue";
 import DependencyView from "@/components/dependencies/DependencyView.vue";
+import RunHistoryView from "@/components/history/RunHistoryView.vue";
 import FlowSaveBar from "@/components/flow/FlowSaveBar.vue";
 import FlowView from "@/components/flow/FlowView.vue";
 import type { CheckupFinding } from "@/services/checkupService";
@@ -188,7 +197,12 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const TAB = { flow: "flow", properties: "properties", dependencies: "dependencies" } as const;
+const TAB = {
+  flow: "flow",
+  properties: "properties",
+  history: "history",
+  dependencies: "dependencies",
+} as const;
 type Tab = (typeof TAB)[keyof typeof TAB];
 /** Kinds that have a flow (triggers, conditions, actions) to show. */
 const FLOW_KINDS = ["automation", "script"];
@@ -196,7 +210,9 @@ const FLOW_KINDS = ["automation", "script"];
 const deps = useDependenciesStore();
 const hasFlow = computed(() => FLOW_KINDS.includes(props.entry?.kind ?? ""));
 const tabs = computed((): Tab[] =>
-  hasFlow.value ? [TAB.flow, TAB.properties, TAB.dependencies] : [TAB.properties, TAB.dependencies],
+  hasFlow.value
+    ? [TAB.flow, TAB.properties, TAB.history, TAB.dependencies]
+    : [TAB.properties, TAB.dependencies],
 );
 const activeTab = ref<Tab>(TAB.flow);
 
@@ -268,13 +284,17 @@ const statusRows = computed((): DetailRow[] => {
 .entry-detail__tabs {
   display: flex;
   gap: 2px;
+  overflow-x: auto;
   padding: 0 28px;
+  scrollbar-width: none;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
 }
 
 .entry-detail__tab {
+  flex: none;
   padding: 10px 12px 11px;
+  white-space: nowrap;
   border: 0;
   border-bottom: 2px solid transparent;
   background: none;
