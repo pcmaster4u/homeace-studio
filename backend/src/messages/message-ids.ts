@@ -43,6 +43,13 @@ export const MESSAGE_ID = {
   cleanupRestored: "CLEANUP_RESTORED",
   cleanupDuplicate: "CLEANUP_DUPLICATE",
 
+  // Areas (HA area registry)
+  areaCreated: "AREA_CREATED",
+  areaUpdated: "AREA_UPDATED",
+  areaDeleted: "AREA_DELETED",
+  areaNameTaken: "AREA_NAME_TAKEN",
+  areaNotFound: "AREA_NOT_FOUND",
+
   // Folders (empty folders of the tree)
   folderCreated: "FOLDER_CREATED",
   folderDeleted: "FOLDER_DELETED",

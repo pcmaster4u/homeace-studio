@@ -11,6 +11,11 @@
 - Area view: a switch above the tree shows areas instead of folders. Entries without an area of
   their own count in the areas of the devices they use, helpers in those of the flows that use
   them; every row says why ("über Bewegungsmelder Terrasse · auch in Garten"). Nothing to set up.
+- Create areas right here: "+" next to "Bereiche", "+ Neuer Bereich …" in an entry's properties, or
+  from "Bereich" for ticked entries. Name and icon (guessed from the name, e.g. Schlafzimmer → bed).
+  Edit and delete them in the area tree. Drag entries onto an area to give them their own area;
+  dropping on "Ohne Bereich" takes it away. Empty areas show too, so you can drop onto them.
+- Unsaved changes in an entry's properties no longer get lost when something changes in HA meanwhile.
 - "Ordnung in einem Klick": sorts entries into folders by area, after a preview. Existing folders
   named like the area are used, missing ones created; entries in several areas get a choice;
   every row can be unticked.

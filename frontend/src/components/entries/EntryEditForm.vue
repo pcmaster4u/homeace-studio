@@ -25,6 +25,7 @@
           <option v-for="area in areas" :key="area.areaId" :value="area.areaId">
             {{ area.name }}
           </option>
+          <option :value="NEW_AREA">{{ t("areas.newAreaOption") }}</option>
         </select>
       </label>
     </div>
@@ -64,6 +65,7 @@
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { useAreasStore } from "@/stores/areasStore";
 import type { Area, Entry, EntryChanges, Label } from "@/types/entry";
 import { mdiIconClass } from "@/utils/text";
 
@@ -95,7 +97,29 @@ function reset(): void {
   labelIds.value = props.entry.labels.map((label) => label.labelId);
 }
 
-watch(() => props.entry, reset, { immediate: true });
+/** Set by save(): the next entry from HA is the saved one, so the form takes it over. */
+let isSaving = false;
+
+// Live updates bring a new entry object now and then; edits that are not saved yet stay.
+watch(
+  () => props.entry,
+  (next, previous) => {
+    if (!previous || next.entityId !== previous.entityId || isSaving || !isDirty.value) reset();
+    isSaving = false;
+  },
+  { immediate: true },
+);
+
+/** Value of the "+ Neuer Bereich …" option; never saved. */
+const NEW_AREA = "__new_area__";
+const areasStore = useAreasStore();
+
+// Picking "+ Neuer Bereich …" opens the area dialog and selects the new area afterwards.
+watch(areaId, (next, previous) => {
+  if (next !== NEW_AREA) return;
+  areaId.value = previous;
+  areasStore.startCreate((area) => (areaId.value = area.areaId));
+});
 
 const originalLabelIds = computed(() => props.entry.labels.map((label) => label.labelId));
 const hasLabelChanges = computed(() => {
@@ -121,6 +145,7 @@ function toggleLabel(labelId: string): void {
 /** Sends only what changed, so a save never overwrites something else by accident. */
 function save(): void {
   const changes: EntryChanges = {};
+  isSaving = true;
 
   if (name.value.trim() !== props.entry.name) changes.name = name.value;
   if (icon.value.trim() !== (props.entry.icon ?? "")) changes.icon = icon.value;

@@ -1,6 +1,17 @@
 <template>
   <div class="area-nav">
-    <div class="area-nav__heading">{{ t("areas.heading") }}</div>
+    <div class="area-nav__heading">
+      <span>{{ t("areas.heading") }}</span>
+      <button
+        class="area-nav__add"
+        type="button"
+        :title="t('areas.newArea')"
+        :aria-label="t('areas.newArea')"
+        @click="emit('create')"
+      >
+        <span class="mdi mdi-map-marker-plus-outline" />
+      </button>
+    </div>
 
     <div v-if="looseCount > 0" class="area-nav__tidy">
       <span class="mdi mdi-auto-fix area-nav__tidy-icon" />
@@ -20,30 +31,28 @@
     <template v-else>
       <p v-if="areas.length === 0" class="area-nav__note">{{ t("areas.noAreas") }}</p>
       <ul class="area-nav__list">
-        <li v-for="area in areas" :key="area.areaId">
-          <button
-            type="button"
-            class="area-nav__node"
-            :class="{ 'area-nav__node--active': selected === areaFilter(area.areaId) }"
-            @click="emit('select', areaFilter(area.areaId))"
-          >
-            <span class="mdi mdi-map-marker-outline" />
-            <span class="area-nav__name">{{ area.name }}</span>
-            <span class="area-nav__count">{{ area.count }}</span>
-          </button>
-        </li>
-        <li>
-          <button
-            type="button"
-            class="area-nav__node"
-            :class="{ 'area-nav__node--active': selected === areaFilter(null) }"
-            @click="emit('select', areaFilter(null))"
-          >
-            <span class="mdi mdi-map-marker-off-outline" />
-            <span class="area-nav__name">{{ t("areas.none") }}</span>
-            <span class="area-nav__count">{{ noAreaCount }}</span>
-          </button>
-        </li>
+        <AreaNavNode
+          v-for="area in areas"
+          :key="area.areaId"
+          :name="area.name"
+          :count="area.count"
+          :icon-class="mdiIconClass(area.icon) ?? 'mdi-map-marker-outline'"
+          :is-active="selected === areaFilter(area.areaId)"
+          has-actions
+          @select="emit('select', areaFilter(area.areaId))"
+          @edit="emit('edit', area.areaId)"
+          @delete="emit('delete', area.areaId)"
+          @drop-entry="(entityId) => emit('dropEntry', area.areaId, entityId)"
+        />
+        <AreaNavNode
+          :name="t('areas.none')"
+          :count="noAreaCount"
+          icon-class="mdi-map-marker-off-outline"
+          :is-active="selected === areaFilter(null)"
+          :has-actions="false"
+          @select="emit('select', areaFilter(null))"
+          @drop-entry="(entityId) => emit('dropEntry', null, entityId)"
+        />
       </ul>
     </template>
 
@@ -59,6 +68,9 @@ import { useI18n } from "vue-i18n";
 
 import type { AreaNavItem } from "@/composables/useStudioData";
 import { areaFilter } from "@/utils/entryFilter";
+import { mdiIconClass } from "@/utils/text";
+
+import AreaNavNode from "./AreaNavNode.vue";
 
 /** The tree of the area view: every area with entries, "Ohne Bereich" and the tidy-up card. */
 defineProps<{
@@ -73,6 +85,11 @@ defineProps<{
 const emit = defineEmits<{
   select: [category: string];
   tidy: [];
+  create: [];
+  edit: [areaId: string];
+  delete: [areaId: string];
+  /** `areaId` null: dropped on "Ohne Bereich", which takes the own area away. */
+  dropEntry: [areaId: string | null, entityId: string];
 }>();
 
 const { t } = useI18n();
@@ -85,12 +102,34 @@ const { t } = useI18n();
 }
 
 .area-nav__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin: 16px 6px 6px;
   color: var(--faint);
   font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.area-nav__add {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--faint);
+  cursor: pointer;
+  font-size: 17px;
+}
+
+.area-nav__add:hover {
+  background: var(--line);
+  color: var(--fg);
 }
 
 .area-nav__tidy {
@@ -135,52 +174,6 @@ const { t } = useI18n();
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.area-nav__node {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  width: 100%;
-  height: 32px;
-  padding: 0 8px;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
-}
-
-.area-nav__node .mdi {
-  color: var(--faint);
-  font-size: 17px;
-}
-
-.area-nav__node:hover {
-  background: var(--sunken);
-}
-
-.area-nav__node--active {
-  background: var(--surface);
-  color: var(--fg);
-  font-weight: 600;
-  box-shadow: inset 0 0 0 1px var(--line-strong);
-}
-
-.area-nav__name {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.area-nav__count {
-  color: var(--faint);
-  font-size: 12px;
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
 }
 
 .area-nav__note {

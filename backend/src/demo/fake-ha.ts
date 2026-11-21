@@ -135,6 +135,12 @@ export class FakeHa {
         return structuredClone([...this.devices.values()]);
       case HA_COMMAND.areaRegistryList:
         return structuredClone(this.areas);
+      case HA_COMMAND.areaRegistryCreate:
+        return this.createArea(payload);
+      case HA_COMMAND.areaRegistryUpdate:
+        return this.updateArea(payload);
+      case HA_COMMAND.areaRegistryDelete:
+        return this.deleteArea(payload);
       case HA_COMMAND.configEntriesGet:
         return structuredClone(this.home.helperConfigEntries);
       case HA_COMMAND.callService:
@@ -285,6 +291,71 @@ export class FakeHa {
     this.devices.set(device.id, device);
 
     return device;
+  }
+
+  /** Like HA: names are unique (ignoring case), the ID comes from the name. */
+  private createArea(payload: Payload): HaArea {
+    const name = text(payload.name).trim();
+    this.requireFreeAreaName(name, null);
+
+    const base = slugify(name) || "area";
+    let areaId = base;
+    for (let n = 2; this.areas.some((area) => area.area_id === areaId); n++)
+      areaId = `${base}_${n}`;
+
+    const area: HaArea = {
+      area_id: areaId,
+      name,
+      icon: typeof payload.icon === "string" ? payload.icon : null,
+    };
+    this.areas.push(area);
+    this.emit("area_registry_updated", { action: "create", area_id: areaId });
+
+    return structuredClone(area);
+  }
+
+  private updateArea(payload: Payload): HaArea {
+    const area = this.requireArea(payload.area_id);
+
+    if (payload.name !== undefined) {
+      const name = text(payload.name).trim();
+      this.requireFreeAreaName(name, area.area_id);
+      area.name = name;
+    }
+    if (payload.icon !== undefined)
+      area.icon = typeof payload.icon === "string" ? payload.icon : null;
+
+    this.emit("area_registry_updated", { action: "update", area_id: area.area_id });
+
+    return structuredClone(area);
+  }
+
+  /** Like HA: devices and entities in the area lose it. */
+  private deleteArea(payload: Payload): null {
+    const area = this.requireArea(payload.area_id);
+
+    this.areas.splice(this.areas.indexOf(area), 1);
+    for (const device of this.devices.values())
+      if (device.area_id === area.area_id) device.area_id = null;
+    for (const entry of this.registry.values())
+      if (entry.area_id === area.area_id) entry.area_id = null;
+    this.emit("area_registry_updated", { action: "remove", area_id: area.area_id });
+
+    return null;
+  }
+
+  private requireArea(areaId: unknown): HaArea {
+    const area = this.areas.find((item) => item.area_id === areaId);
+    if (!area) throw new HaCommandError(ERROR_CODE.notFound, "Area not found");
+    return area;
+  }
+
+  private requireFreeAreaName(name: string, ownId: string | null): void {
+    const taken = this.areas.some(
+      (area) => area.area_id !== ownId && area.name.toLowerCase() === name.toLowerCase(),
+    );
+    if (!name || taken)
+      throw new HaCommandError(ERROR_CODE.invalid, `The name "${name}" is already in use`);
   }
 
   private removeEntity(entityId: string): void {

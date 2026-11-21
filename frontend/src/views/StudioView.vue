@@ -53,6 +53,10 @@
               :has-loaded="entryAreas.hasLoaded"
               @select="selectCategory"
               @tidy="actions.startAreaTidy"
+              @create="areas.startCreate((area) => selectCategory(areaFilter(area.areaId)))"
+              @edit="(areaId) => withArea(areaId, areas.startEdit)"
+              @delete="(areaId) => withArea(areaId, areas.startDelete)"
+              @drop-entry="dropOnArea"
             />
           </template>
         </CategoryTree>
@@ -92,6 +96,7 @@
           @check="studio.setChecked"
           @move-checked="actions.startMoveMany([...studio.checkedIds])"
           @uncategorize-checked="actions.moveEntries([...studio.checkedIds], null)"
+          @set-area-checked="areas.startSetArea([...studio.checkedIds])"
           @act="entryActions.act"
         />
       </div>
@@ -146,6 +151,7 @@
       :actions="actions"
       :create="create"
       :entry-actions="entryActions"
+      :area-actions="areaActions"
       @close-color="colorPath = null"
       @created="selectEntry"
       @folder-created="selectCategory"
@@ -168,6 +174,7 @@ import EntryDetail from "@/components/entries/EntryDetail.vue";
 import EntryList from "@/components/entries/EntryList.vue";
 import AppTopBar, { type ConnectionStatus } from "@/components/layout/AppTopBar.vue";
 import PaneSplitter from "@/components/layout/PaneSplitter.vue";
+import { useAreaActions } from "@/composables/useAreaActions";
 import { useCategoryActions } from "@/composables/useCategoryActions";
 import { useCreateActions } from "@/composables/useCreateActions";
 import { useEntryActions } from "@/composables/useEntryActions";
@@ -184,6 +191,7 @@ import {
 } from "@/constants/entries";
 import { PANE, PANE_WIDTH_LIMITS } from "@/constants/layout";
 import { useAiStore } from "@/stores/aiStore";
+import { useAreasStore } from "@/stores/areasStore";
 import { useCheckupStore } from "@/stores/checkupStore";
 import { useCleanupStore } from "@/stores/cleanupStore";
 import { useDependenciesStore } from "@/stores/dependenciesStore";
@@ -196,7 +204,7 @@ import { useMessagesStore } from "@/stores/messagesStore";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useStudioStore } from "@/stores/studioStore";
 import { useToastStore } from "@/stores/toastStore";
-import type { Entry, EntryChanges } from "@/types/entry";
+import type { Area, Entry, EntryChanges } from "@/types/entry";
 import { areaNote, type AreaListView } from "@/utils/areaNotes";
 import { tidyCandidates } from "@/utils/areaTidy";
 import { areaFilter, areaOfFilter } from "@/utils/entryFilter";
@@ -225,6 +233,22 @@ const ai = useAiStore();
 const checkup = useCheckupStore();
 const dependencies = useDependenciesStore();
 const entryAreas = useEntryAreasStore();
+const areas = useAreasStore();
+const areaActions = useAreaActions();
+
+function withArea(areaId: string, action: (area: Area) => void): void {
+  const area = lookups.areas.find((item) => item.areaId === areaId);
+  if (area) action(area);
+}
+
+/** Dropping a ticked row gives every ticked row the area; any other row gets it alone. */
+function dropOnArea(areaId: string | null, entityId: string): void {
+  const ids =
+    studio.checkedIds.has(entityId) && studio.checkedIds.size > 1
+      ? [...studio.checkedIds]
+      : [entityId];
+  void areaActions.setOwnArea(ids, areaId);
+}
 
 /** Switching to the areas opens the first one; back to the folders, an area selection becomes "all". */
 function setNavMode(mode: NavMode): void {
@@ -275,7 +299,9 @@ const areaView = computed((): AreaListView | null => {
     ]),
   );
 
-  return { name, subtitle: t("areas.subtitle"), notes };
+  const isEmpty = !data.areaNav.value.some((area) => area.areaId === areaId && area.count > 0);
+
+  return { name, subtitle: isEmpty ? t("areas.emptySubtitle") : t("areas.subtitle"), notes };
 });
 
 /** Kinds whose flow the detail view shows. */

@@ -62,6 +62,9 @@
         <button class="btn btn--primary" type="button" @click="emit('moveChecked')">
           <span class="mdi mdi-folder-move-outline" />{{ t("list.moveTo") }}
         </button>
+        <button class="btn" type="button" @click="emit('setAreaChecked')">
+          <span class="mdi mdi-map-marker-outline" />{{ t("areas.set.button") }}
+        </button>
         <button class="btn" type="button" @click="emit('uncategorizeChecked')">
           {{ t("list.takeOut") }}
         </button>
@@ -188,6 +191,8 @@ const emit = defineEmits<{
   check: [entityIds: string[], isChecked: boolean];
   moveChecked: [];
   uncategorizeChecked: [];
+  /** "Bereich" for the ticked rows. */
+  setAreaChecked: [];
 }>();
 
 const { t } = useI18n();

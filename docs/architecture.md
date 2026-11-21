@@ -24,7 +24,8 @@ backend/src/
                          trigger / condition / action, buildDependencyIndex adds scene and group members),
                          DependenciesService + Controller (GET /api/dependencies/:entityId)
   areas/                 entry-areas.ts (pure: deriveEntryAreas, own area, else areas of what is used, else
-                         of the users), EntryAreasService + Controller (GET /api/entry-areas)
+                         of the users), EntryAreasService + Controller (GET /api/entry-areas), AreasService +
+                         Controller (POST/PATCH/DELETE /api/areas, names checked ignoring case first)
   demo/                  demo mode: FakeHa (an invented home in memory that answers the WebSocket and
                          REST calls with HA's shapes and events), DemoHaConnectionService / DemoHaRestService
                          (subclasses of the real services), MemoryOverlayRepository
@@ -121,8 +122,13 @@ frontend/src/
   utils/flow/flowChanges.ts      applyFlowChange(): set a value, insert / move / duplicate / remove /
                                  disable a block in its list (every block knows its `position`)
   utils/flow/blockTypes.ts       block types to add (hand-made first, then HA's catalog) and their new config
-  components/areas/              AreaNav (the tree of the area view: areas with counts, "Ohne Bereich", the
-                                 "Ordnung in einem Klick" card), AreaTidyDialog (preview, pick an area, untick);
+  components/areas/              AreaNav (the tree of the area view: every area with its count, empty ones
+                                 dimmed, "Ohne Bereich", the "Ordnung in einem Klick" card), AreaNavNode (drop
+                                 target: own area; edit and delete on hover), AreaDialog (name + icon, icon
+                                 guessed from the name: utils/areaIcons.ts), SetAreaDialog (ticked rows),
+                                 AreaTidyDialog (preview, pick an area, untick); stores/areasStore.ts says which
+                                 area dialog is open (the properties form opens it too), composables/
+                                 useAreaActions.ts saves with toasts;
                                  utils/areaTidy.ts (planAreaTidy, folderForArea), utils/areaNotes.ts (row
                                  reasons), stores/entryAreasStore.ts; the switch folders / areas is in
                                  CategoryTree, the mode stays in the browser (settingsStore.navMode)

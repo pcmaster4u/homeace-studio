@@ -39,6 +39,12 @@ export const CATALOG_DE: Catalog = {
   CLEANUP_RESTORED: "Ausgeblendete Vorschläge sind wieder da.",
   CLEANUP_DUPLICATE: "„{path}“ steht mehrfach in der Liste.",
 
+  AREA_CREATED: "Bereich angelegt.",
+  AREA_UPDATED: "Bereich gespeichert.",
+  AREA_DELETED: "Bereich gelöscht.",
+  AREA_NAME_TAKEN: "Den Bereich „{name}“ gibt es schon.",
+  AREA_NOT_FOUND: "Diesen Bereich gibt es in Home Assistant nicht (mehr).",
+
   FOLDER_CREATED: "Ordner angelegt.",
   FOLDER_DELETED: "Ordner entfernt.",
   FOLDER_EXISTS: "Den Ordner „{path}“ gibt es schon.",

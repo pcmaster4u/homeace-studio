@@ -7,6 +7,34 @@
     @cancel="actions.cancelRename"
     @confirm="actions.confirmRename"
   />
+  <AreaDialog
+    v-if="areas.draft"
+    :area="areas.draft.area"
+    :areas="lookups.areas"
+    :is-busy="areaActions.isBusy.value"
+    @cancel="areas.closeDraft"
+    @confirm="areaActions.saveDraft"
+  />
+  <ConfirmDialog
+    v-if="areas.deleting"
+    :title="t('areas.deleteDialog.title', { name: areas.deleting.name })"
+    :text="deleteAreaText"
+    :confirm-label="t('areas.deleteDialog.confirm')"
+    :is-busy="areaActions.isBusy.value"
+    @cancel="areas.closeDelete"
+    @confirm="areaActions.confirmDelete"
+  />
+  <!-- Hidden while a new area is being created from it; it comes back with that area picked. -->
+  <SetAreaDialog
+    v-if="areas.settingIds && !areas.draft"
+    :count="areas.settingIds.length"
+    :areas="lookups.areas"
+    :initial-area-id="setAreaPreset"
+    :is-busy="areaActions.isBusy.value"
+    @cancel="closeSetArea"
+    @confirm="setArea"
+    @new-area="areas.startCreate((area) => (setAreaPreset = area.areaId))"
+  />
   <AreaTidyDialog
     v-if="actions.isAreaTidyOpen.value"
     :entries="entriesStore.entries"
@@ -100,11 +128,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import AiPlanDialog from "@/components/ai/AiPlanDialog.vue";
+import AreaDialog from "@/components/areas/AreaDialog.vue";
 import AreaTidyDialog from "@/components/areas/AreaTidyDialog.vue";
+import SetAreaDialog from "@/components/areas/SetAreaDialog.vue";
 import McpSettingsDialog from "@/components/ai/McpSettingsDialog.vue";
 import CleanupDialog from "@/components/cleanup/CleanupDialog.vue";
 import FolderColorDialog from "@/components/categories/FolderColorDialog.vue";
@@ -116,17 +146,20 @@ import DependencyUserRow from "@/components/dependencies/DependencyUserRow.vue";
 import ToastHost from "@/components/common/ToastHost.vue";
 import NewFlowDialog from "@/components/flow/NewFlowDialog.vue";
 import NewHelperDialog from "@/components/helpers/NewHelperDialog.vue";
+import type { useAreaActions } from "@/composables/useAreaActions";
 import type { useCategoryActions } from "@/composables/useCategoryActions";
 import type { useCreateActions } from "@/composables/useCreateActions";
 import type { useEntryActions } from "@/composables/useEntryActions";
 import type { NewFlow } from "@/services/flowsService";
 import type { NewHelper } from "@/services/helpersService";
 import { useAiStore } from "@/stores/aiStore";
+import { useAreasStore } from "@/stores/areasStore";
 import { useCleanupStore } from "@/stores/cleanupStore";
 import { useDependenciesStore } from "@/stores/dependenciesStore";
 import { useEntriesStore } from "@/stores/entriesStore";
 import { useEntryAreasStore } from "@/stores/entryAreasStore";
 import { useFoldersStore } from "@/stores/foldersStore";
+import { useLookupsStore } from "@/stores/lookupsStore";
 import { useToastStore } from "@/stores/toastStore";
 
 /** All dialogs and toasts of the studio page, kept out of the page to keep it readable. */
@@ -138,6 +171,7 @@ const props = defineProps<{
   actions: ReturnType<typeof useCategoryActions>;
   create: ReturnType<typeof useCreateActions>;
   entryActions: ReturnType<typeof useEntryActions>;
+  areaActions: ReturnType<typeof useAreaActions>;
 }>();
 
 const emit = defineEmits<{
@@ -158,6 +192,53 @@ const toasts = useToastStore();
 const ai = useAiStore();
 const dependencies = useDependenciesStore();
 const entryAreas = useEntryAreasStore();
+const areas = useAreasStore();
+const lookups = useLookupsStore();
+
+/** An area created from "Bereich setzen" is picked there when it comes back. */
+const setAreaPreset = ref<string | null>(null);
+
+function closeSetArea(): void {
+  setAreaPreset.value = null;
+  areas.closeSetArea();
+}
+
+async function setArea(areaId: string | null): Promise<void> {
+  await props.areaActions.setOwnArea(areas.settingIds ?? [], areaId);
+  setAreaPreset.value = null;
+}
+
+// The delete warning counts devices; the entity list knows them.
+watch(
+  () => areas.deleting,
+  (area) => {
+    if (area) void lookups.loadEntities(true);
+  },
+);
+
+/** "3 Geräte und 2 Einträge liegen in diesem Bereich. …" */
+const deleteAreaText = computed(() => {
+  const areaId = areas.deleting?.areaId;
+  if (!areaId) return "";
+
+  const devices = new Set(
+    lookups.entities
+      .filter((entity) => entity.areaId === areaId && entity.deviceId)
+      .map((entity) => entity.deviceId),
+  ).size;
+  const own = entriesStore.entries.filter((entry) => entry.area?.areaId === areaId).length;
+
+  if (devices + own === 0) return t("areas.deleteDialog.empty");
+
+  return t("areas.deleteDialog.text", {
+    what: [
+      devices > 0 ? t("areas.deleteDialog.devices", { count: devices }, devices) : "",
+      own > 0 ? t("areas.deleteDialog.entries", { count: own }, own) : "",
+    ]
+      .filter(Boolean)
+      .join(t("areas.deleteDialog.and")),
+  });
+});
 
 async function confirmAreaTidy(
   moves: Parameters<typeof props.actions.confirmAreaTidy>[0],

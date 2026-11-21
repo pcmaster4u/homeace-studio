@@ -11,7 +11,7 @@ import { buildCategoryTree, flattenCategoryPaths, type CategoryNode } from "@/ut
 import { countByScope, filterEntries, isSpecialCategory } from "@/utils/entryFilter";
 
 /** One area in the tree of the area view. */
-export type AreaNavItem = { areaId: string; name: string; count: number };
+export type AreaNavItem = { areaId: string; name: string; icon: string | null; count: number };
 
 type StudioData = {
   /** Entries of the current scope tab, regardless of tree selection and search. */
@@ -25,7 +25,7 @@ type StudioData = {
   favoriteCount: ComputedRef<number>;
   scopeCounts: ComputedRef<Record<EntryScope, number>>;
   visibleEntries: ComputedRef<Entry[]>;
-  /** Areas that have entries in the current scope, in HA order. */
+  /** Every area, those with entries in the current scope first, then by name. */
   areaNav: ComputedRef<AreaNavItem[]>;
   /** Entries of the current scope without any area. */
   noAreaCount: ComputedRef<number>;
@@ -93,20 +93,31 @@ export function useStudioData(): StudioData {
       areaIdsOf,
     }),
   );
+  // Every area HA has, also empty ones (a target for dragged entries); those with entries first.
   const areaNav = computed(() => {
     const counts = new Map<string, number>();
-    const names = new Map(lookups.areas.map((area) => [area.areaId, area.name]));
+    const items = new Map(
+      lookups.areas.map((area) => [
+        area.areaId,
+        { areaId: area.areaId, name: area.name, icon: area.icon },
+      ]),
+    );
 
     for (const entry of scopedEntries.value) {
       for (const link of entryAreas.linksOf(entry.entityId)) {
         counts.set(link.areaId, (counts.get(link.areaId) ?? 0) + 1);
-        if (!names.has(link.areaId)) names.set(link.areaId, link.name);
+        if (!items.has(link.areaId))
+          items.set(link.areaId, { areaId: link.areaId, name: link.name, icon: null });
       }
     }
 
-    return [...names]
-      .filter(([areaId]) => counts.has(areaId))
-      .map(([areaId, name]) => ({ areaId, name, count: counts.get(areaId) ?? 0 }));
+    return [...items.values()]
+      .map((area) => ({ ...area, count: counts.get(area.areaId) ?? 0 }))
+      .sort(
+        (a, b) =>
+          Number(b.count > 0) - Number(a.count > 0) ||
+          a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+      );
   });
   const noAreaCount = computed(
     () => scopedEntries.value.filter((entry) => areaIdsOf(entry.entityId).length === 0).length,

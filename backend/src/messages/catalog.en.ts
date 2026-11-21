@@ -39,6 +39,12 @@ export const CATALOG_EN: Catalog = {
   CLEANUP_RESTORED: "Hidden suggestions are back.",
   CLEANUP_DUPLICATE: '"{path}" is in the list more than once.',
 
+  AREA_CREATED: "Area created.",
+  AREA_UPDATED: "Area saved.",
+  AREA_DELETED: "Area deleted.",
+  AREA_NAME_TAKEN: 'There is already an area "{name}".',
+  AREA_NOT_FOUND: "Home Assistant does not have this area (any more).",
+
   FOLDER_CREATED: "Folder created.",
   FOLDER_DELETED: "Folder removed.",
   FOLDER_EXISTS: 'The folder "{path}" already exists.',

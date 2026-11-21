@@ -86,6 +86,18 @@ HA's areas `[{ areaId, name, icon }]` and labels `[{ labelId, name, icon, color 
 - `options` holds the possible states of select-like entities (input_select, select, enum sensors),
   otherwise `null`.
 
+## Areas: POST /api/areas · PATCH /api/areas/:areaId · DELETE /api/areas/:areaId
+
+Creates, changes and deletes areas in HA's area registry (`config/area_registry/create · update ·
+delete`). Bodies: `{ "name": "Bedroom", "icon": "mdi:bed" }`; for PATCH both fields are optional and
+`icon: null` removes the icon. Answers with the area `{ areaId, name, icon }` (DELETE: null).
+
+- Names are trimmed and must be unique ignoring case: `409 AREA_NAME_TAKEN` (`params.name`). Checked
+  before HA is asked, so the text comes from our catalog. An unknown area: `404 AREA_NOT_FOUND`.
+- `icon` must look like `mdi:name`.
+- Deleting is done by HA: devices and entities in the area lose it and stay.
+- Giving an entry its own area stays `PATCH /api/entries/:entityId` with `areaId` (null takes it away).
+
 ## POST /api/entries/:entityId/move
 
 Puts an entry into a folder. Written straight to HA's entity registry.
