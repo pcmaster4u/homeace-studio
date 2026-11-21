@@ -17,6 +17,11 @@ type EntryActions = {
   toggleFavorite: (entry: Entry) => Promise<void>;
   saveNote: (entry: Entry, note: string) => Promise<void>;
   askDelete: (entry: Entry) => void;
+  /** The entry in the "deaktivieren?" dialog; null when it is closed. */
+  disablingEntry: Ref<Entry | null>;
+  askDisable: (entry: Entry) => void;
+  cancelDisable: () => void;
+  confirmDisable: () => Promise<void>;
   cancelDelete: () => void;
   confirmDelete: () => Promise<void>;
   setFolderColor: (path: string, color: string | null) => Promise<void>;
@@ -35,6 +40,7 @@ export function useEntryActions(): EntryActions {
 
   const isBusy = ref(false);
   const deletingEntry = ref<Entry | null>(null);
+  const disablingEntry = ref<Entry | null>(null);
 
   /** Runs one request; errors become an error toast. @returns Whether it worked. */
   async function run(action: () => Promise<void>, successText?: string): Promise<boolean> {
@@ -50,6 +56,19 @@ export function useEntryActions(): EntryActions {
     } finally {
       isBusy.value = false;
     }
+  }
+
+  async function confirmDisable(): Promise<void> {
+    const entry = disablingEntry.value;
+
+    if (!entry) return;
+
+    const isDone = await run(
+      () => entriesStore.updateEntry(entry.entityId, { isDisabled: true }),
+      t("toast.disabled", { name: entry.name }),
+    );
+
+    if (isDone) disablingEntry.value = null;
   }
 
   async function confirmDelete(): Promise<void> {
@@ -86,6 +105,10 @@ export function useEntryActions(): EntryActions {
       await run(() => entriesStore.updateExtras(entry.entityId, { note }), t("toast.noteSaved"));
     },
     askDelete: (entry) => (deletingEntry.value = entry),
+    disablingEntry,
+    askDisable: (entry) => (disablingEntry.value = entry),
+    cancelDisable: () => (disablingEntry.value = null),
+    confirmDisable,
     cancelDelete: () => (deletingEntry.value = null),
     confirmDelete,
     setFolderColor: async (path, color) => {

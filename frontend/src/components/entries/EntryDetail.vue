@@ -14,6 +14,7 @@
         @act="(action) => emit('act', action)"
         @toggle-favorite="emit('toggleFavorite')"
         @delete="emit('delete')"
+        @enable="emit('save', { isDisabled: false })"
       />
 
       <FlowSaveBar
@@ -121,6 +122,18 @@
               @save="(changes) => emit('save', changes)"
             />
           </section>
+
+          <section class="entry-detail__section">
+            <h3>{{ t("visibility.title") }}</h3>
+            <div class="entry-detail__card">
+              <EntryVisibilityForm
+                :entry="entry"
+                :is-busy="isBusy"
+                @save="(changes) => emit('save', changes)"
+                @ask-disable="emit('askDisable')"
+              />
+            </div>
+          </section>
         </template>
 
         <section class="entry-detail__section">
@@ -165,6 +178,7 @@ import type { Area, Entry, EntryChanges, Label } from "@/types/entry";
 import CategoryMoveField from "./CategoryMoveField.vue";
 import EntryDetailHeader from "./EntryDetailHeader.vue";
 import EntryEditForm from "./EntryEditForm.vue";
+import EntryVisibilityForm from "./EntryVisibilityForm.vue";
 import NoteField from "./NoteField.vue";
 
 type DetailRow = { label: string; value: string; isMono?: boolean };
@@ -205,6 +219,8 @@ const emit = defineEmits<{
   saveFlow: [];
   discardFlow: [];
   ignoreFinding: [key: string];
+  /** "Deaktivieren?" asks first, because flows may still use the entry. */
+  askDisable: [];
   /** Open another entry (from the dependencies). */
   open: [entityId: string];
 }>();

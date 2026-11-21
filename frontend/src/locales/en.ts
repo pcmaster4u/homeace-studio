@@ -678,6 +678,7 @@ const en: MessageSchema = {
       other: "Other",
     },
     toast: {
+      disabled: "“{name}” disabled",
       created: "Area “{name}” created",
       saved: "Area “{name}” saved",
       deleted: "Area “{name}” deleted",
@@ -733,6 +734,36 @@ const en: MessageSchema = {
       running: "Sorting …",
       done: "Sorted one entry into {folders} | Sorted {count} entries into {folders}",
     },
+  },
+  visibility: {
+    title: "Visibility & voice",
+    enabled: "Enabled",
+    enabledHint: "Home Assistant does not load disabled entities; they have no state.",
+    enabledHintAutomation:
+      "Not the same as on/off: a disabled automation does not exist for Home Assistant until you enable it again.",
+    enabledNow: "Enabled",
+    disabledNow: "Disabled",
+    hidden: "Hidden",
+    hiddenHint:
+      "Only affects dashboards Home Assistant builds itself. Flows keep using the entity.",
+    hiddenNow: "Hidden",
+    visibleNow: "Visible",
+    aliases: "Aliases",
+    aliasesHint: "Other names the voice assistant (Assist) finds it by, e.g. “outside light”.",
+    aliasPlaceholder: "Another name …",
+    addAlias: "Add",
+    removeAlias: "Remove alias “{alias}”",
+    loading: "Loading …",
+    badge: "disabled",
+    enable: "Enable",
+    disableTitle: "Disable “{name}”?",
+    disableText:
+      "Home Assistant will not load it any more. It has no state and is missing from dashboards until you enable it again. Settings and history stay.",
+    disableTextAutomation:
+      "Unlike switching it off: Home Assistant will not load it at all until you enable it again. Settings and history stay.",
+    disableWarning:
+      "Still in use. These flows will not find it any more; the check-up will show that:",
+    disableConfirm: "Disable",
   },
   history: {
     loading: "Loading the runs …",

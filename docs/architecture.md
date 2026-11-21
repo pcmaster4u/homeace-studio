@@ -141,6 +141,9 @@ frontend/src/
                                  stores/tracesStore.ts loads with the open entry and after live changes and
                                  knows the run shown on the flow (RunOverlayBar above it; FlowView provides
                                  the block states, FlowBlock shows them; texts in composables/useRunTexts.ts)
+  components/entries/EntryVisibilityForm  enabled, hidden and aliases in the properties; saved right
+                                 away, disabling asks first (StudioDialogs lists who still uses it);
+                                 a disabled entry shows "deaktiviert" and "Aktivieren" in the header
   components/dependencies/       DependencyView (the "Abhängigkeiten" tab of every entry: uses grouped by
                                  role with device names and live state, "+2 weitere" users, used by),
                                  DependencyUseRow, DependencyUserRow (also in the delete dialog);

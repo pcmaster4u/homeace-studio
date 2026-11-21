@@ -687,6 +687,7 @@ export default {
       other: "Sonstiges",
     },
     toast: {
+      disabled: "„{name}“ deaktiviert",
       created: "Bereich „{name}“ angelegt",
       saved: "Bereich „{name}“ gespeichert",
       deleted: "Bereich „{name}“ gelöscht",
@@ -744,6 +745,37 @@ export default {
       running: "Wird einsortiert …",
       done: "Ein Eintrag in {folders} sortiert | {count} Einträge in {folders} sortiert",
     },
+  },
+  visibility: {
+    title: "Sichtbarkeit & Sprache",
+    enabled: "Aktiviert",
+    enabledHint: "Deaktivierte Entitäten lädt Home Assistant nicht; sie haben keinen Zustand.",
+    enabledHintAutomation:
+      "Nicht dasselbe wie Ein/Aus: Eine deaktivierte Automation gibt es für Home Assistant gar nicht, bis du sie wieder aktivierst.",
+    enabledNow: "Aktiv",
+    disabledNow: "Deaktiviert",
+    hidden: "Ausgeblendet",
+    hiddenHint:
+      "Betrifft nur Dashboards, die Home Assistant selbst zusammenstellt. Abläufe benutzen die Entität weiter.",
+    hiddenNow: "Ausgeblendet",
+    visibleNow: "Sichtbar",
+    aliases: "Aliasse",
+    aliasesHint:
+      "Weitere Namen, unter denen der Sprachassistent (Assist) das findet, z. B. „Licht draußen“.",
+    aliasPlaceholder: "Weiterer Name …",
+    addAlias: "Hinzufügen",
+    removeAlias: "Alias „{alias}“ entfernen",
+    loading: "Wird geladen …",
+    badge: "deaktiviert",
+    enable: "Aktivieren",
+    disableTitle: "„{name}“ deaktivieren?",
+    disableText:
+      "Home Assistant lädt sie dann nicht mehr. Sie hat keinen Zustand und fehlt in Dashboards, bis du sie wieder aktivierst. Einstellungen und Verlauf bleiben erhalten.",
+    disableTextAutomation:
+      "Anders als „Ausschalten“: Home Assistant lädt sie dann gar nicht mehr, bis du sie wieder aktivierst. Einstellungen und Verlauf bleiben erhalten.",
+    disableWarning:
+      "Wird noch benutzt. Diese Abläufe finden sie dann nicht mehr; die Durchsicht zeigt das an:",
+    disableConfirm: "Deaktivieren",
   },
   history: {
     loading: "Durchläufe werden geladen …",

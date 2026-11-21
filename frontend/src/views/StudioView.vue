@@ -138,6 +138,7 @@
           :findings="checkup.findingsFor(data.selectedEntry.value?.entityId)"
           @ignore-finding="ignoreFinding"
           @open="selectEntry"
+          @ask-disable="onAskDisable"
         />
       </div>
     </main>
@@ -388,6 +389,7 @@ const onAct = onSelected((entry, action: EntryAction) => entryActions.act(entry,
 const onToggleFavorite = onSelected((entry) => entryActions.toggleFavorite(entry));
 const onSaveNote = onSelected((entry, note: string) => entryActions.saveNote(entry, note));
 const onDelete = onSelected((entry) => entryActions.askDelete(entry));
+const onAskDisable = onSelected((entry) => entryActions.askDisable(entry));
 const onSaveFlow = onSelected(async (entry) => {
   try {
     await editorStore.save();

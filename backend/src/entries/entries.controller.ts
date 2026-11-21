@@ -6,7 +6,7 @@ import { MoveEntryDto } from "./dto/move-entry.dto";
 import { UpdateEntryDto } from "./dto/update-entry.dto";
 import { UpdateExtrasDto } from "./dto/update-extras.dto";
 import { EntriesService } from "./entries.service";
-import { ENTRY_ACTION, type Entry, type EntryAction } from "./entry.model";
+import { ENTRY_ACTION, type Entry, type EntryAction, type EntryDetails } from "./entry.model";
 
 @Controller("entries")
 export class EntriesController {
@@ -17,7 +17,13 @@ export class EntriesController {
     return this.entriesService.findAll();
   }
 
-  /** Name, icon, area, labels (HA's entity registry). */
+  /** Registry fields the list does not carry (aliases). */
+  @Get(":entityId/details")
+  details(@Param("entityId") entityId: string): Promise<EntryDetails> {
+    return this.entriesService.details(entityId);
+  }
+
+  /** Name, icon, area, labels, aliases, hidden, disabled (HA's entity registry). */
   @Patch(":entityId")
   @ResponseMessage(MESSAGE_ID.entryUpdated)
   update(@Param("entityId") entityId: string, @Body() dto: UpdateEntryDto): Promise<Entry> {

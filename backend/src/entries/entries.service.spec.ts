@@ -37,6 +37,7 @@ function setup(entries: Entry[], overlayData: Overlay = structuredClone(EMPTY_OV
     ),
     update,
     callService,
+    findDetails: jest.fn().mockResolvedValue({ aliases: ["Licht draußen"] }),
   };
   const overlay = {
     data: overlayData,
@@ -116,6 +117,17 @@ describe("EntriesService", () => {
       icon: null,
       labelIds: ["licht"],
     });
+  });
+
+  it("cleans aliases: trimmed, no blanks, each name once", async () => {
+    const { service, update } = setup([entry({})]);
+
+    await service.update("script.example", { aliases: [" Licht ", "", "licht", "Lampe"] });
+
+    expect(update).toHaveBeenCalledWith(
+      "script.example",
+      expect.objectContaining({ aliases: ["Licht", "Lampe"] }),
+    );
   });
 
   it("maps actions to the service of the domain", async () => {

@@ -12,7 +12,12 @@
       <span class="mdi" :class="mdiIconClass(entry.icon) ?? ENTRY_KIND_ICON[entry.kind]" />
     </span>
     <div class="entry-detail-header__title">
-      <div class="entry-detail-header__kind">{{ t(`kind.${entry.kind}`) }}</div>
+      <div class="entry-detail-header__kind">
+        {{ t(`kind.${entry.kind}`) }}
+        <span v-if="entry.isDisabled" class="entry-detail-header__disabled">
+          <span class="mdi mdi-power-plug-off-outline" />{{ t("visibility.badge") }}
+        </span>
+      </div>
       <h1>{{ entry.name }}</h1>
       <div v-if="isTechnicalDetailsVisible" class="entry-detail-header__entity-id mono">
         {{ entry.entityId }}
@@ -20,7 +25,16 @@
     </div>
 
     <div class="entry-detail-header__actions">
-      <label v-if="canToggle(entry)" class="entry-detail-header__switch">
+      <button
+        v-if="entry.isDisabled"
+        class="btn btn--primary"
+        type="button"
+        :disabled="isBusy"
+        @click="emit('enable')"
+      >
+        <span class="mdi mdi-power-plug-outline" /> {{ t("visibility.enable") }}
+      </button>
+      <label v-else-if="canToggle(entry)" class="entry-detail-header__switch">
         <span>{{ isOn(entry) ? t("detail.on") : t("detail.off") }}</span>
         <SwitchToggle
           :model-value="isOn(entry)"
@@ -81,6 +95,8 @@ const emit = defineEmits<{
   back: [];
   act: [action: EntryAction];
   toggleFavorite: [];
+  /** Disabled entries get an "Aktivieren" button instead of on/off. */
+  enable: [];
   delete: [];
 }>();
 
@@ -169,5 +185,18 @@ const { t } = useI18n();
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
+}
+
+.entry-detail-header__disabled {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 11px;
+  letter-spacing: 0.04em;
 }
 </style>

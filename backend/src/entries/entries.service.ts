@@ -7,7 +7,7 @@ import { OVERLAY_REPOSITORY } from "../overlay/overlay.constants";
 import type { OverlayRepository } from "../overlay/repositories/overlay.repository";
 import { CATEGORY_SCOPE_BY_KIND, ENTRY_REPOSITORY, SERVICE_BY_ACTION } from "./entries.constants";
 import { applyExtras, withExtras } from "./entry-extras";
-import type { Entry, EntryAction, EntryChanges } from "./entry.model";
+import type { Entry, EntryAction, EntryChanges, EntryDetails } from "./entry.model";
 import type { EntryRepository } from "./repositories/entry.repository";
 
 export type EntryExtras = { isFavorite?: boolean; note?: string | null };
@@ -45,7 +45,16 @@ export class EntriesService {
     });
   }
 
-  /** Changes name, icon, area or labels in HA. @returns The entry as HA now has it. */
+  /** Aliases of a registered entry (HA leaves them out of the list). */
+  async details(entityId: string): Promise<EntryDetails> {
+    await this.requireRegistered(entityId);
+    return this.entries.findDetails(entityId);
+  }
+
+  /**
+   * Changes name, icon, area, labels, aliases, hidden or disabled in HA.
+   * @returns The entry as HA now has it.
+   */
   async update(entityId: string, changes: EntryChanges): Promise<Entry> {
     await this.requireRegistered(entityId);
     await this.entries.update(entityId, normalizeChanges(changes));
@@ -108,5 +117,24 @@ function normalizeChanges(changes: EntryChanges): EntryChanges {
   const blankToNull = (value: string | null | undefined): string | null | undefined =>
     value === undefined ? undefined : value?.trim() || null;
 
-  return { ...changes, name: blankToNull(changes.name), icon: blankToNull(changes.icon) };
+  return {
+    ...changes,
+    name: blankToNull(changes.name),
+    icon: blankToNull(changes.icon),
+    aliases: changes.aliases === undefined ? undefined : cleanAliases(changes.aliases),
+  };
+}
+
+/** Trimmed, no blanks, each name once (ignoring case), in the given order. */
+function cleanAliases(aliases: string[]): string[] {
+  const seen = new Set<string>();
+
+  return aliases
+    .map((alias) => alias.trim())
+    .filter((alias) => {
+      const key = alias.toLocaleLowerCase();
+      if (!alias || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }

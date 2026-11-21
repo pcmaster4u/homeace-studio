@@ -12,7 +12,7 @@ import type {
   HaState,
 } from "../../ha/ha.types";
 import { mapToEntries } from "../entry.mapper";
-import type { Entry, EntryChanges } from "../entry.model";
+import type { Entry, EntryChanges, EntryDetails } from "../entry.model";
 import type { EntryRepository } from "./entry.repository";
 
 /** Reads entries straight from HA on every call; a cache follows once live updates exist. */
@@ -58,6 +58,11 @@ export class HaEntriesRepository implements EntryRepository {
       icon: changes.icon,
       area_id: changes.areaId,
       labels: changes.labelIds,
+      aliases: changes.aliases,
+      // Only "user" is ours to set; null gives the switch back to HA.
+      hidden_by: changes.isHidden === undefined ? undefined : changes.isHidden ? "user" : null,
+      disabled_by:
+        changes.isDisabled === undefined ? undefined : changes.isDisabled ? "user" : null,
     };
     const definedFields = Object.entries(fields).filter(([, value]) => value !== undefined);
 
@@ -65,6 +70,14 @@ export class HaEntriesRepository implements EntryRepository {
       entity_id: entityId,
       ...Object.fromEntries(definedFields),
     });
+  }
+
+  async findDetails(entityId: string): Promise<EntryDetails> {
+    const entry = await this.ha.call<HaEntityRegistryEntry>(HA_COMMAND.entityRegistryGet, {
+      entity_id: entityId,
+    });
+
+    return { aliases: entry.aliases ?? [] };
   }
 
   async callService(domain: string, service: string, entityId: string): Promise<void> {

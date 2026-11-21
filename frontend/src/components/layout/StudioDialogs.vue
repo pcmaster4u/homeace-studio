@@ -103,6 +103,34 @@
       </div>
     </template>
   </ConfirmDialog>
+  <ConfirmDialog
+    v-if="entryActions.disablingEntry.value"
+    :title="t('visibility.disableTitle', { name: entryActions.disablingEntry.value.name })"
+    :text="
+      t(
+        entryActions.disablingEntry.value.kind === 'automation'
+          ? 'visibility.disableTextAutomation'
+          : 'visibility.disableText',
+      )
+    "
+    :confirm-label="t('visibility.disableConfirm')"
+    :is-busy="entryActions.isBusy.value"
+    @cancel="entryActions.cancelDisable"
+    @confirm="entryActions.confirmDisable"
+  >
+    <template v-if="disableUsers.length">
+      <p class="studio-dialogs__warn">{{ t("visibility.disableWarning") }}</p>
+      <div class="studio-dialogs__users">
+        <DependencyUserRow
+          v-for="user in disableUsers"
+          :key="user.entityId"
+          :user="user"
+          :entry="entriesStore.entries.find((item) => item.entityId === user.entityId) ?? null"
+          is-plain
+        />
+      </div>
+    </template>
+  </ConfirmDialog>
   <FolderColorDialog
     v-if="colorPath"
     :path="colorPath"
@@ -248,6 +276,13 @@ async function confirmAreaTidy(
 }
 
 /** Who still uses the entry about to be deleted (it is the open one, so its dependencies are loaded). */
+/** Who still uses the entry about to be disabled (the open one, so its dependencies are loaded). */
+const disableUsers = computed(() => {
+  const entityId = props.entryActions.disablingEntry.value?.entityId;
+  const current = dependencies.current;
+  return entityId && current?.entityId === entityId ? current.usedBy : [];
+});
+
 const deleteUsers = computed(() => {
   const entityId = props.entryActions.deletingEntry.value?.entityId;
   const current = dependencies.current;

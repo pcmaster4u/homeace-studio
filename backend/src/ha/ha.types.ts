@@ -21,6 +21,8 @@ export type HaEntityRegistryEntry = {
   device_id?: string | null;
   disabled_by: string | null;
   hidden_by: string | null;
+  /** Only in `config/entity_registry/get`, not in the list: other names for Assist. */
+  aliases?: string[];
 };
 
 /** A device from `config/device_registry/list`. */

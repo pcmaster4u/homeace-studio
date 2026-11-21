@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Properties: new section "Sichtbarkeit & Sprache" with enabled, hidden and aliases for Assist.
+  Disabling asks first and names the automations and scripts that still use the entry; a disabled
+  entry says so in its header and can be enabled again from there.
+
 ## 0.11.0
 
 - Dependencies: every automation, script, scene and helper has a tab "Abhängigkeiten". It shows what

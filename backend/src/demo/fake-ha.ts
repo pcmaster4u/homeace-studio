@@ -264,6 +264,7 @@ export class FakeHa {
       device_id: device?.id ?? null,
       disabled_by: entity.isDisabled ? "user" : null,
       hidden_by: null,
+      aliases: [],
     });
     this.states.set(entity.entityId, {
       entity_id: entity.entityId,
@@ -419,10 +420,16 @@ export class FakeHa {
 
   private updateEntity(payload: Payload): HaEntityRegistryEntry {
     const entry = this.requireEntity(String(payload.entity_id));
-    const fields = ["name", "icon", "area_id", "labels"] as const;
+    const fields = ["name", "icon", "area_id", "labels", "aliases", "hidden_by"] as const;
 
     for (const field of fields) {
       if (payload[field] !== undefined) Object.assign(entry, { [field]: payload[field] });
+    }
+
+    // Like HA: a disabled entity is not loaded, so it has no state until it is enabled again.
+    if (payload.disabled_by !== undefined && payload.disabled_by !== entry.disabled_by) {
+      entry.disabled_by = payload.disabled_by as string | null;
+      this.setLoaded(entry.entity_id, entry.disabled_by === null);
     }
 
     // HA merges the categories per scope; null removes a scope's category.
@@ -443,6 +450,26 @@ export class FakeHa {
     this.emit("entity_registry_updated", { action: "update", entity_id: entry.entity_id });
 
     return structuredClone(entry);
+  }
+
+  /** States of disabled entities wait here until they are enabled again. */
+  private readonly unloaded = new Map<string, HaState>();
+
+  private setLoaded(entityId: string, isLoaded: boolean): void {
+    if (isLoaded) {
+      const state = this.unloaded.get(entityId);
+      if (!state) return;
+      this.unloaded.delete(entityId);
+      this.states.set(entityId, state);
+      this.emit("state_changed", { entity_id: entityId, old_state: null, new_state: state });
+      return;
+    }
+
+    const state = this.states.get(entityId);
+    if (!state) return;
+    this.unloaded.set(entityId, state);
+    this.states.delete(entityId);
+    this.emit("state_changed", { entity_id: entityId, old_state: state, new_state: null });
   }
 
   private categoryList(scope: unknown): HaCategory[] {

@@ -48,10 +48,18 @@ All automations, scripts, scenes and helpers, sorted by name (case-insensitive).
 Changes what HA keeps in its entity registry. Every field is optional; missing ones stay.
 
 ```json
-{ "name": "Licht Terrasse", "icon": "mdi:lightbulb", "areaId": "terrasse", "labelIds": ["licht"] }
+{ "name": "Licht Terrasse", "icon": "mdi:lightbulb", "areaId": "terrasse", "labelIds": ["licht"],
+  "aliases": ["Licht draußen"], "isHidden": false, "isDisabled": false }
 ```
 
 - A blank `name` or `icon` goes back to the default of the integration (sent to HA as `null`).
+- `aliases` (up to 20) replace the list; they are trimmed, blanks dropped, each name kept once
+  (ignoring case).
+- `isHidden` / `isDisabled` set `hidden_by` / `disabled_by` to `user` or back to `null`. HA does not load
+  a disabled entity, so it has no state until it is enabled again.
+
+`GET /api/entries/:entityId/details` → `{ aliases }`: HA leaves aliases out of the registry list, so
+they are read for the open entry only (`config/entity_registry/get`).
 - Returns the updated entry with `ENTRY_UPDATED`. `400 ENTRY_NOT_IN_REGISTRY` for YAML-only entities.
 
 ## PATCH /api/entries/:entityId/extras

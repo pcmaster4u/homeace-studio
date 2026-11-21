@@ -55,6 +55,17 @@ export type EntryChanges = {
   icon?: string | null;
   areaId?: string | null;
   labelIds?: string[];
+  /** Other names for the voice assistant (Assist). */
+  aliases?: string[];
+  /** Hidden in dashboards HA builds itself (`hidden_by: user`). */
+  isHidden?: boolean;
+  /** Disabled: HA does not load the entity at all (`disabled_by: user`). */
+  isDisabled?: boolean;
+};
+
+/** Registry fields the list does not carry; read for the open entry only. */
+export type EntryDetails = {
+  aliases: string[];
 };
 
 export const ENTRY_ACTION = {

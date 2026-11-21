@@ -1,5 +1,5 @@
 import type { EntryAction } from "@/constants/entries";
-import type { Entry, EntryChanges } from "@/types/entry";
+import type { Entry, EntryChanges, EntryDetails } from "@/types/entry";
 
 import { apiFetch, apiPost, apiSend } from "./api";
 
@@ -26,7 +26,12 @@ export async function moveEntry(entityId: string, categoryPath: string | null): 
   await apiPost<null>(`${entryPath(entityId)}/move`, { categoryPath });
 }
 
-/** Changes name, icon, area or labels in HA. @returns The entry as HA now has it. */
+/** Aliases: HA sends them only for one entry at a time. */
+export function fetchEntryDetails(entityId: string): Promise<EntryDetails> {
+  return apiFetch<EntryDetails>(`${entryPath(entityId)}/details`);
+}
+
+/** Changes name, icon, area, labels, aliases, hidden or disabled in HA. @returns The entry as HA now has it. */
 export function updateEntry(entityId: string, changes: EntryChanges): Promise<Entry> {
   return apiSend<Entry>("PATCH", entryPath(entityId), changes);
 }

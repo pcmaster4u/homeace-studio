@@ -42,7 +42,16 @@ export type EntryChanges = {
   icon?: string | null;
   areaId?: string | null;
   labelIds?: string[];
+  /** Other names for Assist. */
+  aliases?: string[];
+  /** Hidden in dashboards HA builds itself. */
+  isHidden?: boolean;
+  /** HA does not load the entity at all. */
+  isDisabled?: boolean;
 };
+
+/** Registry fields the list does not carry (aliases), for the open entry. */
+export type EntryDetails = { aliases: string[] };
 
 export type Area = { areaId: string; name: string; icon: string | null };
 
