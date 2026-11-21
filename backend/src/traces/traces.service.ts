@@ -2,6 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 
 import { EDITOR_REPOSITORY } from "../editor/editor.constants";
 import { FLOW_KIND, type FlowKind } from "../editor/editor.model";
+import { EditorService } from "../editor/editor.service";
 import type { EditorRepository } from "../editor/repositories/editor.repository";
 import { HaConnectionService } from "../ha/ha-connection.service";
 import { HA_COMMAND } from "../ha/ha.constants";
@@ -17,7 +18,29 @@ export class TracesService {
   constructor(
     private readonly ha: HaConnectionService,
     @Inject(EDITOR_REPOSITORY) private readonly editor: EditorRepository,
+    private readonly flows: EditorService,
   ) {}
+
+  /**
+   * Lets HA keep more runs: sets `trace.stored_traces` in the flow's config file, nothing else.
+   *
+   * @throws BadRequestException `FLOW_NOT_EDITABLE` for flows outside automations.yaml / scripts.yaml.
+   */
+  async keepRuns(entityId: string, count: number): Promise<{ storedTraces: number }> {
+    const { kind, key } = await this.flows.requireStoredFlow(entityId);
+    const stored = (await this.editor.loadStoredConfig(kind, key)) ?? {};
+    const trace =
+      stored.trace && typeof stored.trace === "object"
+        ? (stored.trace as Record<string, unknown>)
+        : {};
+
+    await this.editor.saveConfig(kind, key, {
+      ...stored,
+      trace: { ...trace, stored_traces: count },
+    });
+
+    return { storedTraces: count };
+  }
 
   async forEntity(entityId: string): Promise<RunHistory> {
     const kind = entityId.split(".")[0] ?? "";

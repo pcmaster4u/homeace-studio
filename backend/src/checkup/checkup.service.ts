@@ -60,6 +60,7 @@ export class CheckupService {
           .map((entry) => entry.unique_id),
       ),
       configs: snapshot.configs,
+      lastRuns: snapshot.lastRuns,
       now: new Date(snapshot.at),
       ignored: new Set(),
     });

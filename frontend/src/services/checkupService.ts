@@ -2,7 +2,7 @@ import type { EntryKind } from "@/types/entry";
 
 import { apiFetch, apiPost } from "./api";
 
-export type CheckupKind = "gone" | "unavailable" | "unused" | "stale";
+export type CheckupKind = "gone" | "unavailable" | "failed" | "unused" | "stale";
 
 export type CheckupRef = { entityId: string; name: string | null; since: string | null };
 
@@ -15,6 +15,9 @@ export type CheckupFinding = {
   refs: CheckupRef[];
   lastTriggered: string | null;
   isOn: boolean;
+  /** failed: when the failed run started, and HA's error. */
+  failedAt: string | null;
+  error: string | null;
 };
 
 export type CheckupOverview = {
@@ -23,7 +26,13 @@ export type CheckupOverview = {
   checkedAt: string;
 };
 
-export const CHECKUP_KINDS: readonly CheckupKind[] = ["gone", "unavailable", "unused", "stale"];
+export const CHECKUP_KINDS: readonly CheckupKind[] = [
+  "gone",
+  "unavailable",
+  "failed",
+  "unused",
+  "stale",
+];
 
 export function fetchCheckup(): Promise<CheckupOverview> {
   return apiFetch<CheckupOverview>("/checkup");

@@ -1,7 +1,13 @@
 <template>
   <div
     class="flow-block"
-    :class="{ 'flow-block--disabled': block.isDisabled, 'flow-block--unknown': block.isUnknown }"
+    :class="[
+      {
+        'flow-block--disabled': block.isDisabled,
+        'flow-block--unknown': block.isUnknown,
+      },
+      runState ? `flow-block--run-${runStatusTone(runState.status)}` : '',
+    ]"
   >
     <div class="flow-block__head">
       <span class="flow-block__icon"><span class="mdi" :class="block.icon" /></span>
@@ -48,6 +54,17 @@
       </button>
     </div>
 
+    <p
+      v-if="runState"
+      class="flow-block__run"
+      :class="`flow-block__run--${runStatusTone(runState.status)}`"
+    >
+      <span class="flow-block__run-icon">
+        <span class="mdi" :class="RUN_STATUS_ICON[runState.status]" />
+      </span>
+      <span>{{ runState.error ? errorText(runState.error) : noteOf(runState) }}</span>
+    </p>
+
     <p v-if="block.isUnknown" class="flow-block__hint">{{ t("flow.unknownHint") }}</p>
     <pre v-if="block.isUnknown && isTechnicalDetailsVisible" class="flow-block__raw">{{
       rawText
@@ -79,10 +96,11 @@
 import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { RUN_STATUS_ICON, runStatusTone, useRunTexts } from "@/composables/useRunTexts";
 import type { BlockChip, DisplayBlock } from "@/types/editor";
 
 import AddBlockButton from "./AddBlockButton.vue";
-import { FLOW_EDITING } from "./flowEditing";
+import { FLOW_EDITING, FLOW_RUN_STATES } from "./flowEditing";
 
 const JSON_INDENT = 2;
 
@@ -97,6 +115,11 @@ const rawText = computed(() => JSON.stringify(props.block.raw, null, JSON_INDENT
 
 /** Provided by FlowView; missing only when a block is rendered on its own. */
 const editing = inject(FLOW_EDITING, null);
+
+/** Set while a run is shown on the flow: what this block did in it. */
+const runStates = inject(FLOW_RUN_STATES, null);
+const runState = computed(() => runStates?.value?.get(props.block.id) ?? null);
+const { noteOf, errorText } = useRunTexts();
 
 function isChipEditable(chip: BlockChip): boolean {
   return Boolean(editing?.isEditable.value && chip.edit);
@@ -125,6 +148,73 @@ function openMenu(event: MouseEvent): void {
   border: 1px solid var(--line);
   border-radius: 11px;
   background: var(--surface);
+}
+
+/* A run shown on the flow: the border says how the block did, a line below says what it did. */
+.flow-block--run-ok {
+  border-color: color-mix(in srgb, var(--ok) 55%, var(--line));
+}
+
+.flow-block--run-warn {
+  border-color: color-mix(in srgb, var(--warn) 60%, var(--line));
+}
+
+.flow-block--run-err {
+  border-color: var(--err);
+  box-shadow: 0 0 0 1px var(--err);
+}
+
+.flow-block--run-run {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.flow-block--run-none > .flow-block__head {
+  opacity: 0.55;
+}
+
+.flow-block__run {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.flow-block__run--err {
+  color: var(--err);
+}
+
+.flow-block__run-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--sunken);
+  font-size: 12px;
+}
+
+.flow-block__run--ok .flow-block__run-icon {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.flow-block__run--warn .flow-block__run-icon {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.flow-block__run--err .flow-block__run-icon {
+  background: var(--err-soft);
+  color: var(--err);
+}
+
+.flow-block__run--run .flow-block__run-icon {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 /* The ⋮ menu shows on hover of its own block only (not of every parent), always on touch. */

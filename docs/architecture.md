@@ -17,7 +17,8 @@ backend/src/
                          reject; plans in the overlay), AiController (/api/mcp, /api/ai-plans)
   snapshot/              HomeSnapshotService: entries, states, entity registry and every flow config read
                          at once, plus devices and areas; shared by check-up, dependencies and the area
-                         view (20 s cache, cleared by live changes)
+                         view; plus the newest run of every flow (one `trace/list`) for the check-up
+                         (20 s cache, cleared by live changes)
   checkup/               check-up: checkup-analysis.ts (pure: collectEntityRefs, analyzeCheckup),
                          CheckupService (findings per snapshot), CheckupController (/api/checkup)
   dependencies/          dependency-analysis.ts (pure: collectRoleRefs walks a flow config with the context
@@ -137,7 +138,9 @@ frontend/src/
   components/history/            RunHistoryView (the "Verlauf" tab of automations and scripts: runs by day,
                                  the selected run block by block), RunStepRow; utils/runStates.ts maps a run
                                  onto the display flow (tracePathOf, runStatesFor), utils/runTime.ts formats;
-                                 stores/tracesStore.ts loads with the open entry and after live changes
+                                 stores/tracesStore.ts loads with the open entry and after live changes and
+                                 knows the run shown on the flow (RunOverlayBar above it; FlowView provides
+                                 the block states, FlowBlock shows them; texts in composables/useRunTexts.ts)
   components/dependencies/       DependencyView (the "Abhängigkeiten" tab of every entry: uses grouped by
                                  role with device names and live state, "+2 weitere" users, used by),
                                  DependencyUseRow, DependencyUserRow (also in the delete dialog);

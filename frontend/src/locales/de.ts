@@ -537,12 +537,15 @@ export default {
     kinds: {
       gone: "Zeigt ins Leere",
       unavailable: "Nicht erreichbar",
+      failed: "Zuletzt mit Fehler",
       unused: "Wird nirgends benutzt",
       stale: "Lange nicht gelaufen",
     },
     hints: {
       gone: "Benutzt ein Gerät, das es in Home Assistant nicht mehr gibt. Läuft deshalb nicht oder nur halb.",
       unavailable: "Benutzt ein Gerät, das gerade nicht erreichbar ist (Akku leer, offline).",
+      failed:
+        "Der letzte Durchlauf ist mit einem Fehler abgebrochen. Der Verlauf zeigt, an welcher Stelle und warum.",
       unused:
         "Kein Ablauf und kein Skript benutzt diesen Helfer. Dashboards prüft HomeAce Studio nicht.",
       stale: "Seit mehr als 90 Tagen nicht ausgelöst, oder noch nie. Wird sie noch gebraucht?",
@@ -551,6 +554,7 @@ export default {
       gone: "Benutzt, was es nicht mehr gibt:",
       unavailable: "Nicht erreichbar:",
       unused: "Von keinem Ablauf benutzt",
+      failed: "Abgebrochen {time}",
       never: "Noch nie gelaufen",
       lastRun: "Zuletzt {time}",
       off: "ausgeschaltet",
@@ -559,6 +563,8 @@ export default {
       gone: "Dieser Ablauf benutzt {ids}. Das gibt es in Home Assistant nicht mehr; im Ablauf ist es rot markiert.",
       unavailable: "Ausgefallen {since}: {names}. Solange läuft dieser Ablauf nicht richtig.",
       unused: "Kein Ablauf und kein Skript benutzt diesen Helfer.",
+      failed: "Der letzte Durchlauf ({time}) ist abgebrochen. {error}",
+      showHistory: "Verlauf ansehen",
       unusedNote:
         "Dashboards prüft HomeAce Studio nicht. Wenn du ihn dort nutzt, einfach ignorieren.",
       staleNever: "Diese Automation ist noch nie gelaufen.",
@@ -755,6 +761,16 @@ export default {
     },
     today: "Heute",
     yesterday: "Gestern",
+    showOnFlow: "Im Ablauf zeigen",
+    keepMore: "Die letzten {count} merken",
+    keepMoreHint: "Trägt trace: stored_traces in die Konfiguration ein; sonst ändert sich nichts.",
+    kept: "Home Assistant merkt sich jetzt die letzten {count} Durchläufe",
+    overlay: {
+      title: "Durchlauf {when}",
+      text: "Die Bausteine zeigen, was dabei passiert ist.",
+      toHistory: "Zum Verlauf",
+      hide: "Ausblenden",
+    },
     took: "Dauer {duration}",
     runningSince: "läuft noch",
     runningShort: "läuft",

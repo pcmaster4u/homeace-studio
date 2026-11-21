@@ -60,6 +60,7 @@ export const CATALOG_EN: Catalog = {
     "{entityId} cannot be edited or deleted here. Home Assistant does not keep it in automations.yaml or scripts.yaml (e.g. it comes from a package or a blueprint).",
   FLOW_INVALID: "Home Assistant rejected the flow: {reason}",
   FLOW_CREATED: "Created in Home Assistant.",
+  TRACES_KEPT: "Home Assistant now keeps the last {count} runs.",
   FLOW_DELETED: "Deleted in Home Assistant.",
 
   MCP_SAVED: "Saved.",

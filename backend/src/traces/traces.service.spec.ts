@@ -1,6 +1,7 @@
 import { createDemoHome } from "../demo/demo-home";
 import { DemoHaConnectionService, DemoHaRestService } from "../demo/demo-ha.services";
 import { FakeHa } from "../demo/fake-ha";
+import { EditorService } from "../editor/editor.service";
 import { HaEditorRepository } from "../editor/repositories/ha-editor.repository";
 import { TracesService } from "./traces.service";
 
@@ -9,7 +10,9 @@ function setup() {
   const fake = new FakeHa(createDemoHome(Date.parse("2026-11-21T20:00:00Z")));
   const ha = new DemoHaConnectionService(fake);
 
-  return new TracesService(ha, new HaEditorRepository(ha, new DemoHaRestService(fake)));
+  const editor = new HaEditorRepository(ha, new DemoHaRestService(fake));
+
+  return new TracesService(ha, editor, new EditorService(editor));
 }
 
 describe("TracesService", () => {
@@ -62,5 +65,14 @@ describe("TracesService", () => {
 
     expect((await service.forEntity("input_boolean.guest_mode")).runs).toEqual([]);
     expect((await service.forEntity("automation.washing_machine_done")).runs).toEqual([]);
+  });
+
+  it("lets HA keep more runs by writing trace.stored_traces into the config", async () => {
+    const service = setup();
+
+    await expect(service.keepRuns("automation.terrace_light_on_motion", 20)).resolves.toEqual({
+      storedTraces: 20,
+    });
+    expect((await service.forEntity("automation.terrace_light_on_motion")).storedTraces).toBe(20);
   });
 });

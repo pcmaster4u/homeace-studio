@@ -275,11 +275,14 @@ returned at once and nothing is saved; at most 10 open plans) and `get_plan_stat
 ## Check-up: GET /api/checkup · POST/DELETE /api/checkup/ignore
 
 `GET` → `{ findings, ignoredCount, checkedAt }`. A finding is `{ key: "gone:automation.x", kind, entityId,
-name, entryKind, refs: [{ entityId, name, since }], lastTriggered, isOn }` with `kind`:
+name, entryKind, refs: [{ entityId, name, since }], lastTriggered, isOn, failedAt, error }` with `kind`:
 - `gone`: the flow names an entity (in an `entity_id` field, a target, or `action: script.x`) that is
   neither in the states nor in the entity registry (`action: script.x` also counts when `x` is the key of a
   script in scripts.yaml, which stays the same when the script entity is renamed);
 - `unavailable`: such an entity is `unavailable`; `since` is its `last_changed`;
+- `failed`: the newest run HA kept of an automation or script ended with an error; `failedAt` is its
+  start, `error` HA's text. The key carries the start (`failed:automation.x:2026-…`), so ignoring hides
+  this failure only and a later one shows again; a newer run that went fine makes it go away;
 - `unused`: an HA-managed helper (input_*, counter, timer, schedule) whose entity ID appears in no
   automation or script config (templates included) and in no scene or group; dashboards are not checked;
 - `stale`: an automation whose `last_triggered` is older than 90 days, or null.
@@ -364,6 +367,10 @@ The runs HA kept of an automation or script (`trace/list`, then `trace/get` for 
 - `start.by`: `trigger`, `user` (run by hand), `flow` (started by another automation or script).
 - `storedTraces`: the config's `trace.stored_traces`, HA's default 5.
 - Other kinds, and flows without an `id` / key (HA keeps no runs for them): `runs: []`.
+
+`PUT /api/traces/:entityId/stored` `{ "count": 20 }` (1–50) writes `trace.stored_traces` into the flow's
+config, nothing else (`TRACES_KEPT`); `400 FLOW_NOT_EDITABLE` for flows outside automations.yaml /
+scripts.yaml.
 
 ## GET /api/messages?lang=de
 

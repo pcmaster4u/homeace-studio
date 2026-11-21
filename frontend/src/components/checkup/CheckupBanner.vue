@@ -23,6 +23,14 @@
           {{ t("checkup.banner.showFlow") }}
         </button>
         <button
+          v-if="finding.kind === 'failed' && hasFlow"
+          class="btn btn--primary"
+          type="button"
+          @click="emit('showHistory')"
+        >
+          {{ t("checkup.banner.showHistory") }}
+        </button>
+        <button
           v-if="finding.kind === 'stale' && finding.isOn"
           class="btn"
           type="button"
@@ -55,6 +63,8 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
+import { useRunTexts } from "@/composables/useRunTexts";
+
 import type { CheckupFinding, CheckupKind } from "@/services/checkupService";
 import { relativeTime } from "@/utils/relativeTime";
 
@@ -69,17 +79,21 @@ const emit = defineEmits<{
   showFlow: [];
   turnOff: [];
   delete: [];
+  /** The failed run is in the "Verlauf" tab. */
+  showHistory: [];
   ignore: [key: string];
 }>();
 
 const KIND_ICON: Record<CheckupKind, string> = {
   gone: "mdi-link-variant-off",
   unavailable: "mdi-wifi-off",
+  failed: "mdi-alert-circle-outline",
   unused: "mdi-cancel",
   stale: "mdi-clock-outline",
 };
 
 const { t, locale } = useI18n();
+const { errorText } = useRunTexts();
 
 function text(finding: CheckupFinding): string {
   const now = new Date();
@@ -94,6 +108,11 @@ function text(finding: CheckupFinding): string {
         since: since ? relativeTime(since, now, locale.value) : "?",
       });
     }
+    case "failed":
+      return t("checkup.banner.failed", {
+        time: finding.failedAt ? relativeTime(finding.failedAt, now, locale.value) : "?",
+        error: finding.error ? errorText(finding.error) : "",
+      });
     case "unused":
       return t("checkup.banner.unused");
     case "stale": {

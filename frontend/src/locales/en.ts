@@ -531,12 +531,14 @@ const en: MessageSchema = {
     kinds: {
       gone: "Points into the void",
       unavailable: "Unavailable",
+      failed: "Last run failed",
       unused: "Not used anywhere",
       stale: "Idle for a long time",
     },
     hints: {
       gone: "Uses a device that no longer exists in Home Assistant, so it does not run, or only partly.",
       unavailable: "Uses a device that cannot be reached right now (empty battery, offline).",
+      failed: "The last run stopped with an error. The history shows where and why.",
       unused: "No automation or script uses this helper. HomeAce Studio does not check dashboards.",
       stale: "Not triggered for more than 90 days, or never. Is it still needed?",
     },
@@ -544,6 +546,7 @@ const en: MessageSchema = {
       gone: "Uses what no longer exists:",
       unavailable: "Unavailable:",
       unused: "Not used by any flow",
+      failed: "Stopped {time}",
       never: "Never ran",
       lastRun: "Last {time}",
       off: "switched off",
@@ -553,6 +556,8 @@ const en: MessageSchema = {
       unavailable:
         "Went offline {since}: {names}. Until that is fixed, this flow does not work properly.",
       unused: "No automation or script uses this helper.",
+      failed: "The last run ({time}) stopped. {error}",
+      showHistory: "Show history",
       unusedNote:
         "HomeAce Studio does not check dashboards. If you use it there, just ignore this.",
       staleNever: "This automation has never run.",
@@ -744,6 +749,16 @@ const en: MessageSchema = {
     },
     today: "Today",
     yesterday: "Yesterday",
+    showOnFlow: "Show on the flow",
+    keepMore: "Keep the last {count}",
+    keepMoreHint: "Adds trace: stored_traces to the config; nothing else changes.",
+    kept: "Home Assistant now keeps the last {count} runs",
+    overlay: {
+      title: "Run {when}",
+      text: "The blocks show what happened in it.",
+      toHistory: "To the history",
+      hide: "Hide",
+    },
     took: "took {duration}",
     runningSince: "still running",
     runningShort: "running",

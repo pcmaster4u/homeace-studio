@@ -1,6 +1,7 @@
-import type { InjectionKey, Ref } from "vue";
+import type { ComputedRef, InjectionKey, Ref } from "vue";
 
 import type { AddTarget, ChipEdit, DisplayBlock } from "@/types/editor";
+import type { BlockRunState } from "@/utils/runStates";
 
 /**
  * What FlowView hands down to every (nested) FlowBlock, so chips and menus can open their popover
@@ -20,3 +21,7 @@ export type FlowEditing = {
 };
 
 export const FLOW_EDITING: InjectionKey<FlowEditing> = Symbol("flowEditing");
+
+/** What every block did in the run shown on the flow; null for the plain flow. */
+export const FLOW_RUN_STATES: InjectionKey<ComputedRef<ReadonlyMap<string, BlockRunState> | null>> =
+  Symbol("flowRunStates");

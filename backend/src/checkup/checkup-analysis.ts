@@ -7,6 +7,8 @@ export const CHECKUP_KIND = {
   gone: "gone",
   /** Uses an entity that is unavailable right now. */
   unavailable: "unavailable",
+  /** The newest run of an automation or script ended with an error. */
+  failed: "failed",
   /** A helper no automation or script uses. */
   unused: "unused",
   /** An automation that has not run for a long time, or never. */
@@ -36,6 +38,9 @@ export type CheckupFinding = {
   lastTriggered: string | null;
   /** Automations: switched on. */
   isOn: boolean;
+  /** failed: when the run started and HA's error. */
+  failedAt: string | null;
+  error: string | null;
 };
 
 export type CheckupInput = {
@@ -50,6 +55,8 @@ export type CheckupInput = {
   scriptKeys: ReadonlySet<string>;
   /** Config of every automation and script that could be read, by entity ID. */
   configs: ReadonlyMap<string, unknown>;
+  /** Newest kept run per automation or script. */
+  lastRuns: ReadonlyMap<string, { startedAt: string; result: string; error: string | null }>;
   now: Date;
   ignored: ReadonlySet<string>;
 };
@@ -61,6 +68,7 @@ const ACTION_KEY = "action";
 const SCRIPT_PREFIX = "script.";
 const STATE_UNAVAILABLE = "unavailable";
 const STATE_OFF = "off";
+const RUN_ERROR = "error";
 /** Script services that are not a call of one script ("script.turn_on" names it in the target). */
 const SCRIPT_SERVICES = new Set(["turn_on", "turn_off", "toggle", "reload"]);
 /** Helpers HA manages itself, made to be used by automations. Template or group helpers often only
@@ -136,6 +144,8 @@ export function analyzeCheckup(input: CheckupInput): CheckupFinding[] {
       refs: [],
       lastTriggered: null,
       isOn: entry.state !== STATE_OFF,
+      failedAt: null,
+      error: null,
       ...extra,
     });
   };
@@ -177,6 +187,16 @@ export function analyzeCheckup(input: CheckupInput): CheckupFinding[] {
           })),
         });
       }
+    }
+
+    // A newer run that went fine makes the finding go away; ignoring hides only this one failure.
+    const lastRun = input.lastRuns.get(entry.entityId);
+    if (lastRun?.result === RUN_ERROR) {
+      add(entry, CHECKUP_KIND.failed, {
+        key: `${CHECKUP_KIND.failed}:${entry.entityId}:${lastRun.startedAt}`,
+        failedAt: lastRun.startedAt,
+        error: lastRun.error,
+      });
     }
 
     if (entry.kind === "helper" && CHECKED_HELPER_DOMAINS.has(entry.domain)) {

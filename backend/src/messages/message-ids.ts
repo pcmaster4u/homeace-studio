@@ -70,6 +70,7 @@ export const MESSAGE_ID = {
   flowInvalid: "FLOW_INVALID",
   flowCreated: "FLOW_CREATED",
   flowDeleted: "FLOW_DELETED",
+  tracesKept: "TRACES_KEPT",
 
   // AI access (MCP) and folder plans
   mcpSaved: "MCP_SAVED",

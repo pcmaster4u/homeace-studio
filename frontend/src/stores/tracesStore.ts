@@ -1,13 +1,15 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-import { fetchRunHistory, type RunHistory } from "@/services/tracesService";
+import { fetchRunHistory, keepRuns, type RunHistory } from "@/services/tracesService";
 
 /** Runs of the open automation or script; reloaded when the entry or HA changes. */
 export const useTracesStore = defineStore("traces", () => {
   const current = ref<RunHistory | null>(null);
   const isLoading = ref(false);
   const hasError = ref(false);
+  /** The run the flow shows on its blocks ("Im Ablauf zeigen"); null shows the plain flow. */
+  const shownRunId = ref<string | null>(null);
   /** The entry the next answer is for; answers for an older one are dropped. */
   let wanted: string | null = null;
 
@@ -19,7 +21,10 @@ export const useTracesStore = defineStore("traces", () => {
       return;
     }
 
-    if (current.value?.entityId !== entityId) current.value = null;
+    if (current.value?.entityId !== entityId) {
+      current.value = null;
+      shownRunId.value = null;
+    }
     isLoading.value = true;
     hasError.value = false;
 
@@ -39,5 +44,15 @@ export const useTracesStore = defineStore("traces", () => {
     return wanted ? load(wanted) : Promise.resolve();
   }
 
-  return { current, isLoading, hasError, load, refresh };
+  /** Errors go to the caller. */
+  async function keepMore(entityId: string, count: number): Promise<void> {
+    await keepRuns(entityId, count);
+    await load(entityId);
+  }
+
+  function showOnFlow(runId: string | null): void {
+    shownRunId.value = runId;
+  }
+
+  return { current, isLoading, hasError, shownRunId, load, refresh, keepMore, showOnFlow };
 });

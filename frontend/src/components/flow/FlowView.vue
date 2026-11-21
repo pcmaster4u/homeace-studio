@@ -87,11 +87,12 @@ import {
 } from "@/types/editor";
 import { blockTypes, newBlock } from "@/utils/flow/blockTypes";
 import { entityIdsInFlow } from "@/utils/flow/entityIdsInFlow";
+import type { BlockRunState } from "@/utils/runStates";
 
 import AddBlockButton from "./AddBlockButton.vue";
 import ChipEditorPopover from "./ChipEditorPopover.vue";
 import FlowBlock from "./FlowBlock.vue";
-import { FLOW_EDITING } from "./flowEditing";
+import { FLOW_EDITING, FLOW_RUN_STATES } from "./flowEditing";
 
 type Section = {
   key: "when" | "if" | "then";
@@ -138,6 +139,8 @@ const props = defineProps<{
   catalog: EditorCatalog | null;
   /** The entry's area, for suggestions in the entity picker. */
   areaId: string | null;
+  /** A run shown on the blocks ("Im Ablauf zeigen"); null for the plain flow. */
+  runStates?: ReadonlyMap<string, BlockRunState> | null;
 }>();
 
 const emit = defineEmits<{
@@ -281,6 +284,10 @@ function onApply(value: unknown): void {
   closeAndEmit({ type: "set", path: current.edit.path, value });
 }
 
+provide(
+  FLOW_RUN_STATES,
+  computed(() => props.runStates ?? null),
+);
 provide(FLOW_EDITING, {
   isEditable: toRef(props, "isEditable"),
   openEditor,

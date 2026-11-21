@@ -9,7 +9,12 @@ import { HaConnectionService } from "../ha/ha-connection.service";
 import { HA_COMMAND } from "../ha/ha.constants";
 import type { HaArea, HaDevice, HaEntityRegistryEntry, HaState } from "../ha/ha.types";
 import { LiveService } from "../live/live.service";
+import { toRun, type HaTrace } from "../traces/trace-mapper";
+import type { RunResult } from "../traces/traces.model";
 import { SNAPSHOT_CACHE_MS, SNAPSHOT_CLOCK } from "./snapshot.constants";
+
+/** The newest run HA kept of an automation or script. */
+export type LastRun = { startedAt: string; result: RunResult; error: string | null };
 
 /** Everything the check-up, the dependencies and the area view read at once, taken at one moment. */
 export type HomeSnapshot = {
@@ -22,6 +27,8 @@ export type HomeSnapshot = {
   areas: HaArea[];
   /** Config of every automation and script that could be read, by entity ID. */
   configs: ReadonlyMap<string, unknown>;
+  /** Newest run of every automation and script HA kept runs of, by entity ID. */
+  lastRuns: ReadonlyMap<string, LastRun>;
 };
 
 const FLOW_KINDS: readonly FlowKind[] = [FLOW_KIND.automation, FLOW_KIND.script];
@@ -61,12 +68,14 @@ export class HomeSnapshotService implements OnModuleInit {
   }
 
   private async read(now: number): Promise<HomeSnapshot> {
-    const [entries, states, registry, devices, areas] = await Promise.all([
+    const [entries, states, registry, devices, areas, traces] = await Promise.all([
       this.entries.findAll(),
       this.editor.loadStates(),
       this.ha.call<HaEntityRegistryEntry[]>(HA_COMMAND.entityRegistryList),
       this.ha.call<HaDevice[]>(HA_COMMAND.deviceRegistryList),
       this.ha.call<HaArea[]>(HA_COMMAND.areaRegistryList),
+      // Without the trace integration there is simply no run history.
+      this.ha.call<HaTrace[]>(HA_COMMAND.traceList).catch((): HaTrace[] => []),
     ]);
     const flows = entries.filter((entry) => (FLOW_KINDS as readonly string[]).includes(entry.kind));
     const configs = new Map<string, unknown>();
@@ -84,7 +93,37 @@ export class HomeSnapshotService implements OnModuleInit {
       }),
     );
 
-    this.cached = { at: now, entries, states, registry, devices, areas, configs };
+    this.cached = {
+      at: now,
+      entries,
+      states,
+      registry,
+      devices,
+      areas,
+      configs,
+      lastRuns: lastRunsOf(traces, registry),
+    };
     return this.cached;
   }
+}
+
+/** HA files runs under the automation id / script key, which is the registry unique_id. */
+function lastRunsOf(
+  traces: (HaTrace & { domain?: string; item_id?: string })[],
+  registry: HaEntityRegistryEntry[],
+): Map<string, LastRun> {
+  const entityOf = new Map(
+    registry.map((entry) => [`${entry.platform}:${entry.unique_id}`, entry.entity_id]),
+  );
+  const result = new Map<string, LastRun>();
+
+  for (const trace of traces) {
+    const entityId = entityOf.get(`${trace.domain}:${trace.item_id}`);
+    if (!entityId || (result.get(entityId)?.startedAt ?? "") > trace.timestamp.start) continue;
+
+    const run = toRun(trace);
+    result.set(entityId, { startedAt: run.startedAt, result: run.result, error: run.error });
+  }
+
+  return result;
 }

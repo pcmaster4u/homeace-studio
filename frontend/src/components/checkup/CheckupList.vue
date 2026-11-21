@@ -107,6 +107,7 @@ const emit = defineEmits<{
 const KIND_ICON: Record<CheckupKind, string> = {
   gone: "mdi-link-variant-off",
   unavailable: "mdi-wifi-off",
+  failed: "mdi-alert-circle-outline",
   unused: "mdi-cancel",
   stale: "mdi-clock-outline",
 };
@@ -129,6 +130,12 @@ function reason(finding: CheckupFinding): string {
       return t("checkup.rows.gone");
     case "unavailable":
       return t("checkup.rows.unavailable");
+    case "failed":
+      return finding.failedAt
+        ? t("checkup.rows.failed", {
+            time: relativeTime(finding.failedAt, new Date(), locale.value),
+          })
+        : t("checkup.kinds.failed");
     case "unused":
       return t("checkup.rows.unused");
     case "stale": {

@@ -91,6 +91,7 @@ describe("check-up", () => {
         ],
         ["automation.alt", { actions: [] }],
       ]),
+      lastRuns: new Map(),
       now: NOW,
       ignored: new Set(),
     });
@@ -121,6 +122,7 @@ describe("check-up", () => {
       registryIds: new Set(),
       scriptKeys: new Set(),
       configs: new Map(),
+      lastRuns: new Map(),
       now: NOW,
       ignored: new Set(),
     });
@@ -135,10 +137,43 @@ describe("check-up", () => {
       registryIds: new Set(),
       scriptKeys: new Set(),
       configs: new Map(),
+      lastRuns: new Map(),
       now: NOW,
       ignored: new Set(["unused:input_boolean.a"]),
     });
 
     expect(findings).toEqual([]);
+  });
+
+  it("reports a flow whose newest run failed, once per failure", () => {
+    const failedRun = {
+      startedAt: "2026-11-20T11:20:00Z",
+      result: "error",
+      error: "Entity switch.wallbox is unavailable",
+    };
+    const input = {
+      entries: [entry("automation.pv"), entry("script.ok")],
+      states: [state("automation.pv", "2026-11-20T11:20:00Z"), state("script.ok")],
+      registryIds: new Set<string>(),
+      scriptKeys: new Set<string>(),
+      configs: new Map(),
+      lastRuns: new Map<string, { startedAt: string; result: string; error: string | null }>([
+        ["automation.pv", failedRun],
+        ["script.ok", { startedAt: "2026-11-20T10:00:00Z", result: "finished", error: null }],
+      ]),
+      now: NOW,
+      ignored: new Set<string>(),
+    };
+
+    const failed = (ignored: Set<string>) =>
+      analyzeCheckup({ ...input, ignored }).filter((item) => item.kind === "failed");
+    const [finding] = failed(new Set());
+    expect(finding).toMatchObject({
+      key: "failed:automation.pv:2026-11-20T11:20:00Z",
+      kind: "failed",
+      failedAt: "2026-11-20T11:20:00Z",
+      error: "Entity switch.wallbox is unavailable",
+    });
+    expect(failed(new Set([finding?.key ?? ""]))).toEqual([]);
   });
 });

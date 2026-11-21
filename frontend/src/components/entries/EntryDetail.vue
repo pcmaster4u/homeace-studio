@@ -30,6 +30,7 @@
         :has-flow="hasFlow"
         :is-busy="isBusy"
         @show-flow="activeTab = TAB.flow"
+        @show-history="activeTab = TAB.history"
         @turn-off="emit('act', ENTRY_ACTION.turnOff)"
         @delete="emit('delete')"
         @ignore="(key) => emit('ignoreFinding', key)"
@@ -54,6 +55,12 @@
       </div>
 
       <div v-if="hasFlow && activeTab === TAB.flow" class="entry-detail__body">
+        <RunOverlayBar
+          v-if="shownRun"
+          :run="shownRun"
+          @to-history="activeTab = TAB.history"
+          @hide="traces.showOnFlow(null)"
+        />
         <FlowView
           :entity-id="entry.entityId"
           :flow="displayFlow"
@@ -64,6 +71,7 @@
           :is-technical-details-visible="isTechnicalDetailsVisible"
           :catalog="catalog"
           :area-id="entry.area?.areaId ?? null"
+          :run-states="shownRunStates"
           @change="(change) => emit('changeFlow', change)"
         />
       </div>
@@ -73,6 +81,9 @@
           :entry="entry"
           :flow="displayFlow"
           :is-technical-details-visible="isTechnicalDetailsVisible"
+          :is-editable="isFlowEditable"
+          :has-unsaved-changes="hasUnsavedChanges"
+          @show-on-flow="showOnFlow"
         />
       </div>
 
@@ -141,10 +152,13 @@ import { ENTRY_ACTION, ENTRY_KIND_ICON, type EntryAction } from "@/constants/ent
 import CheckupBanner from "@/components/checkup/CheckupBanner.vue";
 import DependencyView from "@/components/dependencies/DependencyView.vue";
 import RunHistoryView from "@/components/history/RunHistoryView.vue";
+import RunOverlayBar from "@/components/history/RunOverlayBar.vue";
 import FlowSaveBar from "@/components/flow/FlowSaveBar.vue";
 import FlowView from "@/components/flow/FlowView.vue";
 import type { CheckupFinding } from "@/services/checkupService";
 import { useDependenciesStore } from "@/stores/dependenciesStore";
+import { useTracesStore } from "@/stores/tracesStore";
+import { runStatesFor } from "@/utils/runStates";
 import type { DisplayFlow, EditorCatalog, FlowChange } from "@/types/editor";
 import type { Area, Entry, EntryChanges, Label } from "@/types/entry";
 
@@ -208,6 +222,22 @@ type Tab = (typeof TAB)[keyof typeof TAB];
 const FLOW_KINDS = ["automation", "script"];
 
 const deps = useDependenciesStore();
+const traces = useTracesStore();
+
+/** The run "Im Ablauf zeigen" put on the flow, while it belongs to this entry. */
+const shownRun = computed(() => {
+  const history = traces.current;
+  if (!props.entry || history?.entityId !== props.entry.entityId) return null;
+  return history.runs.find((run) => run.runId === traces.shownRunId) ?? null;
+});
+const shownRunStates = computed(() =>
+  shownRun.value && props.displayFlow ? runStatesFor(shownRun.value, props.displayFlow) : null,
+);
+
+function showOnFlow(runId: string): void {
+  traces.showOnFlow(runId);
+  activeTab.value = TAB.flow;
+}
 const hasFlow = computed(() => FLOW_KINDS.includes(props.entry?.kind ?? ""));
 const tabs = computed((): Tab[] =>
   hasFlow.value
@@ -221,6 +251,7 @@ watch(
   () => props.entry?.entityId,
   (entityId) => {
     activeTab.value = hasFlow.value ? TAB.flow : TAB.properties;
+    traces.showOnFlow(null);
     void deps.load(entityId ?? null);
   },
   { immediate: true },

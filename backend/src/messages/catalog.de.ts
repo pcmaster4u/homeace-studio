@@ -60,6 +60,7 @@ export const CATALOG_DE: Catalog = {
     "{entityId} lässt sich hier nicht bearbeiten oder löschen. Home Assistant verwaltet es nicht in automations.yaml bzw. scripts.yaml (z. B. aus einem Package oder einer Blueprint).",
   FLOW_INVALID: "Home Assistant hat den Ablauf abgelehnt: {reason}",
   FLOW_CREATED: "In Home Assistant angelegt.",
+  TRACES_KEPT: "Home Assistant merkt sich jetzt die letzten {count} Durchläufe.",
   FLOW_DELETED: "In Home Assistant gelöscht.",
 
   MCP_SAVED: "Gespeichert.",

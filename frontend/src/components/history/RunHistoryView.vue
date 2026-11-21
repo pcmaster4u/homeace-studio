@@ -38,10 +38,22 @@
             </span>
           </button>
         </template>
-        <p class="history__keep">
+        <div class="history__keep">
           <span class="mdi mdi-information-outline" />
-          {{ keepText }}
-        </p>
+          <span>
+            {{ keepText }}
+            <button
+              v-if="canKeepMore"
+              class="btn history__keep-btn"
+              type="button"
+              :disabled="isKeeping"
+              :title="t('history.keepMoreHint')"
+              @click="keepMore"
+            >
+              {{ t("history.keepMore", { count: MORE_RUNS }) }}
+            </button>
+          </span>
+        </div>
       </div>
 
       <div v-if="selected" class="history__detail">
@@ -60,6 +72,16 @@
             {{ t(`history.hint.${selected.result}`) }}
           </p>
           <p v-if="selected.error" class="history__error">{{ errorText(selected.error) }}</p>
+          <div class="history__head-buttons">
+            <button
+              v-if="flow"
+              class="btn btn--primary"
+              type="button"
+              @click="emit('showOnFlow', selected.runId)"
+            >
+              <span class="mdi mdi-sitemap-outline" />{{ t("history.showOnFlow") }}
+            </button>
+          </div>
           <div v-if="isTechnicalDetailsVisible" class="history__tech mono">
             run_id {{ selected.runId }} · {{ selected.lastStep ?? "–" }}
           </div>
@@ -77,7 +99,6 @@
               :states="states"
               :depth="0"
               :is-technical-details-visible="isTechnicalDetailsVisible"
-              :error-text="errorText"
             />
           </template>
         </div>
@@ -91,10 +112,13 @@
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { useRunTexts } from "@/composables/useRunTexts";
 import { useStateText } from "@/composables/useStateText";
 import type { Run, RunResult } from "@/services/tracesService";
 import { useLookupsStore } from "@/stores/lookupsStore";
+import { useMessagesStore } from "@/stores/messagesStore";
 import { useSettingsStore } from "@/stores/settingsStore";
+import { useToastStore } from "@/stores/toastStore";
 import { useTracesStore } from "@/stores/tracesStore";
 import type { DisplayFlow } from "@/types/editor";
 import type { Entry } from "@/types/entry";
@@ -108,6 +132,15 @@ const props = defineProps<{
   entry: Entry;
   flow: DisplayFlow | null;
   isTechnicalDetailsVisible: boolean;
+  /** The flow lives in automations.yaml / scripts.yaml, so "keep more runs" can write it. */
+  isEditable: boolean;
+  /** Unsaved edits in the flow editor would clash with writing the config now. */
+  hasUnsavedChanges: boolean;
+}>();
+
+const emit = defineEmits<{
+  /** "Im Ablauf zeigen": the detail switches to the flow with this run on its blocks. */
+  showOnFlow: [runId: string];
 }>();
 
 const RESULT_ICON: Record<RunResult, string> = {
@@ -135,13 +168,37 @@ const RESULT_TONE: Record<RunResult, string> = {
 /** Results that need a sentence of explanation. */
 const RESULT_HINT: Partial<Record<RunResult, true>> = { cancelled: true, ignored: true };
 
-const UNAVAILABLE_ERROR = /^Entity (\S+) is unavailable/;
-
 const { t } = useI18n();
 const traces = useTracesStore();
 const lookups = useLookupsStore();
 const settings = useSettingsStore();
 const stateText = useStateText();
+const { errorText } = useRunTexts();
+const toasts = useToastStore();
+const messages = useMessagesStore();
+
+/** "Die letzten 20 merken". */
+const MORE_RUNS = 20;
+const isKeeping = ref(false);
+const canKeepMore = computed(
+  () =>
+    props.isEditable &&
+    !props.hasUnsavedChanges &&
+    (history.value?.storedTraces ?? MORE_RUNS) < MORE_RUNS,
+);
+
+async function keepMore(): Promise<void> {
+  isKeeping.value = true;
+
+  try {
+    await traces.keepMore(props.entry.entityId, MORE_RUNS);
+    toasts.show(t("history.kept", { count: MORE_RUNS }));
+  } catch (error) {
+    toasts.show(messages.textFor(error, t("errors.actionFailed")), "error");
+  } finally {
+    isKeeping.value = false;
+  }
+}
 
 void lookups.loadEntities();
 
@@ -251,13 +308,6 @@ function whenText(run: Run): string {
     yesterday: t("history.yesterday"),
   });
   return `${day}, ${clockTime(run.startedAt, settings.locale)}`;
-}
-
-/** HA's English errors in plain words where we know them; the rest as HA wrote it. */
-function errorText(error: string): string {
-  const unavailable = UNAVAILABLE_ERROR.exec(error);
-  if (unavailable?.[1]) return t("history.errors.unavailable", { name: nameOf(unavailable[1]) });
-  return t("history.errors.other", { error });
 }
 </script>
 
@@ -388,6 +438,14 @@ function errorText(error: string): string {
   line-height: 1.4;
 }
 
+.history__keep-btn {
+  display: flex;
+  height: 28px;
+  margin-top: 6px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+
 .history__head,
 .history__steps {
   padding: 14px 16px;
@@ -429,6 +487,14 @@ function errorText(error: string): string {
   margin: 4px 0 0;
   color: var(--err);
   font-size: 13px;
+}
+
+.history__head-buttons {
+  margin-top: 6px;
+}
+
+.history__head-buttons .btn {
+  gap: 6px;
 }
 
 .history__tech {

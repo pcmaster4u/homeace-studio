@@ -21,6 +21,6 @@ import { HaEditorRepository } from "./repositories/ha-editor.repository";
     { provide: ENTITY_LOOKUP_WAIT, useValue: wait },
     { provide: FLOW_CLOCK, useValue: () => Date.now() },
   ],
-  exports: [EDITOR_REPOSITORY],
+  exports: [EDITOR_REPOSITORY, EditorService],
 })
 export class EditorModule {}

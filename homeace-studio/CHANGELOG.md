@@ -16,6 +16,9 @@
   (was already running). The selected run goes block by block: what triggered it, what each
   condition found ("war ‚an‘, verlangt: aus"), which branch an if took, how long it waited, and
   errors in plain words.
+- "Im Ablauf zeigen" puts a run on the flow: every block shows what it did in it.
+- "Die letzten 20 merken" lets Home Assistant keep 20 runs instead of 5 (writes `trace: stored_traces`).
+- Check-up: "Zuletzt mit Fehler" lists automations and scripts whose last run stopped with an error.
 - Create areas right here: "+" next to "Bereiche", "+ Neuer Bereich …" in an entry's properties, or
   from "Bereich" for ticked entries. Name and icon (guessed from the name, e.g. Schlafzimmer → bed).
   Edit and delete them in the area tree. Drag entries onto an area to give them their own area;

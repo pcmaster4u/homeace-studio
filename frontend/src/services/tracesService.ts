@@ -1,4 +1,4 @@
-import { apiFetch } from "./api";
+import { apiFetch, apiSend } from "./api";
 
 /** How a run ended (backend: traces.model.ts). */
 export type RunResult =
@@ -40,6 +40,13 @@ export type Run = {
 };
 
 export type RunHistory = { entityId: string; storedTraces: number; runs: Run[] };
+
+/** Writes `trace.stored_traces` into the flow's config; HA keeps that many runs from now on. */
+export async function keepRuns(entityId: string, count: number): Promise<void> {
+  await apiSend<{ storedTraces: number }>("PUT", `/traces/${encodeURIComponent(entityId)}/stored`, {
+    count,
+  });
+}
 
 export function fetchRunHistory(entityId: string): Promise<RunHistory> {
   return apiFetch<RunHistory>(`/traces/${encodeURIComponent(entityId)}`);
