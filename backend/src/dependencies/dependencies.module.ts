@@ -9,5 +9,6 @@ import { DependenciesService } from "./dependencies.service";
   imports: [SnapshotModule],
   controllers: [DependenciesController],
   providers: [DependenciesService],
+  exports: [DependenciesService],
 })
 export class DependenciesModule {}

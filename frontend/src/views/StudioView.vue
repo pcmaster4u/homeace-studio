@@ -31,6 +31,8 @@
           :favorite-count="data.favoriteCount.value"
           :checkup-count="checkup.hasLoaded ? checkup.findings.length : null"
           :colors="foldersStore.colors"
+          :mode="settings.navMode"
+          @update:mode="setNavMode"
           @select="selectCategory"
           @rename="actions.startRename"
           @drop-entry="dropEntry"
@@ -41,6 +43,17 @@
           <template #notices>
             <AiPlanHint />
             <CleanupHint v-if="cleanup.isHintVisible" />
+          </template>
+          <template #areas>
+            <AreaNav
+              :areas="data.areaNav.value"
+              :no-area-count="data.noAreaCount.value"
+              :loose-count="looseAreaCount"
+              :selected="studio.category"
+              :has-loaded="entryAreas.hasLoaded"
+              @select="selectCategory"
+              @tidy="actions.startAreaTidy"
+            />
           </template>
         </CategoryTree>
       </aside>
@@ -71,6 +84,7 @@
           :unsaved-ids="editorStore.unsavedIds"
           :checked-ids="studio.checkedIds"
           :is-technical-details-visible="settings.isTechnicalDetailsVisible"
+          :area-view="areaView"
           @select="selectEntry"
           @open-nav="isNavOpen = true"
           @create="onCreate"
@@ -135,6 +149,7 @@
       @close-color="colorPath = null"
       @created="selectEntry"
       @folder-created="selectCategory"
+      @tidied="onTidied"
     />
   </div>
 </template>
@@ -147,6 +162,7 @@ import { useI18n } from "vue-i18n";
 import CategoryTree from "@/components/categories/CategoryTree.vue";
 import CheckupList from "@/components/checkup/CheckupList.vue";
 import AiPlanHint from "@/components/ai/AiPlanHint.vue";
+import AreaNav from "@/components/areas/AreaNav.vue";
 import CleanupHint from "@/components/cleanup/CleanupHint.vue";
 import EntryDetail from "@/components/entries/EntryDetail.vue";
 import EntryList from "@/components/entries/EntryList.vue";
@@ -160,7 +176,9 @@ import { useLiveUpdates } from "@/composables/useLiveUpdates";
 import { useStudioData } from "@/composables/useStudioData";
 import {
   CATEGORY_FILTER,
+  NAV_MODE,
   NEW_ENTRY_KIND,
+  type NavMode,
   type EntryAction,
   type NewEntryKind,
 } from "@/constants/entries";
@@ -171,6 +189,7 @@ import { useCleanupStore } from "@/stores/cleanupStore";
 import { useDependenciesStore } from "@/stores/dependenciesStore";
 import { useEditorStore } from "@/stores/editorStore";
 import { useEntriesStore } from "@/stores/entriesStore";
+import { useEntryAreasStore } from "@/stores/entryAreasStore";
 import { useFoldersStore } from "@/stores/foldersStore";
 import { useLookupsStore } from "@/stores/lookupsStore";
 import { useMessagesStore } from "@/stores/messagesStore";
@@ -178,6 +197,9 @@ import { useSettingsStore } from "@/stores/settingsStore";
 import { useStudioStore } from "@/stores/studioStore";
 import { useToastStore } from "@/stores/toastStore";
 import type { Entry, EntryChanges } from "@/types/entry";
+import { areaNote, type AreaListView } from "@/utils/areaNotes";
+import { tidyCandidates } from "@/utils/areaTidy";
+import { areaFilter, areaOfFilter } from "@/utils/entryFilter";
 import { markGoneChips } from "@/utils/flow/markGoneChips";
 import { toDisplayFlow } from "@/utils/flow/toDisplayFlow";
 
@@ -202,6 +224,59 @@ const cleanup = useCleanupStore();
 const ai = useAiStore();
 const checkup = useCheckupStore();
 const dependencies = useDependenciesStore();
+const entryAreas = useEntryAreasStore();
+
+/** Switching to the areas opens the first one; back to the folders, an area selection becomes "all". */
+function setNavMode(mode: NavMode): void {
+  settings.navMode = mode;
+
+  if (mode === NAV_MODE.areas) {
+    const first = data.areaNav.value[0];
+    selectCategory(first ? areaFilter(first.areaId) : areaFilter(null));
+  } else if (areaOfFilter(studio.category) !== undefined) {
+    selectCategory(CATEGORY_FILTER.all);
+  }
+}
+
+/** After sorting by area the new folders are what the user wants to see. */
+function onTidied(path: string): void {
+  settings.navMode = NAV_MODE.folders;
+  selectCategory(path);
+}
+
+/** Entries without a folder that have an area; "Ordnung in einem Klick" shows when there are any. */
+const looseAreaCount = computed(
+  () =>
+    tidyCandidates({ entries: entriesStore.entries, linksOf: entryAreas.linksOf }).filter(
+      (entry) => entry.categoryPath === null,
+    ).length,
+);
+
+/** Title and per-row reasons while an area is selected. */
+const areaView = computed((): AreaListView | null => {
+  const areaId = areaOfFilter(studio.category);
+
+  if (areaId === undefined) return null;
+  if (areaId === null)
+    return { name: t("areas.none"), subtitle: t("areas.noneSubtitle"), notes: {} };
+
+  const name =
+    data.areaNav.value.find((area) => area.areaId === areaId)?.name ??
+    lookups.areas.find((area) => area.areaId === areaId)?.name ??
+    areaId;
+  const texts = {
+    via: (source: "uses" | "usedBy", via: string) => t(`areas.via.${source}`, { name: via }),
+    alsoIn: (names: string) => t("areas.alsoIn", { names }),
+  };
+  const notes = Object.fromEntries(
+    data.visibleEntries.value.map((entry) => [
+      entry.entityId,
+      areaNote(entryAreas.linksOf(entry.entityId), areaId, texts),
+    ]),
+  );
+
+  return { name, subtitle: t("areas.subtitle"), notes };
+});
 
 /** Kinds whose flow the detail view shows. */
 const FLOW_KINDS = ["automation", "script"];
@@ -351,6 +426,7 @@ watch(
     void cleanup.load();
     void checkup.load();
     void dependencies.refresh();
+    void entryAreas.load();
   },
 );
 

@@ -7,7 +7,7 @@ import { LiveModule } from "../live/live.module";
 import { HomeSnapshotService } from "./home-snapshot.service";
 import { SNAPSHOT_CLOCK } from "./snapshot.constants";
 
-/** One shared read of entries, states, registry and flow configs (check-up, dependencies). */
+/** One shared read of entries, states, registry and flow configs (check-up, dependencies, area view). */
 @Module({
   imports: [HaModule, EntriesModule, EditorModule, LiveModule],
   providers: [HomeSnapshotService, { provide: SNAPSHOT_CLOCK, useValue: () => Date.now() }],

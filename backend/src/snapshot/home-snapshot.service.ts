@@ -7,17 +7,19 @@ import type { Entry } from "../entries/entry.model";
 import { EntriesService } from "../entries/entries.service";
 import { HaConnectionService } from "../ha/ha-connection.service";
 import { HA_COMMAND } from "../ha/ha.constants";
-import type { HaEntityRegistryEntry, HaState } from "../ha/ha.types";
+import type { HaArea, HaDevice, HaEntityRegistryEntry, HaState } from "../ha/ha.types";
 import { LiveService } from "../live/live.service";
 import { SNAPSHOT_CACHE_MS, SNAPSHOT_CLOCK } from "./snapshot.constants";
 
-/** Everything the check-up and the dependencies read at once, taken at one moment. */
+/** Everything the check-up, the dependencies and the area view read at once, taken at one moment. */
 export type HomeSnapshot = {
   /** When it was read (ms since epoch). */
   at: number;
   entries: Entry[];
   states: HaState[];
   registry: HaEntityRegistryEntry[];
+  devices: HaDevice[];
+  areas: HaArea[];
   /** Config of every automation and script that could be read, by entity ID. */
   configs: ReadonlyMap<string, unknown>;
 };
@@ -59,10 +61,12 @@ export class HomeSnapshotService implements OnModuleInit {
   }
 
   private async read(now: number): Promise<HomeSnapshot> {
-    const [entries, states, registry] = await Promise.all([
+    const [entries, states, registry, devices, areas] = await Promise.all([
       this.entries.findAll(),
       this.editor.loadStates(),
       this.ha.call<HaEntityRegistryEntry[]>(HA_COMMAND.entityRegistryList),
+      this.ha.call<HaDevice[]>(HA_COMMAND.deviceRegistryList),
+      this.ha.call<HaArea[]>(HA_COMMAND.areaRegistryList),
     ]);
     const flows = entries.filter((entry) => (FLOW_KINDS as readonly string[]).includes(entry.kind));
     const configs = new Map<string, unknown>();
@@ -80,7 +84,7 @@ export class HomeSnapshotService implements OnModuleInit {
       }),
     );
 
-    this.cached = { at: now, entries, states, registry, configs };
+    this.cached = { at: now, entries, states, registry, devices, areas, configs };
     return this.cached;
   }
 }

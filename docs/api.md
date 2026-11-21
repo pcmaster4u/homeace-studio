@@ -304,6 +304,31 @@ other entity, which then only has users):
   `gone`); `name` is null then.
 - Reads the same shared snapshot as the check-up (20 s, dropped on every live change).
 
+## Area view: GET /api/entry-areas
+
+The areas of every entry, own or derived, for the area view:
+
+```json
+[
+  { "entityId": "automation.arm_alarm_when_leaving",
+    "areas": [{ "areaId": "hallway", "name": "Hallway", "source": "uses",
+                "via": { "entityId": "alarm_control_panel.home", "name": "Alarm panel" } }] },
+  { "entityId": "input_boolean.guest_mode",
+    "areas": [{ "areaId": "hallway", "name": "Hallway", "source": "usedBy",
+                "via": { "entityId": "automation.arm_alarm_when_leaving", "name": "Arm the alarm when everyone left" } }] }
+]
+```
+
+- `source`: `own` (the entry has the area in HA; then it is the only one and `via` is null), `uses`
+  (a device or entity the flow, scene or group uses is in it; the entity's own area, else its
+  device's), `usedBy` (only when neither of those gives one: an automation or script that uses the
+  entry is in it, with its own or `uses` areas; one step, not further).
+- Several areas are sorted by how many used things are in them, then by name; the first one is what
+  "Ordnung in einem Klick" goes by unless the user picks another.
+- Areas HA no longer has are ignored. Uses the dependency index and the shared snapshot (20 s,
+  dropped on every live change). Sorting into folders uses the normal move
+  (`POST /api/entries/:entityId/move`), one entry after another.
+
 ## GET /api/messages?lang=de
 
 The backend catalog: message ID → text, for `de` (default) and `en`. Placeholders like `{path}` are filled from

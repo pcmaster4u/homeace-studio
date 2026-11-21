@@ -69,13 +69,24 @@ export const useEntriesStore = defineStore("entries", () => {
    *
    * @returns The IDs that could not be moved, with their errors.
    */
-  async function moveEntries(
+  function moveEntries(
     entityIds: readonly string[],
     categoryPath: string | null,
   ): Promise<{ failed: { entityId: string; error: unknown }[] }> {
+    return moveEach(entityIds.map((entityId) => ({ entityId, categoryPath })));
+  }
+
+  /**
+   * Like {@link moveEntries}, but every entry has its own target (sorting by area).
+   *
+   * @returns The IDs that could not be moved, with their errors.
+   */
+  async function moveEach(
+    moves: readonly { entityId: string; categoryPath: string | null }[],
+  ): Promise<{ failed: { entityId: string; error: unknown }[] }> {
     const failed: { entityId: string; error: unknown }[] = [];
 
-    for (const entityId of entityIds) {
+    for (const { entityId, categoryPath } of moves) {
       try {
         await moveEntryRequest(entityId, categoryPath);
       } catch (error) {
@@ -172,6 +183,7 @@ export const useEntriesStore = defineStore("entries", () => {
     refresh,
     moveEntry,
     moveEntries,
+    moveEach,
     renameCategory,
     createHelper,
     updateEntry,

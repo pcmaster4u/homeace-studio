@@ -74,8 +74,8 @@ export class DependenciesService {
     return { entityId, uses, usedBy: usersOf(entityId, entityId) };
   }
 
-  /** The same snapshot gives the same index; built once. */
-  private indexOf(snapshot: HomeSnapshot): DependencyIndex {
+  /** The same snapshot gives the same index; built once (also used by the area view). */
+  indexOf(snapshot: HomeSnapshot): DependencyIndex {
     if (this.indexed?.snapshot === snapshot) return this.indexed.index;
 
     const index = buildDependencyIndex(snapshot);

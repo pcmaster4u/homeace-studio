@@ -86,6 +86,11 @@ const props = defineProps<{
   isChecked: boolean;
   /** Some row is ticked, so every checkbox is shown clearly. */
   isCheckActive: boolean;
+  /**
+   * In the area view: why the entry is in the selected area, e.g. "über Bewegungsmelder · auch in
+   * Garten"; it replaces the area in the subtitle. Undefined outside the area view.
+   */
+  areaNote?: string;
 }>();
 
 const emit = defineEmits<{
@@ -103,7 +108,8 @@ const iconClass = computed(
 );
 /** Without technical details: kind and area, e.g. "Automation · Terrasse". */
 const subtitle = computed(() => {
-  const parts = [t(`kind.${props.entry.kind}`), props.entry.area?.name];
+  const where = props.areaNote === undefined ? props.entry.area?.name : props.areaNote;
+  const parts = [t(`kind.${props.entry.kind}`), where];
 
   return parts.filter(Boolean).join(SUBTITLE_SEPARATOR);
 });

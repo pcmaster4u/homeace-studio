@@ -41,6 +41,20 @@ export const CATEGORY_FILTER = {
   checkup: "__checkup",
 } as const;
 
+/**
+ * Tree selections of the area view: the prefix plus an area ID; the bare prefix means "no area".
+ * @example `${AREA_FILTER_PREFIX}terrace`
+ */
+export const AREA_FILTER_PREFIX = "__area:";
+
+/** Whether the tree shows folders (HA categories) or areas. */
+export const NAV_MODE = {
+  folders: "folders",
+  areas: "areas",
+} as const;
+
+export type NavMode = (typeof NAV_MODE)[keyof typeof NAV_MODE];
+
 export const ENTRY_ACTION = {
   run: "run",
   turnOn: "turnOn",

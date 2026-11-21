@@ -119,6 +119,7 @@
           :has-unsaved-changes="unsavedIds.has(entry.entityId)"
           :is-checked="checkedIds.has(entry.entityId)"
           :is-check-active="checkedIds.size > 0"
+          :area-note="areaView ? (areaView.notes[entry.entityId] ?? '') : undefined"
           @check="onCheck"
           :is-technical-details-visible="isTechnicalDetailsVisible"
           @select="(entityId) => emit('select', entityId)"
@@ -145,6 +146,7 @@ import {
   type NewEntryKind,
 } from "@/constants/entries";
 import type { Entry } from "@/types/entry";
+import type { AreaListView } from "@/utils/areaNotes";
 import {
   groupByCategory,
   isGroupOpenByDefault,
@@ -170,6 +172,8 @@ const props = defineProps<{
   /** Rows ticked for moving several entries at once. */
   checkedIds: ReadonlySet<string>;
   isTechnicalDetailsVisible: boolean;
+  /** Set while an area of the area view is selected: its title and why each entry is in it. */
+  areaView: AreaListView | null;
 }>();
 
 const emit = defineEmits<{
@@ -267,6 +271,9 @@ function toggleGroup(group: EntryGroup): void {
 }
 
 const title = computed(() => {
+  if (props.areaView)
+    return { crumb: "", name: props.areaView.name, subtitle: props.areaView.subtitle };
+
   if (props.category === CATEGORY_FILTER.all) {
     return { crumb: "", name: t("nav.all"), subtitle: t("list.allSubtitle") };
   }

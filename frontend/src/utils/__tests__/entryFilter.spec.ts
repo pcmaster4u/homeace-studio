@@ -6,9 +6,12 @@ import type { Entry } from "@/types/entry";
 import {
   countByScope,
   filterEntries,
+  areaFilter,
+  areaOfFilter,
   groupByCategory,
   isGroupOpenByDefault,
   isInCategory,
+  isSpecialCategory,
 } from "../entryFilter";
 
 function entry(overrides: Partial<Entry>): Entry {
@@ -31,6 +34,34 @@ function entry(overrides: Partial<Entry>): Entry {
     ...overrides,
   };
 }
+
+describe("area selections", () => {
+  const areaIdsOf = (entityId: string) =>
+    entityId === "automation.terrace" ? ["terrace", "garden"] : [];
+
+  it("matches entries by their own or derived areas", () => {
+    expect(
+      isInCategory(entry({ entityId: "automation.terrace" }), areaFilter("garden"), areaIdsOf),
+    ).toBe(true);
+    expect(
+      isInCategory(entry({ entityId: "automation.terrace" }), areaFilter("hallway"), areaIdsOf),
+    ).toBe(false);
+  });
+
+  it('puts entries without any area under "no area"', () => {
+    expect(isInCategory(entry({}), areaFilter(null), areaIdsOf)).toBe(true);
+    expect(
+      isInCategory(entry({ entityId: "automation.terrace" }), areaFilter(null), areaIdsOf),
+    ).toBe(false);
+  });
+
+  it("are no folders", () => {
+    expect(areaOfFilter(areaFilter("terrace"))).toBe("terrace");
+    expect(areaOfFilter(areaFilter(null))).toBeNull();
+    expect(areaOfFilter("Haus/Terrasse")).toBeUndefined();
+    expect(isSpecialCategory(areaFilter("terrace"))).toBe(true);
+  });
+});
 
 describe("isInCategory", () => {
   it("includes subcategories but not categories that only start with the same letters", () => {

@@ -1,4 +1,9 @@
-import { CATEGORY_FILTER, SCOPE_ALL, type EntryScope } from "@/constants/entries";
+import {
+  AREA_FILTER_PREFIX,
+  CATEGORY_FILTER,
+  SCOPE_ALL,
+  type EntryScope,
+} from "@/constants/entries";
 import type { Entry } from "@/types/entry";
 
 import { isSameOrBelow } from "./categoryPath";
@@ -8,16 +13,45 @@ export type EntryFilter = {
   /** A category path, or one of {@link CATEGORY_FILTER}. */
   category: string;
   search: string;
+  /** Areas of an entry (own or derived), for the selections of the area view. */
+  areaIdsOf?: AreaIdsOf;
 };
+
+/** Area IDs of an entry, own or derived from what it uses. */
+export type AreaIdsOf = (entityId: string) => readonly string[];
+
+/**
+ * The area of an area-view selection: an area ID, null for "no area", undefined for anything else.
+ *
+ * @example areaOfFilter("__area:terrace") // "terrace"
+ */
+export function areaOfFilter(category: string): string | null | undefined {
+  if (!category.startsWith(AREA_FILTER_PREFIX)) return undefined;
+
+  return category.slice(AREA_FILTER_PREFIX.length) || null;
+}
+
+/** The tree selection for an area; null selects the entries without any area. */
+export function areaFilter(areaId: string | null): string {
+  return AREA_FILTER_PREFIX + (areaId ?? "");
+}
 
 /**
  * Whether an entry belongs to a tree selection. A category includes everything below it:
  * "Haus" matches "Haus" and "Haus/Terrasse", but not "Hausflur".
  *
  * @param entry - The entry to check.
- * @param category - A category path or one of {@link CATEGORY_FILTER}.
+ * @param category - A category path, one of {@link CATEGORY_FILTER} or an area selection.
+ * @param areaIdsOf - Areas of an entry; needed for area selections only.
  */
-export function isInCategory(entry: Entry, category: string): boolean {
+export function isInCategory(entry: Entry, category: string, areaIdsOf?: AreaIdsOf): boolean {
+  const area = areaOfFilter(category);
+
+  if (area !== undefined) {
+    const areaIds = areaIdsOf?.(entry.entityId) ?? [];
+    return area === null ? areaIds.length === 0 : areaIds.includes(area);
+  }
+
   if (category === CATEGORY_FILTER.all) return true;
   if (category === CATEGORY_FILTER.uncategorized) return entry.categoryPath === null;
   if (category === CATEGORY_FILTER.favorites) return entry.isFavorite;
@@ -25,9 +59,12 @@ export function isInCategory(entry: Entry, category: string): boolean {
   return entry.categoryPath !== null && isSameOrBelow(entry.categoryPath, category);
 }
 
-/** Whether a tree selection is one of the special nodes (all, favorites, uncategorized). */
+/** Whether a tree selection is not a folder: all, favorites, uncategorized, check-up or an area. */
 export function isSpecialCategory(category: string): boolean {
-  return (Object.values(CATEGORY_FILTER) as string[]).includes(category);
+  return (
+    (Object.values(CATEGORY_FILTER) as string[]).includes(category) ||
+    areaOfFilter(category) !== undefined
+  );
 }
 
 /**
@@ -53,7 +90,7 @@ export function filterEntries(entries: readonly Entry[], filter: EntryFilter): E
   return entries.filter(
     (entry) =>
       (filter.scope === SCOPE_ALL || entry.kind === filter.scope) &&
-      isInCategory(entry, filter.category) &&
+      isInCategory(entry, filter.category, filter.areaIdsOf) &&
       matchesSearch(entry, filter.search),
   );
 }

@@ -1,6 +1,7 @@
 import { useLocalStorage } from "@vueuse/core";
 import { defineStore } from "pinia";
 
+import { NAV_MODE, type NavMode } from "@/constants/entries";
 import { DEFAULT_PANE_WIDTHS, PANE_WIDTH_LIMITS, type Pane } from "@/constants/layout";
 import { DEFAULT_LOCALE, type AppLocale } from "@/i18n";
 import { clampNumber } from "@/utils/number";
@@ -9,6 +10,7 @@ const STORAGE_KEY = {
   technicalDetails: "homeace.technicalDetails",
   paneWidths: "homeace.paneWidths",
   locale: "homeace.locale",
+  navMode: "homeace.navMode",
 } as const;
 
 /**
@@ -23,6 +25,8 @@ export const useSettingsStore = defineStore("settings", () => {
     { mergeDefaults: true },
   );
   const locale = useLocalStorage<AppLocale>(STORAGE_KEY.locale, DEFAULT_LOCALE);
+  /** Folders or areas in the tree; stays as the user left it. */
+  const navMode = useLocalStorage<NavMode>(STORAGE_KEY.navMode, NAV_MODE.folders);
 
   function setPaneWidth(pane: Pane, width: number): void {
     const limits = PANE_WIDTH_LIMITS[pane];
@@ -41,6 +45,7 @@ export const useSettingsStore = defineStore("settings", () => {
     isTechnicalDetailsVisible,
     paneWidths,
     locale,
+    navMode,
     setPaneWidth,
     resetPaneWidth,
     resetPaneWidths,

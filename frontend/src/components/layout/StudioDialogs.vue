@@ -7,6 +7,15 @@
     @cancel="actions.cancelRename"
     @confirm="actions.confirmRename"
   />
+  <AreaTidyDialog
+    v-if="actions.isAreaTidyOpen.value"
+    :entries="entriesStore.entries"
+    :links-of="entryAreas.linksOf"
+    :folder-paths="allPaths"
+    :is-busy="actions.isBusy.value"
+    @cancel="actions.cancelAreaTidy"
+    @confirm="confirmAreaTidy"
+  />
   <MoveEntriesDialog
     v-if="actions.movingIds.value"
     :count="actions.movingIds.value.length"
@@ -95,6 +104,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import AiPlanDialog from "@/components/ai/AiPlanDialog.vue";
+import AreaTidyDialog from "@/components/areas/AreaTidyDialog.vue";
 import McpSettingsDialog from "@/components/ai/McpSettingsDialog.vue";
 import CleanupDialog from "@/components/cleanup/CleanupDialog.vue";
 import FolderColorDialog from "@/components/categories/FolderColorDialog.vue";
@@ -115,6 +125,7 @@ import { useAiStore } from "@/stores/aiStore";
 import { useCleanupStore } from "@/stores/cleanupStore";
 import { useDependenciesStore } from "@/stores/dependenciesStore";
 import { useEntriesStore } from "@/stores/entriesStore";
+import { useEntryAreasStore } from "@/stores/entryAreasStore";
 import { useFoldersStore } from "@/stores/foldersStore";
 import { useToastStore } from "@/stores/toastStore";
 
@@ -135,6 +146,8 @@ const emit = defineEmits<{
   created: [entityId: string];
   /** A new folder exists; the page opens it. */
   folderCreated: [path: string];
+  /** Entries were sorted by area; the page opens the first folder. */
+  tidied: [path: string];
 }>();
 
 const { t } = useI18n();
@@ -144,6 +157,14 @@ const entriesStore = useEntriesStore();
 const toasts = useToastStore();
 const ai = useAiStore();
 const dependencies = useDependenciesStore();
+const entryAreas = useEntryAreasStore();
+
+async function confirmAreaTidy(
+  moves: Parameters<typeof props.actions.confirmAreaTidy>[0],
+): Promise<void> {
+  const path = await props.actions.confirmAreaTidy(moves);
+  if (path) emit("tidied", path);
+}
 
 /** Who still uses the entry about to be deleted (it is the open one, so its dependencies are loaded). */
 const deleteUsers = computed(() => {

@@ -8,6 +8,12 @@
   And it shows who uses the entry itself, e.g. which automations read a helper.
 - Deleting a helper or script that is still used names the flows that would then point into the void.
 - Helpers and scenes now have tabs too (properties, dependencies).
+- Area view: a switch above the tree shows areas instead of folders. Entries without an area of
+  their own count in the areas of the devices they use, helpers in those of the flows that use
+  them; every row says why ("über Bewegungsmelder Terrasse · auch in Garten"). Nothing to set up.
+- "Ordnung in einem Klick": sorts entries into folders by area, after a preview. Existing folders
+  named like the area are used, missing ones created; entries in several areas get a choice;
+  every row can be unticked.
 
 ## 0.10.0
 

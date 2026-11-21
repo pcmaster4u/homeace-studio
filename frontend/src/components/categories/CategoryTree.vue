@@ -37,56 +37,75 @@
       </span>
     </div>
 
-    <div class="category-tree__heading">
-      <span>{{ t("nav.categories") }}</span>
+    <div class="category-tree__modes" role="radiogroup" :aria-label="t('areas.view')">
       <button
-        class="category-tree__add"
+        v-for="option in NAV_MODES"
+        :key="option.mode"
         type="button"
-        :aria-label="t('nav.newFolder')"
-        :title="t('nav.newFolder')"
-        @click="emit('addFolder', null)"
+        role="radio"
+        :aria-checked="mode === option.mode"
+        :class="{ 'category-tree__mode--active': mode === option.mode }"
+        @click="emit('update:mode', option.mode)"
       >
-        <span class="mdi mdi-folder-plus-outline" />
+        <span class="mdi" :class="option.icon" />{{ t(option.label) }}
       </button>
     </div>
 
-    <!-- Hints above the folders, e.g. the tidy-up assistant. -->
-    <slot name="notices" />
+    <!-- The area view brings its own tree. -->
+    <slot v-if="mode === NAV_MODE.areas" name="areas" />
 
-    <ul class="category-tree__list">
-      <CategoryTreeNode
-        v-for="node in tree"
-        :key="node.path"
-        :node="node"
-        :depth="0"
-        :selected="selected"
-        :expanded-paths="expandedPaths"
-        :colors="colors"
-        @select="selectNode"
-        @pick-color="(path) => emit('pickColor', path)"
-        @toggle="toggleNode"
-        @rename="(path) => emit('rename', path)"
-        @add-folder="(path) => emit('addFolder', path)"
-        @delete-folder="(path) => emit('deleteFolder', path)"
-        @drop-entry="(path, entityId) => emit('dropEntry', path, entityId)"
-      />
-    </ul>
+    <template v-else>
+      <div class="category-tree__heading">
+        <span>{{ t("nav.categories") }}</span>
+        <button
+          class="category-tree__add"
+          type="button"
+          :aria-label="t('nav.newFolder')"
+          :title="t('nav.newFolder')"
+          @click="emit('addFolder', null)"
+        >
+          <span class="mdi mdi-folder-plus-outline" />
+        </button>
+      </div>
 
-    <div
-      class="category-tree__special"
-      :class="{
-        'category-tree__special--active': selected === CATEGORY_FILTER.uncategorized,
-        'category-tree__special--drop': isDropOverUncategorized,
-      }"
-      @click="emit('select', CATEGORY_FILTER.uncategorized)"
-      @dragover="onDragOver"
-      @dragleave="onDragLeave"
-      @drop="onDrop"
-    >
-      <span class="mdi mdi-folder-off-outline" />
-      <span>{{ t("nav.uncategorized") }}</span>
-      <span class="category-tree__count">{{ uncategorizedCount }}</span>
-    </div>
+      <!-- Hints above the folders, e.g. the tidy-up assistant. -->
+      <slot name="notices" />
+
+      <ul class="category-tree__list">
+        <CategoryTreeNode
+          v-for="node in tree"
+          :key="node.path"
+          :node="node"
+          :depth="0"
+          :selected="selected"
+          :expanded-paths="expandedPaths"
+          :colors="colors"
+          @select="selectNode"
+          @pick-color="(path) => emit('pickColor', path)"
+          @toggle="toggleNode"
+          @rename="(path) => emit('rename', path)"
+          @add-folder="(path) => emit('addFolder', path)"
+          @delete-folder="(path) => emit('deleteFolder', path)"
+          @drop-entry="(path, entityId) => emit('dropEntry', path, entityId)"
+        />
+      </ul>
+
+      <div
+        class="category-tree__special"
+        :class="{
+          'category-tree__special--active': selected === CATEGORY_FILTER.uncategorized,
+          'category-tree__special--drop': isDropOverUncategorized,
+        }"
+        @click="emit('select', CATEGORY_FILTER.uncategorized)"
+        @dragover="onDragOver"
+        @dragleave="onDragLeave"
+        @drop="onDrop"
+      >
+        <span class="mdi mdi-folder-off-outline" />
+        <span>{{ t("nav.uncategorized") }}</span>
+        <span class="category-tree__count">{{ uncategorizedCount }}</span>
+      </div>
+    </template>
   </nav>
 </template>
 
@@ -95,8 +114,9 @@ import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useEntryDropTarget } from "@/composables/useEntryDropTarget";
-import { CATEGORY_FILTER, CATEGORY_SEPARATOR } from "@/constants/entries";
+import { CATEGORY_FILTER, CATEGORY_SEPARATOR, NAV_MODE, type NavMode } from "@/constants/entries";
 import type { CategoryNode } from "@/utils/categoryTree";
+import { isSpecialCategory } from "@/utils/entryFilter";
 
 import CategoryTreeNode from "./CategoryTreeNode.vue";
 
@@ -109,6 +129,8 @@ const props = defineProps<{
   /** Findings of the check-up; null while not loaded yet. */
   checkupCount: number | null;
   colors: Record<string, string>;
+  /** Folders (HA categories) or areas; the special nodes on top stay in both. */
+  mode: NavMode;
 }>();
 
 const emit = defineEmits<{
@@ -120,7 +142,13 @@ const emit = defineEmits<{
   pickColor: [path: string];
   /** `path` null: the entry was dropped on "Ohne Kategorie". */
   dropEntry: [path: string | null, entityId: string];
+  "update:mode": [mode: NavMode];
 }>();
+
+const NAV_MODES = [
+  { mode: NAV_MODE.folders, icon: "mdi-folder-outline", label: "areas.viewFolders" },
+  { mode: NAV_MODE.areas, icon: "mdi-map-marker-outline", label: "areas.viewAreas" },
+] as const;
 
 const { t } = useI18n();
 const {
@@ -149,7 +177,7 @@ function toggleNode(path: string): void {
 watch(
   () => props.selected,
   (path) => {
-    if ((Object.values(CATEGORY_FILTER) as string[]).includes(path)) return;
+    if (isSpecialCategory(path)) return;
 
     const levels = path.split(CATEGORY_SEPARATOR);
     const next = new Set(expandedPaths.value);
@@ -173,6 +201,42 @@ function selectNode(path: string): void {
 .category-tree {
   display: grid;
   gap: 2px;
+}
+
+.category-tree__modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 12px 2px 0;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--sunken);
+}
+
+.category-tree__modes button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 28px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.category-tree__modes .mdi {
+  font-size: 15px;
+}
+
+.category-tree__modes .category-tree__mode--active {
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 12%);
 }
 
 .category-tree__heading {

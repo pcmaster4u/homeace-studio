@@ -2,6 +2,7 @@ import { ref, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useEntriesStore } from "@/stores/entriesStore";
+import type { TidyMove } from "@/utils/areaTidy";
 import { useFoldersStore } from "@/stores/foldersStore";
 import { useMessagesStore } from "@/stores/messagesStore";
 import { useStudioStore } from "@/stores/studioStore";
@@ -22,6 +23,12 @@ type CategoryActions = {
   startRename: (path: string) => void;
   cancelRename: () => void;
   confirmRename: (newPath: string) => Promise<void>;
+  /** "Ordnung in einem Klick" is open. */
+  isAreaTidyOpen: Ref<boolean>;
+  startAreaTidy: () => void;
+  cancelAreaTidy: () => void;
+  /** Moves every entry into the folder of its area. @returns The first folder, to open it; null when nothing moved. */
+  confirmAreaTidy: (moves: readonly TidyMove[]) => Promise<string | null>;
 };
 
 /**
@@ -108,6 +115,50 @@ export function useCategoryActions(): CategoryActions {
     renamingPath.value = null;
   }
 
+  const isAreaTidyOpen = ref(false);
+
+  async function confirmAreaTidy(moves: readonly TidyMove[]): Promise<string | null> {
+    if (moves.length === 0) return null;
+
+    isBusy.value = true;
+
+    try {
+      const { failed } = await entriesStore.moveEach(
+        moves.map((move) => ({ entityId: move.entry.entityId, categoryPath: move.to })),
+      );
+      const done = moves.filter(
+        (move) => !failed.some((item) => item.entityId === move.entry.entityId),
+      );
+      const folders = [...new Set(done.map((move) => move.to))];
+
+      if (done.length > 0) {
+        toasts.show(
+          t(
+            "areas.tidy.done",
+            {
+              count: done.length,
+              folders: t("areas.tidy.folders", { count: folders.length }, folders.length),
+            },
+            done.length,
+          ),
+        );
+      }
+
+      if (failed.length > 0) {
+        const reason = messages.textFor(failed[0]?.error, t("errors.actionFailed"));
+        toasts.show(
+          t("toast.moveFailed", { count: failed.length, reason }, failed.length),
+          "error",
+        );
+      }
+
+      isAreaTidyOpen.value = false;
+      return folders[0] ?? null;
+    } finally {
+      isBusy.value = false;
+    }
+  }
+
   async function confirmRename(newPath: string): Promise<void> {
     const from = renamingPath.value;
 
@@ -139,5 +190,9 @@ export function useCategoryActions(): CategoryActions {
     startRename,
     cancelRename,
     confirmRename,
+    isAreaTidyOpen,
+    startAreaTidy: () => (isAreaTidyOpen.value = true),
+    cancelAreaTidy: () => (isAreaTidyOpen.value = false),
+    confirmAreaTidy,
   };
 }
