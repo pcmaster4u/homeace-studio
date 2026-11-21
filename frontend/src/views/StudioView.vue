@@ -139,6 +139,7 @@
           @ignore-finding="ignoreFinding"
           @open="selectEntry"
           @ask-disable="onAskDisable"
+          @rename-id="onRenameId"
         />
       </div>
     </main>
@@ -390,6 +391,9 @@ const onToggleFavorite = onSelected((entry) => entryActions.toggleFavorite(entry
 const onSaveNote = onSelected((entry, note: string) => entryActions.saveNote(entry, note));
 const onDelete = onSelected((entry) => entryActions.askDelete(entry));
 const onAskDisable = onSelected((entry) => entryActions.askDisable(entry));
+const onRenameId = onSelected((entry, preset: string | null) =>
+  entryActions.startRenameId(entry, preset),
+);
 const onSaveFlow = onSelected(async (entry) => {
   try {
     await editorStore.save();

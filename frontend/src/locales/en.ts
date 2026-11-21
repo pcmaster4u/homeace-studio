@@ -735,6 +735,38 @@ const en: MessageSchema = {
       done: "Sorted one entry into {folders} | Sorted {count} entries into {folders}",
     },
   },
+  renameId: {
+    label: "Entity ID",
+    change: "Change …",
+    hint: "The technical name. Flows, scripts and dashboards refer to the entity by it.",
+    mismatch: "No longer matches the name. Suggestion:",
+    adopt: "Adopt …",
+    title: "Change entity ID",
+    intro:
+      "The ID is the technical name of “{name}”. HomeAce Studio rewrites the automations and scripts that use it right away.",
+    references: "References",
+    loading: "Searching …",
+    none: "No automation, script or scene uses this ID.",
+    withReferences:
+      "Rename one place in {flows} flow too | Rename {count} places in {flows} flows too",
+    places: "one place | {count} places",
+    manual: "please change it yourself (not in automations.yaml / scripts.yaml)",
+    manualScene: "Scene or group: please change it yourself",
+    otherTitle: "What else happens",
+    history: "Home Assistant moves history and statistics to the new ID.",
+    dashboards:
+      "HomeAce Studio does not check dashboards and voice commands. Cards with the old ID will show “unavailable”.",
+    empty: "Please enter an ID.",
+    invalid: "Only lowercase letters, digits and _ (no accents, no spaces).",
+    taken: "This ID already exists.",
+    confirm: "Change ID",
+    running: "Changing …",
+    done: "The entity ID is now {id}",
+    doneWith:
+      "The entity ID is now {id}, one reference updated | The entity ID is now {id}, {count} references updated",
+    skipped:
+      "One flow still names the old ID; please change it yourself | {count} flows still name the old ID; please change them yourself",
+  },
   visibility: {
     title: "Visibility & voice",
     enabled: "Enabled",

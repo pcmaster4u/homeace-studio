@@ -62,6 +62,28 @@ Changes what HA keeps in its entity registry. Every field is optional; missing o
 they are read for the open entry only (`config/entity_registry/get`).
 - Returns the updated entry with `ENTRY_UPDATED`. `400 ENTRY_NOT_IN_REGISTRY` for YAML-only entities.
 
+## Entity ID: GET /api/entries/:entityId/references · POST /api/entries/:entityId/rename
+
+`GET …/references` lists where the ID appears: automations and scripts (with how often, and
+`isEditable` when they live in automations.yaml / scripts.yaml), and scenes and groups that have it as a
+member (`isEditable: false`, HomeAce Studio does not write them yet):
+
+```json
+[{ "entityId": "script.terrace_evening_mood", "name": "Terrace evening mood", "kind": "script",
+   "count": 1, "isEditable": true }]
+```
+
+`POST …/rename` `{ "newEntityId": "input_number.patio_brightness", "withReferences": true }` changes the
+ID in HA's registry (`new_entity_id`; HA moves history and statistics), carries favorite, note and
+ignored check-up findings over, and with `withReferences` rewrites every editable flow that names it.
+Answers `{ entityId, updated, skipped }` with `ENTRY_RENAMED`; `skipped` are places that still name the
+old ID. `400 ENTRY_ID_INVALID` (another domain, not `[a-z0-9_]`), `409 ENTRY_ID_TAKEN`,
+`400 ENTRY_NOT_IN_REGISTRY`.
+
+- Only the whole ID is replaced: `light.terrace` does not touch `light.terrace_paths`. Templates count.
+- Values of `action` / `service` stay as they are: `action: script.x` calls a script by its key in
+  scripts.yaml, which does not change with the entity ID.
+
 ## PATCH /api/entries/:entityId/extras
 
 `{ "isFavorite": true, "note": "…" }`, both optional; a blank or null note is removed. Overlay only.

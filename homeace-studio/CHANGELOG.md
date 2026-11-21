@@ -5,6 +5,10 @@
 - Properties: new section "Sichtbarkeit & Sprache" with enabled, hidden and aliases for Assist.
   Disabling asks first and names the automations and scripts that still use the entry; a disabled
   entry says so in its header and can be enabled again from there.
+- Change an entity ID: "Ändern …" next to it in the properties, or "Angleichen …" when it no
+  longer fits the name. Before renaming you see every automation, script and scene that uses it;
+  HomeAce Studio rewrites the automations and scripts with it (only the whole ID, never a script
+  call by its key). Favorite and note move along.
 
 ## 0.11.0
 

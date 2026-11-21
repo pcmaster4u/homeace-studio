@@ -426,6 +426,11 @@ export class FakeHa {
       if (payload[field] !== undefined) Object.assign(entry, { [field]: payload[field] });
     }
 
+    // Like HA: a new entity ID moves registry entry and state; the unique_id stays.
+    if (typeof payload.new_entity_id === "string" && payload.new_entity_id !== entry.entity_id) {
+      this.moveEntity(entry, payload.new_entity_id);
+    }
+
     // Like HA: a disabled entity is not loaded, so it has no state until it is enabled again.
     if (payload.disabled_by !== undefined && payload.disabled_by !== entry.disabled_by) {
       entry.disabled_by = payload.disabled_by as string | null;
@@ -450,6 +455,26 @@ export class FakeHa {
     this.emit("entity_registry_updated", { action: "update", entity_id: entry.entity_id });
 
     return structuredClone(entry);
+  }
+
+  private moveEntity(entry: HaEntityRegistryEntry, next: string): void {
+    if (this.registry.has(next) || this.states.has(next)) {
+      throw new HaCommandError(ERROR_CODE.invalid, "Entity with this ID is already registered");
+    }
+
+    const previous = entry.entity_id;
+    this.registry.delete(previous);
+    entry.entity_id = next;
+    this.registry.set(next, entry);
+
+    const state = this.states.get(previous);
+    if (state) {
+      this.states.delete(previous);
+      const moved = { ...state, entity_id: next };
+      this.states.set(next, moved);
+      this.emit("state_changed", { entity_id: previous, old_state: state, new_state: null });
+      this.emit("state_changed", { entity_id: next, old_state: null, new_state: moved });
+    }
   }
 
   /** States of disabled entities wait here until they are enabled again. */

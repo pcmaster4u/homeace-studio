@@ -121,6 +121,13 @@
               :is-busy="isBusy"
               @save="(changes) => emit('save', changes)"
             />
+            <div class="entry-detail__card entry-detail__entity-id">
+              <EntityIdField
+                :entry="entry"
+                :is-busy="isBusy"
+                @rename="(preset) => emit('renameId', preset)"
+              />
+            </div>
           </section>
 
           <section class="entry-detail__section">
@@ -177,6 +184,7 @@ import type { Area, Entry, EntryChanges, Label } from "@/types/entry";
 
 import CategoryMoveField from "./CategoryMoveField.vue";
 import EntryDetailHeader from "./EntryDetailHeader.vue";
+import EntityIdField from "./EntityIdField.vue";
 import EntryEditForm from "./EntryEditForm.vue";
 import EntryVisibilityForm from "./EntryVisibilityForm.vue";
 import NoteField from "./NoteField.vue";
@@ -221,6 +229,8 @@ const emit = defineEmits<{
   ignoreFinding: [key: string];
   /** "Deaktivieren?" asks first, because flows may still use the entry. */
   askDisable: [];
+  /** "Entity-ID ändern"; `preset` is a suggested ID or null. */
+  renameId: [preset: string | null];
   /** Open another entry (from the dependencies). */
   open: [entityId: string];
 }>();
@@ -434,5 +444,9 @@ const statusRows = computed((): DetailRow[] => {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;
   }
+}
+
+.entry-detail__entity-id {
+  margin-top: 10px;
 }
 </style>

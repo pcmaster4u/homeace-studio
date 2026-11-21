@@ -131,6 +131,15 @@
       </div>
     </template>
   </ConfirmDialog>
+  <RenameEntityDialog
+    v-if="entryActions.renamingId.value"
+    :entry="entryActions.renamingId.value.entry"
+    :preset="entryActions.renamingId.value.preset"
+    :taken-ids="takenIds"
+    :is-busy="entryActions.isBusy.value"
+    @cancel="entryActions.cancelRenameId"
+    @confirm="entryActions.confirmRenameId"
+  />
   <FolderColorDialog
     v-if="colorPath"
     :path="colorPath"
@@ -169,6 +178,7 @@ import FolderColorDialog from "@/components/categories/FolderColorDialog.vue";
 import NewFolderDialog from "@/components/categories/NewFolderDialog.vue";
 import RenameCategoryDialog from "@/components/categories/RenameCategoryDialog.vue";
 import MoveEntriesDialog from "@/components/entries/MoveEntriesDialog.vue";
+import RenameEntityDialog from "@/components/entries/RenameEntityDialog.vue";
 import ConfirmDialog from "@/components/common/ConfirmDialog.vue";
 import DependencyUserRow from "@/components/dependencies/DependencyUserRow.vue";
 import ToastHost from "@/components/common/ToastHost.vue";
@@ -276,6 +286,22 @@ async function confirmAreaTidy(
 }
 
 /** Who still uses the entry about to be deleted (it is the open one, so its dependencies are loaded). */
+// "Gibt es schon" needs every entity ID HA has.
+watch(
+  () => props.entryActions.renamingId.value,
+  (renaming) => {
+    if (renaming) void lookups.loadEntities(true);
+  },
+);
+
+const takenIds = computed(
+  () =>
+    new Set([
+      ...lookups.entities.map((entity) => entity.entityId),
+      ...entriesStore.entries.map((entry) => entry.entityId),
+    ]),
+);
+
 /** Who still uses the entry about to be disabled (the open one, so its dependencies are loaded). */
 const disableUsers = computed(() => {
   const entityId = props.entryActions.disablingEntry.value?.entityId;

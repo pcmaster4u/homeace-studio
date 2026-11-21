@@ -4,7 +4,9 @@ import { useI18n } from "vue-i18n";
 import type { EntryAction } from "@/constants/entries";
 import { useEntriesStore } from "@/stores/entriesStore";
 import { useFoldersStore } from "@/stores/foldersStore";
+import { renameEntity } from "@/services/renameService";
 import { useMessagesStore } from "@/stores/messagesStore";
+import { useStudioStore } from "@/stores/studioStore";
 import { useToastStore } from "@/stores/toastStore";
 import type { Entry, EntryChanges } from "@/types/entry";
 
@@ -19,6 +21,11 @@ type EntryActions = {
   askDelete: (entry: Entry) => void;
   /** The entry in the "deaktivieren?" dialog; null when it is closed. */
   disablingEntry: Ref<Entry | null>;
+  /** The entry in "Entity-ID ändern", with a suggested ID; null when it is closed. */
+  renamingId: Ref<{ entry: Entry; preset: string | null } | null>;
+  startRenameId: (entry: Entry, preset: string | null) => void;
+  cancelRenameId: () => void;
+  confirmRenameId: (newEntityId: string, withReferences: boolean) => Promise<void>;
   askDisable: (entry: Entry) => void;
   cancelDisable: () => void;
   confirmDisable: () => Promise<void>;
@@ -41,6 +48,34 @@ export function useEntryActions(): EntryActions {
   const isBusy = ref(false);
   const deletingEntry = ref<Entry | null>(null);
   const disablingEntry = ref<Entry | null>(null);
+  const renamingId = ref<{ entry: Entry; preset: string | null } | null>(null);
+  const studio = useStudioStore();
+
+  /** The entry gets its new ID; the open entry and every list follow it. */
+  async function confirmRenameId(newEntityId: string, withReferences: boolean): Promise<void> {
+    const current = renamingId.value;
+    if (!current) return;
+
+    await run(async () => {
+      const result = await renameEntity(current.entry.entityId, newEntityId, withReferences);
+      await entriesStore.load();
+      if (studio.selectedEntityId === current.entry.entityId) studio.selectEntry(result.entityId);
+
+      const places = result.updated.reduce((sum, item) => sum + item.count, 0);
+      toasts.show(
+        places > 0
+          ? t("renameId.doneWith", { id: result.entityId, count: places }, places)
+          : t("renameId.done", { id: result.entityId }),
+      );
+      if (result.skipped.length > 0) {
+        toasts.show(
+          t("renameId.skipped", { count: result.skipped.length }, result.skipped.length),
+          "error",
+        );
+      }
+      renamingId.value = null;
+    });
+  }
 
   /** Runs one request; errors become an error toast. @returns Whether it worked. */
   async function run(action: () => Promise<void>, successText?: string): Promise<boolean> {
@@ -106,6 +141,10 @@ export function useEntryActions(): EntryActions {
     },
     askDelete: (entry) => (deletingEntry.value = entry),
     disablingEntry,
+    renamingId,
+    startRenameId: (entry, preset) => (renamingId.value = { entry, preset }),
+    cancelRenameId: () => (renamingId.value = null),
+    confirmRenameId,
     askDisable: (entry) => (disablingEntry.value = entry),
     cancelDisable: () => (disablingEntry.value = null),
     confirmDisable,

@@ -9,6 +9,7 @@ import { CategoriesModule } from "./categories/categories.module";
 import { EntryAreasModule } from "./areas/entry-areas.module";
 import { DependenciesModule } from "./dependencies/dependencies.module";
 import { TracesModule } from "./traces/traces.module";
+import { RenameModule } from "./rename/rename.module";
 import { ApiExceptionFilter } from "./common/api/api-exception.filter";
 import { ResponseEnvelopeInterceptor } from "./common/api/response-envelope.interceptor";
 import { EditorModule } from "./editor/editor.module";
@@ -35,6 +36,7 @@ import { MessagesModule } from "./messages/messages.module";
     DependenciesModule,
     EntryAreasModule,
     TracesModule,
+    RenameModule,
   ],
   providers: [
     // Every answer uses the { message, error, data } envelope (docs/api.md).

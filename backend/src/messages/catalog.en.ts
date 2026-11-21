@@ -22,6 +22,10 @@ export const CATALOG_EN: Catalog = {
   MATCHES: "Does not have the expected format.",
 
   ENTRY_NOT_FOUND: "Home Assistant has no entry {entityId}.",
+  ENTRY_RENAMED: "Entity ID changed.",
+  ENTRY_ID_INVALID:
+    '"{entityId}" does not work as an entity ID: only lowercase letters, digits and _, same domain as before.',
+  ENTRY_ID_TAKEN: 'The entity ID "{entityId}" already exists.',
   ENTRY_NOT_IN_REGISTRY:
     "{entityId} comes from YAML without a unique_id and cannot be put into a category.",
   ENTRY_MOVED: "Moved.",

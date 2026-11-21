@@ -29,6 +29,8 @@ backend/src/
                          Controller (POST/PATCH/DELETE /api/areas, names checked ignoring case first)
   traces/                run history: trace-mapper.ts (pure: HA trace → Run with result word, start, steps),
                          TracesService + Controller (GET /api/traces/:entityId)
+  rename/                entity-id.ts (pure: countEntityId, replaceEntityId; whole IDs only, service names
+                         left out), RenameService + Controller (GET references, POST rename)
   demo/                  demo mode: FakeHa (an invented home in memory that answers the WebSocket and
                          REST calls with HA's shapes and events), DemoHaConnectionService / DemoHaRestService
                          (subclasses of the real services), MemoryOverlayRepository
@@ -144,6 +146,9 @@ frontend/src/
   components/entries/EntryVisibilityForm  enabled, hidden and aliases in the properties; saved right
                                  away, disabling asks first (StudioDialogs lists who still uses it);
                                  a disabled entry shows "deaktiviert" and "Aktivieren" in the header
+  components/entries/EntityIdField, RenameEntityDialog   the entity ID in the properties with "Ändern …"
+                                 and a suggestion when it no longer fits the name (utils/entityId.ts:
+                                 slugifyName like HA); the dialog lists the references before renaming
   components/dependencies/       DependencyView (the "Abhängigkeiten" tab of every entry: uses grouped by
                                  role with device names and live state, "+2 weitere" users, used by),
                                  DependencyUseRow, DependencyUserRow (also in the delete dialog);

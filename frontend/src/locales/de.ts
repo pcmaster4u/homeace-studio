@@ -746,6 +746,38 @@ export default {
       done: "Ein Eintrag in {folders} sortiert | {count} Einträge in {folders} sortiert",
     },
   },
+  renameId: {
+    label: "Entity-ID",
+    change: "Ändern …",
+    hint: "Der technische Name. Mit ihm sprechen Abläufe, Skripte und Dashboards die Entität an.",
+    mismatch: "Passt nicht mehr zum Namen. Vorschlag:",
+    adopt: "Angleichen …",
+    title: "Entity-ID ändern",
+    intro:
+      "Die ID ist der technische Name von „{name}“. Abläufe und Skripte, die sie benutzen, passt HomeAce Studio gleich mit an.",
+    references: "Verweise",
+    loading: "Wird gesucht …",
+    none: "Kein Ablauf, kein Skript und keine Szene benutzt diese ID.",
+    withReferences:
+      "Eine Stelle in {flows} Ablauf mit umbenennen | {count} Stellen in {flows} Abläufen mit umbenennen",
+    places: "eine Stelle | {count} Stellen",
+    manual: "bitte selbst anpassen (liegt nicht in automations.yaml / scripts.yaml)",
+    manualScene: "Szene oder Gruppe: bitte selbst anpassen",
+    otherTitle: "Was sonst passiert",
+    history: "Verlauf und Statistiken nimmt Home Assistant mit zur neuen ID.",
+    dashboards:
+      "Dashboards und Sprachbefehle prüft HomeAce Studio nicht. Karten mit der alten ID zeigen danach „nicht verfügbar“.",
+    empty: "Bitte eine ID eingeben.",
+    invalid: "Nur Kleinbuchstaben, Ziffern und _ (keine Umlaute, keine Leerzeichen).",
+    taken: "Diese ID gibt es schon.",
+    confirm: "ID ändern",
+    running: "Wird geändert …",
+    done: "Entity-ID ist jetzt {id}",
+    doneWith:
+      "Entity-ID ist jetzt {id}, ein Verweis angepasst | Entity-ID ist jetzt {id}, {count} Verweise angepasst",
+    skipped:
+      "Ein Ablauf nennt noch die alte ID; bitte selbst anpassen | {count} Abläufe nennen noch die alte ID; bitte selbst anpassen",
+  },
   visibility: {
     title: "Sichtbarkeit & Sprache",
     enabled: "Aktiviert",
