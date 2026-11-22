@@ -101,11 +101,21 @@ Node 24 versions only print a warning.
 ## Releases
 
 Raising `version` in `homeace-studio/config.yaml` on `main` starts the workflow
-`.github/workflows/build-images.yml`: it builds the images for amd64 and aarch64 and pushes them to
-`ghcr.io/shadowtsw/homeace-studio-<arch>:<version>`. `config.yaml` names that image (`image:`), so HA
-downloads it. Push the version change only together with a CHANGELOG entry; HA shows the update right
-away, and the download works once the workflow is done (a few minutes). The packages on ghcr.io must be
-public (GitHub → profile → Packages → package → Package settings → Change visibility).
+`.github/workflows/build-images.yml`. It runs in three steps:
+
+1. **Checks** (`.github/workflows/checks.yml`): lint, tests and build of frontend and backend.
+2. **Images** for amd64 and aarch64, only when the checks pass, pushed to
+   `ghcr.io/shadowtsw/homeace-studio-<arch>:<version>`. `config.yaml` names that image (`image:`), so HA
+   downloads it.
+3. **Release:** tag `v<version>` and a GitHub release whose notes are the section `## <version>` of
+   `homeace-studio/CHANGELOG.md`; it fails when that section is missing.
+
+Push the version change only together with that CHANGELOG section (rename "## Unreleased"); HA shows the
+update right away, and the download works once the workflow is done (a few minutes). The packages on
+ghcr.io must be public (GitHub → profile → Packages → package → Package settings → Change visibility).
+
+The checks also run on every push to `main` and on every pull request, Dependabot's included
+(`.github/dependabot.yml`: weekly npm updates, grouped; monthly actions and the Node base image).
 
 ## As an add-on (local app on HA OS, for development)
 

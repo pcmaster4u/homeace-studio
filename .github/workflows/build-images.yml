@@ -1,6 +1,8 @@
 # Builds the app images that Home Assistant downloads, one per architecture, and pushes them to
 # ghcr.io/<owner>/homeace-studio-<arch>:<version>. Runs when the version in config.yaml changes on
 # main, or by hand (Actions → Build app images → Run workflow).
+# Order: checks (lint, tests, build) → both images → tag v<version> and a GitHub release with the
+# changelog section. Nothing is built when a check fails; no release when an image fails.
 name: Build app images
 
 on:
@@ -18,8 +20,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  checks:
+    uses: ./.github/workflows/checks.yml
+
   build:
     name: Image ${{ matrix.arch }}
+    needs: checks
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -71,3 +77,33 @@ jobs:
             org.opencontainers.image.licenses=MIT
           cache-from: type=gha,scope=${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=${{ matrix.arch }}
+
+  release:
+    name: Tag and GitHub release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      # The section "## <version>" of the changelog becomes the release notes. A second run for the
+      # same version (Run workflow by hand) leaves an existing release alone.
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(sed -n 's/^version: *"\(.*\)"/\1/p' homeace-studio/config.yaml)"
+          test -n "$version"
+          if gh release view "v$version" > /dev/null 2>&1; then
+            echo "Release v$version exists already."
+            exit 0
+          fi
+          awk -v head="## $version" '
+            $0 == head { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' homeace-studio/CHANGELOG.md > notes.md
+          test -s notes.md || { echo "No changelog section for $version"; exit 1; }
+          gh release create "v$version" --target "$GITHUB_SHA" --title "HomeAce Studio $version" \
+            --notes-file notes.md

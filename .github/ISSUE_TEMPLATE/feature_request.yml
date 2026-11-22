@@ -1,0 +1,25 @@
+name: Idea or wish
+description: Something HomeAce Studio could do better or do at all
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        What is already planned is in the [roadmap](https://github.com/shadowtsw/homeace-studio/blob/main/ROADMAP.md).
+  - type: textarea
+    id: problem
+    attributes:
+      label: What bothers you or what is missing?
+      description: The situation and the problem, in your own words.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could it work?
+      description: Optional; a rough idea or a sketch is enough.
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you solve it today?
+      description: In Home Assistant itself, with another tool, or not at all.

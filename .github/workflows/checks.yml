@@ -1,0 +1,47 @@
+# Lint, tests, type check and build for frontend and backend. Runs on every push to main and on every
+# pull request (Dependabot's too), and before every release (build-images.yml calls it), so a broken
+# state never becomes an image.
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # github.workflow is the caller's name when build-images.yml calls this, so the release's checks never
+  # cancel (or get cancelled by) the normal checks of the same push.
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: ${{ matrix.part }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [frontend, backend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.part }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # Node 22 with npm 10, the same as the image (node:22-alpine); the lockfiles are written by npm 10.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.part }}/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint:check
+      - run: npm test
+      # The frontend build includes the type check (vue-tsc).
+      - run: npm run build

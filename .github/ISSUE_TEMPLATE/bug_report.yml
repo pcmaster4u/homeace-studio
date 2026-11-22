@@ -1,0 +1,68 @@
+name: Bug report
+description: Something does not work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Please remove private things (names, addresses, tokens) from
+        logs and screenshots. Security issues please not here, see SECURITY.md.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: And what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Click …
+        3. See …
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: HomeAce Studio version
+      description: Shown under the gear icon in the app.
+      placeholder: "0.12.0"
+    validations:
+      required: true
+  - type: input
+    id: ha-version
+    attributes:
+      label: Home Assistant version
+      description: Settings → About.
+      placeholder: "2026.11.2"
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Installation
+      options:
+        - Home Assistant OS
+        - Home Assistant Supervised
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: "Firefox on Windows, HA app on Android, …"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log
+      description: Settings → Apps → HomeAce Studio → Log. Only the relevant part, please.
+      render: text
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else?
+      description: Screenshots help a lot.

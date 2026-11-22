@@ -154,6 +154,10 @@ Local development against a real HA, a local test environment (`node scripts/loc
 `docker compose`), tests and the app build are described in
 [docs/setup.md](docs/setup.md); the design is in [docs/architecture.md](docs/architecture.md).
 
+Bug reports and ideas are welcome as [issues](https://github.com/shadowtsw/homeace-studio/issues/new/choose);
+how to contribute is in [CONTRIBUTING.md](CONTRIBUTING.md). Security issues please privately, see
+[SECURITY.md](SECURITY.md).
+
 ## Support
 
 HomeAce Studio is free and open source. If it saves you time, you can buy me a coffee:
