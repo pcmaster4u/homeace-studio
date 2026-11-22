@@ -12,7 +12,12 @@
     @pointerdown="startDrag"
     @dblclick="emit('reset')"
     @keydown="moveByKeyboard"
-  />
+  >
+    <!-- E.g. the fold button; it sits in the middle and does not start a drag. -->
+    <div v-if="$slots.default" class="pane-splitter__middle" @pointerdown.stop @dblclick.stop>
+      <slot />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -109,6 +114,14 @@ function moveByKeyboard(event: KeyboardEvent): void {
 .pane-splitter:focus-visible::after,
 .pane-splitter--dragging::after {
   background: var(--accent);
+}
+
+.pane-splitter__middle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 1;
+  transform: translate(-50%, -50%);
 }
 
 .pane-splitter:focus-visible {

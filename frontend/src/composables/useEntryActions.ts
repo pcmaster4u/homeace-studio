@@ -15,6 +15,8 @@ type EntryActions = {
   /** The helper waiting for "really delete?"; null when no confirmation is open. */
   deletingEntry: Ref<Entry | null>;
   save: (entityId: string, changes: EntryChanges) => Promise<boolean>;
+  /** Renames in HA with "Rückgängig" in the toast. */
+  rename: (entry: Entry, name: string) => Promise<void>;
   act: (entry: Entry, action: EntryAction) => Promise<void>;
   toggleFavorite: (entry: Entry) => Promise<void>;
   saveNote: (entry: Entry, note: string) => Promise<void>;
@@ -124,6 +126,18 @@ export function useEntryActions(): EntryActions {
     deletingEntry,
     save: (entityId, changes) =>
       run(() => entriesStore.updateEntry(entityId, changes), t("toast.saved")),
+    rename: async (entry, name) => {
+      const previous = entry.name;
+      const isDone = await run(() => entriesStore.updateEntry(entry.entityId, { name }));
+      if (!isDone) return;
+
+      toasts.show(t("toast.renamedEntry", { name }), "success", () => {
+        void run(
+          () => entriesStore.updateEntry(entry.entityId, { name: previous }),
+          t("toast.undone"),
+        );
+      });
+    },
     act: async (entry, action) => {
       await run(
         () => entriesStore.runAction(entry.entityId, action),

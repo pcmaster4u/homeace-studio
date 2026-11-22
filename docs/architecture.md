@@ -149,6 +149,10 @@ frontend/src/
   components/entries/EntityIdField, RenameEntityDialog   the entity ID in the properties with "Ändern …"
                                  and a suggestion when it no longer fits the name (utils/entityId.ts:
                                  slugifyName like HA); the dialog lists the references before renaming
+  components/common/InlineNameInput  renaming in place (list row, title; later folders and areas): Enter or
+                                 leaving saves, Esc cancels; studioStore.renaming says which entry and where;
+                                 toastStore.show(text, tone, undo) adds "Rückgängig"
+  locales/__tests__/keys.spec.ts every fixed t("…") key of the code exists in de and en
   components/dependencies/       DependencyView (the "Abhängigkeiten" tab of every entry: uses grouped by
                                  role with device names and live state, "+2 weitere" users, used by),
                                  DependencyUseRow, DependencyUserRow (also in the delete dialog);

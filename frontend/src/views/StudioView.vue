@@ -1,7 +1,11 @@
 <template>
   <div
     class="studio-view"
-    :class="{ 'studio-view--nav-open': isNavOpen, 'studio-view--detail-open': isDetailOpen }"
+    :class="{
+      'studio-view--nav-open': isNavOpen,
+      'studio-view--detail-open': isDetailOpen,
+      'studio-view--detail-folded': settings.isDetailFolded,
+    }"
     :style="{
       '--w-nav': `${settings.paneWidths.nav}px`,
       '--w-list': `${settings.paneWidths.list}px`,
@@ -89,6 +93,10 @@
           :checked-ids="studio.checkedIds"
           :is-technical-details-visible="settings.isTechnicalDetailsVisible"
           :area-view="areaView"
+          :renaming-id="studio.renaming?.place === 'list' ? studio.renaming.entityId : null"
+          @start-rename="(entityId) => studio.startRename(entityId, 'list')"
+          @rename="renameEntry"
+          @cancel-rename="studio.stopRename()"
           @select="selectEntry"
           @open-nav="isNavOpen = true"
           @create="onCreate"
@@ -107,7 +115,21 @@
         :min="PANE_WIDTH_LIMITS.list.min"
         :max="PANE_WIDTH_LIMITS.list.max"
         @reset="settings.resetPaneWidth(PANE.list)"
-      />
+      >
+        <button
+          class="studio-view__fold"
+          type="button"
+          :title="settings.isDetailFolded ? t('detail.unfold') : t('detail.fold')"
+          :aria-label="settings.isDetailFolded ? t('detail.unfold') : t('detail.fold')"
+          :aria-expanded="!settings.isDetailFolded"
+          @click="settings.isDetailFolded = !settings.isDetailFolded"
+        >
+          <span
+            class="mdi"
+            :class="settings.isDetailFolded ? 'mdi-chevron-left' : 'mdi-chevron-right'"
+          />
+        </button>
+      </PaneSplitter>
 
       <div class="studio-view__detail">
         <EntryDetail
@@ -139,6 +161,13 @@
           @ignore-finding="ignoreFinding"
           @open="selectEntry"
           @ask-disable="onAskDisable"
+          :is-renaming="
+            studio.renaming?.place === 'title' &&
+            studio.renaming.entityId === data.selectedEntry.value?.entityId
+          "
+          @start-rename="startTitleRename"
+          @rename="(name) => renameEntry(data.selectedEntry.value?.entityId ?? '', name)"
+          @cancel-rename="studio.stopRename()"
           @rename-id="onRenameId"
         />
       </div>
@@ -448,9 +477,36 @@ function onCreate(kind: NewEntryKind): void {
   else create.openFlowDialog(kind);
 }
 
+function renameEntry(entityId: string, name: string): void {
+  studio.stopRename();
+  const entry = entriesStore.entries.find((item) => item.entityId === entityId);
+  if (entry) void entryActions.rename(entry, name);
+}
+
+function startTitleRename(): void {
+  const entityId = data.selectedEntry.value?.entityId;
+  if (entityId) studio.startRename(entityId, "title");
+}
+
+const TYPING_TARGETS = ["INPUT", "TEXTAREA", "SELECT"];
+
+/** F2 renames the open entry: in its list row when it is visible, else in the title. */
+useEventListener(window, "keydown", (event: KeyboardEvent) => {
+  const target = event.target as HTMLElement | null;
+  if (event.key !== "F2" || TYPING_TARGETS.includes(target?.tagName ?? "")) return;
+
+  const entry = data.selectedEntry.value;
+  if (!entry?.isInRegistry) return;
+
+  event.preventDefault();
+  const row = document.querySelector(`[data-entity-id="${CSS.escape(entry.entityId)}"]`);
+  studio.startRename(entry.entityId, row ? "list" : "title");
+});
+
 function selectEntry(entityId: string): void {
   studio.selectEntry(entityId);
   isDetailOpen.value = true;
+  settings.isDetailFolded = false;
 }
 
 // Proposals follow the categories: after moves, renames and live updates from HA.
@@ -532,10 +588,53 @@ onMounted(() => {
   display: none;
 }
 
+/* Fold button in the middle of the list splitter; the folded pane leaves the list the whole width. */
+.studio-view__fold {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.studio-view__fold:hover {
+  border-color: var(--accent);
+  color: var(--fg);
+}
+
+.studio-view--detail-folded .studio-view__panes {
+  grid-template-columns: var(--w-nav) 0 minmax(0, 1fr) 0 0;
+}
+
+.studio-view--detail-folded .studio-view__detail {
+  display: none;
+}
+
+/* Folded, the splitter sits at the right edge: no resizing, and the button stays inside. */
+.studio-view--detail-folded .studio-view__splitter-list {
+  pointer-events: none;
+}
+
+.studio-view--detail-folded .studio-view__fold {
+  pointer-events: auto;
+  transform: translateX(-14px);
+}
+
 /* Tablet: categories become a drawer. */
 @media (max-width: 1180px) {
   .studio-view__panes {
     grid-template-columns: min(var(--w-list), calc(100vw - 380px)) 0 minmax(0, 1fr);
+  }
+
+  .studio-view--detail-folded .studio-view__panes {
+    grid-template-columns: minmax(0, 1fr) 0 0;
   }
 
   .studio-view__nav {

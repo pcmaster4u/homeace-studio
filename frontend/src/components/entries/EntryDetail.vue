@@ -15,6 +15,10 @@
         @toggle-favorite="emit('toggleFavorite')"
         @delete="emit('delete')"
         @enable="emit('save', { isDisabled: false })"
+        :is-renaming="isRenaming"
+        @start-rename="emit('startRename')"
+        @rename="(name) => emit('rename', name)"
+        @cancel-rename="emit('cancelRename')"
       />
 
       <FlowSaveBar
@@ -192,6 +196,8 @@ import NoteField from "./NoteField.vue";
 type DetailRow = { label: string; value: string; isMono?: boolean };
 
 const props = defineProps<{
+  /** The title is being renamed in place. */
+  isRenaming: boolean;
   entry: Entry | null;
   isTechnicalDetailsVisible: boolean;
   /** All folder paths, as suggestions for moving. */
@@ -229,6 +235,9 @@ const emit = defineEmits<{
   ignoreFinding: [key: string];
   /** "Deaktivieren?" asks first, because flows may still use the entry. */
   askDisable: [];
+  startRename: [];
+  rename: [name: string];
+  cancelRename: [];
   /** "Entity-ID ändern"; `preset` is a suggested ID or null. */
   renameId: [preset: string | null];
   /** Open another entry (from the dependencies). */

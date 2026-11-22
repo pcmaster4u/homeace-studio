@@ -11,6 +11,16 @@ export const useStudioStore = defineStore("studio", () => {
   const selectedEntityId = ref<string | null>(null);
   /** Rows ticked for moving several entries at once. */
   const checkedIds = ref<ReadonlySet<string>>(new Set());
+  /** An entry being renamed in place: in its list row or in the detail title. */
+  const renaming = ref<{ entityId: string; place: "list" | "title" } | null>(null);
+
+  function startRename(entityId: string, place: "list" | "title"): void {
+    renaming.value = { entityId, place };
+  }
+
+  function stopRename(): void {
+    renaming.value = null;
+  }
 
   function selectCategory(path: string): void {
     category.value = path;
@@ -44,6 +54,9 @@ export const useStudioStore = defineStore("studio", () => {
     search,
     selectedEntityId,
     checkedIds,
+    renaming,
+    startRename,
+    stopRename,
     selectCategory,
     selectEntry,
     setChecked,

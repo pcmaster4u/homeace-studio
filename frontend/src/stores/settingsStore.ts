@@ -11,6 +11,7 @@ const STORAGE_KEY = {
   paneWidths: "homeace.paneWidths",
   locale: "homeace.locale",
   navMode: "homeace.navMode",
+  detailFolded: "homeace.detailFolded",
 } as const;
 
 /**
@@ -27,6 +28,8 @@ export const useSettingsStore = defineStore("settings", () => {
   const locale = useLocalStorage<AppLocale>(STORAGE_KEY.locale, DEFAULT_LOCALE);
   /** Folders or areas in the tree; stays as the user left it. */
   const navMode = useLocalStorage<NavMode>(STORAGE_KEY.navMode, NAV_MODE.folders);
+  /** The detail pane folded away for a wider list; opening an entry unfolds it. */
+  const isDetailFolded = useLocalStorage(STORAGE_KEY.detailFolded, false);
 
   function setPaneWidth(pane: Pane, width: number): void {
     const limits = PANE_WIDTH_LIMITS[pane];
@@ -46,6 +49,7 @@ export const useSettingsStore = defineStore("settings", () => {
     paneWidths,
     locale,
     navMode,
+    isDetailFolded,
     setPaneWidth,
     resetPaneWidth,
     resetPaneWidths,

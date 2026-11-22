@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- The details pane folds away with the round button in the middle of the column splitter, for a
+  wider list; opening an entry brings it back.
+- Rename in place: double click the name in the list or the title, the pencil on hover, or F2.
+  The toast offers "Rückgängig".
+- Fixed: the toast after disabling an entry showed a raw text key. A test now checks that every
+  text the app uses exists in German and English.
 - Properties: new section "Sichtbarkeit & Sprache" with enabled, hidden and aliases for Assist.
   Disabling asks first and names the automations and scripts that still use the entry; a disabled
   entry says so in its header and can be enabled again from there.

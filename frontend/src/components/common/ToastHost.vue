@@ -13,6 +13,19 @@
       />
       <span>{{ toast.text }}</span>
       <button
+        v-if="toast.undo"
+        class="toast-host__undo"
+        type="button"
+        @click="
+          () => {
+            toastStore.dismiss(toast.id);
+            toast.undo?.();
+          }
+        "
+      >
+        {{ t("toast.undo") }}
+      </button>
+      <button
         class="toast-host__close"
         type="button"
         :aria-label="t('toast.close')"
@@ -90,5 +103,21 @@ const toastStore = useToastStore();
     transform: translateY(8px);
     opacity: 0;
   }
+}
+
+.toast-host__undo {
+  margin-left: 4px;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.toast-host__undo:hover {
+  background: var(--accent-soft);
 }
 </style>

@@ -18,7 +18,28 @@
           <span class="mdi mdi-power-plug-off-outline" />{{ t("visibility.badge") }}
         </span>
       </div>
-      <h1>{{ entry.name }}</h1>
+      <InlineNameInput
+        v-if="isRenaming"
+        class="entry-detail-header__rename-input"
+        :value="entry.name"
+        :label="t('detail.rename')"
+        @save="(name) => emit('rename', name)"
+        @cancel="emit('cancelRename')"
+      />
+      <h1 v-else @dblclick="entry.isInRegistry && emit('startRename')">
+        {{ entry.name }}
+        <span v-if="entry.isInRegistry" class="entry-detail-header__title-tools">
+          <button
+            class="icon-btn"
+            type="button"
+            :title="t('detail.rename')"
+            :aria-label="t('detail.rename')"
+            @click="emit('startRename')"
+          >
+            <span class="mdi mdi-pencil-outline" />
+          </button>
+        </span>
+      </h1>
       <div v-if="isTechnicalDetailsVisible" class="entry-detail-header__entity-id mono">
         {{ entry.entityId }}
       </div>
@@ -79,6 +100,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
+import InlineNameInput from "@/components/common/InlineNameInput.vue";
 import SwitchToggle from "@/components/common/SwitchToggle.vue";
 import { ENTRY_ACTION, ENTRY_KIND_ICON, type EntryAction } from "@/constants/entries";
 import type { Entry } from "@/types/entry";
@@ -87,6 +109,8 @@ import { mdiIconClass } from "@/utils/text";
 
 defineProps<{
   entry: Entry;
+  /** The title is an input right now. */
+  isRenaming?: boolean;
   isTechnicalDetailsVisible: boolean;
   isBusy: boolean;
 }>();
@@ -97,6 +121,9 @@ const emit = defineEmits<{
   toggleFavorite: [];
   /** Disabled entries get an "Aktivieren" button instead of on/off. */
   enable: [];
+  startRename: [];
+  rename: [name: string];
+  cancelRename: [];
   delete: [];
 }>();
 
@@ -198,5 +225,35 @@ const { t } = useI18n();
   color: var(--warn);
   font-size: 11px;
   letter-spacing: 0.04em;
+}
+
+.entry-detail-header__title-tools {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 6px;
+  vertical-align: middle;
+  opacity: 0;
+}
+
+.entry-detail-header__title-tools .icon-btn {
+  width: 30px;
+  height: 30px;
+  font-size: 17px;
+}
+
+.entry-detail-header__title:hover .entry-detail-header__title-tools,
+.entry-detail-header__title-tools:focus-within {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .entry-detail-header__title-tools {
+    opacity: 1;
+  }
+}
+
+.entry-detail-header__rename-input {
+  height: 40px;
+  font: 700 22px/1.1 var(--font-display);
 }
 </style>

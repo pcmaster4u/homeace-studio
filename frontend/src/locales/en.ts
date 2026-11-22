@@ -299,6 +299,7 @@ const en: MessageSchema = {
     folder: "Folder (optional)",
   },
   list: {
+    rename: "Rename (double click or F2)",
     check: "Select “{name}”",
     checkHint: "Select to move several at once. With Shift, a whole range.",
     bulk: "Selected entries",
@@ -330,6 +331,9 @@ const en: MessageSchema = {
       dependencies: "Dependencies",
     },
     back: "Back",
+    fold: "Fold the details",
+    rename: "Rename (double click or F2)",
+    unfold: "Show the details",
     empty: "Pick an entry on the left.",
     identity: "Identity",
     organization: "Organization",
@@ -678,7 +682,6 @@ const en: MessageSchema = {
       other: "Other",
     },
     toast: {
-      disabled: "“{name}” disabled",
       created: "Area “{name}” created",
       saved: "Area “{name}” saved",
       deleted: "Area “{name}” deleted",
@@ -930,6 +933,10 @@ const en: MessageSchema = {
     deleteAnyway: "Delete anyway",
   },
   toast: {
+    undo: "Undo",
+    undone: "Undone",
+    renamedEntry: "Renamed to “{name}”",
+    disabled: "“{name}” disabled",
     findingIgnored: "Will not be reported again",
     movedMany: "Moved one entry to {path} | Moved {count} entries to {path}",
     movedOutMany: "Took one entry out of its folder | Took {count} entries out of their folders",

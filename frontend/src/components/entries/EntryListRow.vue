@@ -7,7 +7,8 @@
       'entry-list-row--checked': isChecked,
       'entry-list-row--checking': isCheckActive,
     }"
-    :draggable="entry.isInRegistry"
+    :data-entity-id="entry.entityId"
+    :draggable="entry.isInRegistry && !isRenaming"
     @dragstart="startDrag"
   >
     <input
@@ -19,13 +20,30 @@
       :title="entry.isInRegistry ? t('list.checkHint') : t('detail.notInRegistry')"
       @click="(event: MouseEvent) => emit('check', entry.entityId, event.shiftKey)"
     />
-    <button class="entry-list-row__open" type="button" @click="emit('select', entry.entityId)">
+    <component
+      :is="isRenaming ? 'div' : 'button'"
+      class="entry-list-row__open"
+      :type="isRenaming ? undefined : 'button'"
+      @click="isRenaming || emit('select', entry.entityId)"
+    >
       <span class="entry-list-row__icon" :class="`kind-${entry.kind}`">
         <span class="mdi" :class="iconClass" />
       </span>
       <span class="entry-list-row__main">
         <span class="entry-list-row__name">
-          {{ entry.name }}
+          <InlineNameInput
+            v-if="isRenaming"
+            :value="entry.name"
+            :label="t('list.rename')"
+            @save="(name) => emit('rename', name)"
+            @cancel="emit('cancelRename')"
+          />
+          <span
+            v-else
+            class="entry-list-row__name-text"
+            @dblclick.stop="entry.isInRegistry && emit('startRename')"
+            >{{ entry.name }}</span
+          >
           <span v-if="entry.isFavorite" class="mdi mdi-star entry-list-row__star" />
           <span
             v-if="hasUnsavedChanges"
@@ -39,6 +57,16 @@
         </span>
         <span v-else class="entry-list-row__sub">{{ subtitle }}</span>
       </span>
+    </component>
+    <button
+      v-if="entry.isInRegistry && !isRenaming"
+      class="icon-btn entry-list-row__rename"
+      type="button"
+      :title="t('list.rename')"
+      :aria-label="t('list.rename')"
+      @click="emit('startRename')"
+    >
+      <span class="mdi mdi-pencil-outline" />
     </button>
 
     <SwitchToggle
@@ -65,6 +93,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import InlineNameInput from "@/components/common/InlineNameInput.vue";
 import SwitchToggle from "@/components/common/SwitchToggle.vue";
 import { ENTRY_ACTION, ENTRY_KIND_ICON, type EntryAction } from "@/constants/entries";
 import type { Entry } from "@/types/entry";
@@ -86,6 +115,8 @@ const props = defineProps<{
   isChecked: boolean;
   /** Some row is ticked, so every checkbox is shown clearly. */
   isCheckActive: boolean;
+  /** The name is an input right now (double click, pencil or F2). */
+  isRenaming?: boolean;
   /**
    * In the area view: why the entry is in the selected area, e.g. "über Bewegungsmelder · auch in
    * Garten"; it replaces the area in the subtitle. Undefined outside the area view.
@@ -98,6 +129,9 @@ const emit = defineEmits<{
   act: [entry: Entry, action: EntryAction];
   /** The checkbox was clicked; `withShift` ticks a range. */
   check: [entityId: string, withShift: boolean];
+  startRename: [];
+  rename: [name: string];
+  cancelRename: [];
 }>();
 
 const { t } = useI18n();
@@ -276,6 +310,24 @@ function startDrag(event: DragEvent): void {
   .entry-list-row__run {
     width: 36px;
     height: 36px;
+  }
+}
+
+.entry-list-row__rename {
+  width: 28px;
+  height: 28px;
+  opacity: 0;
+  font-size: 16px;
+}
+
+.entry-list-row:hover .entry-list-row__rename,
+.entry-list-row__rename:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .entry-list-row__rename {
+    display: none;
   }
 }
 </style>

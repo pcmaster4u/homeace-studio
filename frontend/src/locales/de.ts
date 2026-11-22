@@ -303,6 +303,7 @@ export default {
     folder: "Ordner (optional)",
   },
   list: {
+    rename: "Umbenennen (Doppelklick oder F2)",
     check: "„{name}“ auswählen",
     checkHint: "Auswählen, um mehrere auf einmal zu verschieben. Mit Shift einen ganzen Bereich.",
     bulk: "Ausgewählte Einträge",
@@ -334,6 +335,9 @@ export default {
       dependencies: "Abhängigkeiten",
     },
     back: "Zurück",
+    fold: "Details einklappen",
+    rename: "Umbenennen (Doppelklick oder F2)",
+    unfold: "Details ausklappen",
     empty: "Wähle links einen Eintrag aus.",
     identity: "Identität",
     organization: "Ordnung",
@@ -687,7 +691,6 @@ export default {
       other: "Sonstiges",
     },
     toast: {
-      disabled: "„{name}“ deaktiviert",
       created: "Bereich „{name}“ angelegt",
       saved: "Bereich „{name}“ gespeichert",
       deleted: "Bereich „{name}“ gelöscht",
@@ -943,6 +946,10 @@ export default {
     deleteAnyway: "Trotzdem löschen",
   },
   toast: {
+    undo: "Rückgängig",
+    undone: "Rückgängig gemacht",
+    renamedEntry: "Umbenannt in „{name}“",
+    disabled: "„{name}“ deaktiviert",
     findingIgnored: "Wird nicht mehr gemeldet",
     movedMany: "Ein Eintrag nach {path} verschoben | {count} Einträge nach {path} verschoben",
     movedOutMany: "Ein Eintrag aus dem Ordner genommen | {count} Einträge aus dem Ordner genommen",

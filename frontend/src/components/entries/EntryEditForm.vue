@@ -100,11 +100,31 @@ function reset(): void {
 /** Set by save(): the next entry from HA is the saved one, so the form takes it over. */
 let isSaving = false;
 
-// Live updates bring a new entry object now and then; edits that are not saved yet stay.
+/** Whether the form differs from an entry: the user changed something since it was filled. */
+function isEditedAgainst(entry: Entry): boolean {
+  const labels = (ids: string[]): string => [...ids].sort().join();
+
+  return (
+    name.value.trim() !== entry.name ||
+    icon.value.trim() !== (entry.icon ?? "") ||
+    areaId.value !== (entry.area?.areaId ?? null) ||
+    labels(labelIds.value) !== labels(entry.labels.map((label) => label.labelId))
+  );
+}
+
+// Live updates and changes from elsewhere (renaming in the list) bring a new entry object. The form
+// takes it over unless the user is editing it: compared with the entry the form was filled from.
 watch(
   () => props.entry,
   (next, previous) => {
-    if (!previous || next.entityId !== previous.entityId || isSaving || !isDirty.value) reset();
+    if (
+      !previous ||
+      next.entityId !== previous.entityId ||
+      isSaving ||
+      !isEditedAgainst(previous)
+    ) {
+      reset();
+    }
     isSaving = false;
   },
   { immediate: true },

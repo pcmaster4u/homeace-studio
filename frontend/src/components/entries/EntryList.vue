@@ -123,6 +123,10 @@
           :is-checked="checkedIds.has(entry.entityId)"
           :is-check-active="checkedIds.size > 0"
           :area-note="areaView ? (areaView.notes[entry.entityId] ?? '') : undefined"
+          :is-renaming="entry.entityId === renamingId"
+          @start-rename="emit('startRename', entry.entityId)"
+          @rename="(name) => emit('rename', entry.entityId, name)"
+          @cancel-rename="emit('cancelRename')"
           @check="onCheck"
           :is-technical-details-visible="isTechnicalDetailsVisible"
           @select="(entityId) => emit('select', entityId)"
@@ -177,6 +181,8 @@ const props = defineProps<{
   isTechnicalDetailsVisible: boolean;
   /** Set while an area of the area view is selected: its title and why each entry is in it. */
   areaView: AreaListView | null;
+  /** The row whose name is being edited in place. */
+  renamingId: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -193,6 +199,9 @@ const emit = defineEmits<{
   uncategorizeChecked: [];
   /** "Bereich" for the ticked rows. */
   setAreaChecked: [];
+  startRename: [entityId: string];
+  rename: [entityId: string, name: string];
+  cancelRename: [];
 }>();
 
 const { t } = useI18n();
