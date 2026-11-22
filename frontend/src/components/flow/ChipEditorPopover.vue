@@ -348,15 +348,17 @@ onMounted(async () => {
   max-height: min(600px, 80vh);
 }
 
+/* A column: title, search and buttons stay in view, only the list in between scrolls. */
 .chip-editor {
   position: fixed;
   z-index: 100;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   width: 320px;
   max-width: calc(100vw - 24px);
   max-height: min(460px, 75vh);
-  overflow: auto;
+  overflow: hidden;
   padding: 10px;
   border: 1px solid var(--line-strong);
   border-radius: 12px;
@@ -480,6 +482,25 @@ onMounted(async () => {
   border-color: var(--fg);
   background: var(--fg);
   color: var(--bg);
+}
+
+.chip-editor > * {
+  flex: none;
+}
+
+.chip-editor > .entity-picker,
+.chip-editor > .choice-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.chip-editor :deep(.entity-picker__list),
+.chip-editor :deep(.choice-list__items) {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
 }
 
 .chip-editor__buttons {

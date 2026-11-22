@@ -63,11 +63,18 @@ onKeyStroke("Escape", () => emit("close"));
   font: 700 20px/1.2 var(--font-display);
 }
 
+/* The buttons stay in view in every dialog; long contents scroll above them. */
 .dialog-frame__buttons {
+  position: sticky;
+  bottom: -22px;
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 4px;
+  margin: 4px -22px -22px;
+  padding: 12px 22px 16px;
+  background: var(--surface);
 }
 
 .dialog-frame__panel--wide {
@@ -75,13 +82,6 @@ onKeyStroke("Escape", () => emit("close"));
 }
 
 .dialog-frame__panel--wide .dialog-frame__buttons {
-  position: sticky;
-  bottom: -22px;
-  flex-wrap: wrap;
-  align-items: center;
-  margin: 4px -22px -22px;
-  padding: 12px 22px 16px;
   border-top: 1px solid var(--line);
-  background: var(--surface);
 }
 </style>

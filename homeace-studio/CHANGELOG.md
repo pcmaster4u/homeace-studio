@@ -13,6 +13,8 @@
 - "Aktion hinzufügen" and other long menus are wider, in two columns, with one scroll area; entries
   with the same name say which kind they are for ("Einschalten · Licht"). Popovers stay inside the
   window.
+- Popovers (device picker, value editors) and dialogs keep their search field and their buttons in
+  view; only the list in between scrolls.
 - "Neuer Ordner" moved from the list head into the "Neu" menu; the list head is calmer.
 - Arrow keys up and down walk through the list and open the entry.
 - After "Später" the tidy-up hint stays as a single line instead of disappearing.
