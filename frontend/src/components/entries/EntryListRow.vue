@@ -68,6 +68,16 @@
     >
       <span class="mdi mdi-pencil-outline" />
     </button>
+    <button
+      v-if="canDuplicate && !isRenaming"
+      class="icon-btn entry-list-row__rename"
+      type="button"
+      :title="t('detail.duplicate')"
+      :aria-label="t('detail.duplicate')"
+      @click="emit('duplicate')"
+    >
+      <span class="mdi mdi-content-copy" />
+    </button>
 
     <SwitchToggle
       v-if="canToggle(entry)"
@@ -130,11 +140,19 @@ const emit = defineEmits<{
   /** The checkbox was clicked; `withShift` ticks a range. */
   check: [entityId: string, withShift: boolean];
   startRename: [];
+  duplicate: [];
   rename: [name: string];
   cancelRename: [];
 }>();
 
 const { t } = useI18n();
+
+/** HomeAce Studio copies automations and scripts; helpers and scenes not yet. */
+const canDuplicate = computed(
+  () =>
+    props.entry.isInRegistry &&
+    (props.entry.kind === "automation" || props.entry.kind === "script"),
+);
 
 const isOff = computed(() => props.entry.isDisabled || props.entry.state === STATE_OFF);
 const iconClass = computed(

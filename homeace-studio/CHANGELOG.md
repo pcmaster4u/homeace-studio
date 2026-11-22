@@ -7,7 +7,7 @@
 - Rename in place: double click the name in the list or the title, the pencil on hover, or F2.
   The toast offers "Rückgängig".
 - Double click a folder or area name in the tree to rename it in place, also with "Rückgängig".
-- Duplicate an automation or script from the icon next to the pencil in the title: the copy keeps
+- Duplicate an automation or script from the icon next to the pencil, in the list row or the title: the copy keeps
   folder, labels and area (HA's own duplicate does not) and opens with its name ready to change. An
   automation copy starts switched off so nothing runs twice.
 - "Aktion hinzufügen" and other long menus are wider, in two columns, with one scroll area; entries

@@ -1,4 +1,4 @@
-import { ref, type Ref } from "vue";
+import { ref, type Ref, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { EntryAction } from "@/constants/entries";
@@ -19,7 +19,7 @@ type EntryActions = {
   /** Renames in HA with "Rückgängig" in the toast. */
   rename: (entry: Entry, name: string) => Promise<void>;
   /** Copies an automation or script, opens the copy and lets the user name it right away. */
-  duplicate: (entry: Entry) => Promise<void>;
+  duplicate: (entry: Entry, place?: "list" | "title") => Promise<void>;
   act: (entry: Entry, action: EntryAction) => Promise<void>;
   toggleFavorite: (entry: Entry) => Promise<void>;
   saveNote: (entry: Entry, note: string) => Promise<void>;
@@ -129,7 +129,7 @@ export function useEntryActions(): EntryActions {
     deletingEntry,
     save: (entityId, changes) =>
       run(() => entriesStore.updateEntry(entityId, changes), t("toast.saved")),
-    duplicate: async (entry) => {
+    duplicate: async (entry, place = "title") => {
       await run(async () => {
         const entityId = await duplicateEntry(
           entry.entityId,
@@ -137,7 +137,10 @@ export function useEntryActions(): EntryActions {
         );
         await entriesStore.load();
         studio.selectEntry(entityId);
-        studio.startRename(entityId, "title");
+        // The name opens where the user started: in the list when the copy's row is shown there.
+        await nextTick();
+        const row = document.querySelector(`[data-entity-id="${CSS.escape(entityId)}"]`);
+        studio.startRename(entityId, place === "list" && row ? "list" : "title");
         toasts.show(entry.kind === "automation" ? t("toast.duplicatedOff") : t("toast.duplicated"));
       });
     },

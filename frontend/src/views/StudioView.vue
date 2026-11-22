@@ -103,6 +103,7 @@
           :area-view="areaView"
           :renaming-id="studio.renaming?.place === 'list' ? studio.renaming.entityId : null"
           @start-rename="(entityId) => studio.startRename(entityId, 'list')"
+          @duplicate="duplicateFromList"
           @rename="renameEntry"
           @cancel-rename="studio.stopRename()"
           @select="selectEntry"
@@ -510,6 +511,11 @@ function renameEntry(entityId: string, name: string): void {
   studio.stopRename();
   const entry = entriesStore.entries.find((item) => item.entityId === entityId);
   if (entry) void entryActions.rename(entry, name);
+}
+
+function duplicateFromList(entityId: string): void {
+  const entry = entriesStore.entries.find((item) => item.entityId === entityId);
+  if (entry) void entryActions.duplicate(entry, "list");
 }
 
 function startTitleRename(): void {

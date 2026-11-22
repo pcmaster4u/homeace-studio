@@ -128,6 +128,7 @@
           :area-note="areaView ? (areaView.notes[entry.entityId] ?? '') : undefined"
           :is-renaming="entry.entityId === renamingId"
           @start-rename="emit('startRename', entry.entityId)"
+          @duplicate="emit('duplicate', entry.entityId)"
           @rename="(name) => emit('rename', entry.entityId, name)"
           @cancel-rename="emit('cancelRename')"
           @check="onCheck"
@@ -203,6 +204,7 @@ const emit = defineEmits<{
   /** "Bereich" for the ticked rows. */
   setAreaChecked: [];
   startRename: [entityId: string];
+  duplicate: [entityId: string];
   rename: [entityId: string, name: string];
   cancelRename: [];
 }>();
