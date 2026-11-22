@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.12.0
 
 - The details pane folds away with the round button in the middle of the column splitter, for a
   wider list; opening an entry brings it back.

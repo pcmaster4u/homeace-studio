@@ -256,6 +256,22 @@ const SHOTS = [
     },
   },
   {
+    name: "properties-dark.png",
+    view: { ...DESKTOP, isDark: true },
+    steps: async (page) => {
+      await click(page, ".category-tree-node", "House");
+      await click(page, ".category-tree-node", "Terrace");
+      await click(page, ".entry-list-row__open", "Terrace brightness at night");
+      await click(page, ".entry-detail__tab", "Properties");
+      // The entity ID and the visibility section are the new parts; scroll them into view.
+      await evaluate(
+        page,
+        `document.querySelector(".entity-id")?.scrollIntoView({ block: "center" })`,
+      );
+      await sleep(SETTLE_MS);
+    },
+  },
+  {
     name: "phone-dark.png",
     view: { ...PHONE, isDark: true },
     steps: async (page) => {

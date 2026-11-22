@@ -28,9 +28,18 @@ duration, time, option list). Add, move, duplicate, disable or delete blocks; ne
 
 **Everything about an entry in one place.** Name, icon, area, labels, folder, on/off, run, notes
 and favorites (the last two live only in HomeAce Studio). Create automations, scripts and eight
-kinds of helpers in a few clicks; delete them again when they are not needed.
+kinds of helpers in a few clicks; delete them again when they are not needed. Change an entity ID and
+HomeAce Studio rewrites every automation and script that uses it (it lists them first). Aliases for
+Assist, hidden and disabled sit right there too; disabling tells you which flows still need it.
+
+**Quick everyday handling.** Double click a name (or press F2) to rename it in place, in the list,
+the title or the folder tree, with *Undo* in the toast. Duplicate an automation or script next to the
+pencil: the copy keeps folder, labels and area, which HA's own duplicate does not. Sort folders by
+dragging them, fold the details away for a wider list, walk the list with the arrow keys.
 
 ![Editing a value right inside the flow](docs/images/editing-light.png)
+
+![The properties of a helper: entity ID, visibility and aliases](docs/images/properties-dark.png)
 
 **Tidy up old categories.** Many homes fake subfolders with names like `Office - Heating`.
 HomeAce Studio spots them, proposes real subfolders and merges near-duplicates such as `Routine`
@@ -98,8 +107,7 @@ as entity IDs stay hidden until you switch them on.
 
 ## Coming next
 
-- Rename an entity ID together with every flow that refers to it; aliases, hidden and disabled.
-- Editing helper settings, and scenes.
+- Editing helper settings (ranges, options, durations) and a scene editor.
 - Settings per Home Assistant user.
 - A full visual blueprint editor: build blueprints from scratch or from any automation.
 
