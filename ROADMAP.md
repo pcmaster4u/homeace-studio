@@ -12,6 +12,7 @@ The parts are released together, after a test round on a real Home Assistant.
 
 | Status | Feature | What it means |
 | --- | --- | --- |
+| 📋 | What's new | After an update a small icon next to the gear shows the highlights of the new version in plain words, with links to the new features; "OK" hides it, the gear menu keeps it |
 | 🔨 | Helper settings | Ranges, steps, units, options, lengths, durations and more, with checks before saving |
 | 🔨 | Duplicate helpers | A copy of a helper with its settings, folder, labels and area |
 | 📋 | Scene editor | Edit the devices and states of a scene, with a live preview |
