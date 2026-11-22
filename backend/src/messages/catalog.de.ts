@@ -55,6 +55,7 @@ export const CATALOG_DE: Catalog = {
   FOLDER_EXISTS: "Den Ordner „{path}“ gibt es schon.",
   FOLDER_NOT_FOUND: "Den Ordner „{path}“ gibt es nicht.",
   FOLDER_COLOR_SAVED: "Farbe gespeichert.",
+  FOLDER_ORDER_SAVED: "Reihenfolge gespeichert.",
 
   HELPER_CREATED: "Helfer angelegt.",
   HELPER_SETTINGS_INVALID: "Die Einstellung „{field}“ ist nicht gültig.",

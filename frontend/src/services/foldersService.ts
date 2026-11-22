@@ -5,6 +5,8 @@ export type FolderOverview = {
   saved: string[];
   /** Folder path to color ("#rrggbb"). */
   colors: Record<string, string>;
+  /** Parent path ("" for the top level) → its subfolders in the user's order. */
+  order: Record<string, string[]>;
 };
 
 export function fetchFolders(): Promise<FolderOverview> {
@@ -20,6 +22,11 @@ export async function createFolder(path: string): Promise<string> {
 
 export async function deleteFolder(path: string): Promise<void> {
   await apiFetch<null>(`/folders?path=${encodeURIComponent(path)}`, { method: "DELETE" });
+}
+
+/** The own order of a folder's subfolders; an empty list goes back to A–Z. */
+export async function setFolderOrder(parent: string, order: string[]): Promise<void> {
+  await apiSend<null>("PUT", "/folders/order", { parent, order });
 }
 
 /** @param color - "#rrggbb", or null for the default color. */

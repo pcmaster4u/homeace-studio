@@ -60,6 +60,7 @@ export const MESSAGE_ID = {
   folderExists: "FOLDER_EXISTS",
   folderNotFound: "FOLDER_NOT_FOUND",
   folderColorSaved: "FOLDER_COLOR_SAVED",
+  folderOrderSaved: "FOLDER_ORDER_SAVED",
 
   // Helpers
   helperCreated: "HELPER_CREATED",

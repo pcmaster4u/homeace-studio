@@ -4,6 +4,7 @@ import { ResponseMessage } from "src/common/api/response-message.decorator";
 import { MESSAGE_ID } from "src/messages/message-ids";
 import { CreateFolderDto } from "./dto/create-folder.dto";
 import { SetFolderColorDto } from "./dto/set-folder-color.dto";
+import { SetFolderOrderDto } from "./dto/set-folder-order.dto";
 import { FoldersService, type FolderOverview } from "./folders.service";
 
 /** Empty folders of the tree (overlay only; HA has no empty categories). */
@@ -14,6 +15,15 @@ export class FoldersController {
   @Get()
   findAll(): Promise<FolderOverview> {
     return this.foldersService.findAll();
+  }
+
+  /** Replaces the own order of a folder's subfolders (PUT: the list is set as a whole). */
+  @Put("order")
+  @ResponseMessage(MESSAGE_ID.folderOrderSaved)
+  async setOrder(@Body() dto: SetFolderOrderDto): Promise<null> {
+    await this.foldersService.setOrder(dto.parent, dto.order);
+
+    return null;
   }
 
   /** Replaces the color of one folder (PUT: the color is set as a whole, or removed with null). */

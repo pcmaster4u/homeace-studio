@@ -45,6 +45,7 @@ export default {
     newSubfolder: "Unterordner in „{name}“ anlegen",
     deleteFolder: "Leeren Ordner „{name}“ entfernen",
     slashInName: "„/“ trennt die Ebenen und geht im Namen nicht.",
+    resetOrder: "Ordner wieder alphabetisch sortieren",
   },
   common: {
     cancel: "Abbrechen",
@@ -957,6 +958,8 @@ export default {
     duplicatedOff:
       "Kopie angelegt, mit Ordner, Labels und Bereich. Sie ist ausgeschaltet, damit nichts doppelt läuft.",
     renamedFolder: "„{from}“ heißt jetzt „{to}“",
+    orderSaved: "Reihenfolge gespeichert, nur in HomeAce Studio",
+    orderReset: "Ordner wieder alphabetisch",
     disabled: "„{name}“ deaktiviert",
     findingIgnored: "Wird nicht mehr gemeldet",
     movedMany: "Ein Eintrag nach {path} verschoben | {count} Einträge nach {path} verschoben",

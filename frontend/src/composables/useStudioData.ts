@@ -7,6 +7,7 @@ import { useFoldersStore } from "@/stores/foldersStore";
 import { useLookupsStore } from "@/stores/lookupsStore";
 import { useStudioStore } from "@/stores/studioStore";
 import type { Entry } from "@/types/entry";
+import { applyFolderOrder } from "@/utils/folderOrder";
 import { buildCategoryTree, flattenCategoryPaths, type CategoryNode } from "@/utils/categoryTree";
 import { countByScope, filterEntries, isSpecialCategory } from "@/utils/entryFilter";
 
@@ -51,10 +52,13 @@ export function useStudioData(): StudioData {
     }),
   );
   const tree = computed(() =>
-    buildCategoryTree(
-      scopedEntries.value.map((entry) => entry.categoryPath),
-      foldersStore.folders,
-      entriesStore.entries.map((entry) => entry.categoryPath),
+    applyFolderOrder(
+      buildCategoryTree(
+        scopedEntries.value.map((entry) => entry.categoryPath),
+        foldersStore.folders,
+        entriesStore.entries.map((entry) => entry.categoryPath),
+      ),
+      foldersStore.order,
     ),
   );
   // Suggestions and the rename preview cover every scope, because a rename affects all of them.

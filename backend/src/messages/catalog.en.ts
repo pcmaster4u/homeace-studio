@@ -54,6 +54,7 @@ export const CATALOG_EN: Catalog = {
   FOLDER_DELETED: "Folder removed.",
   FOLDER_EXISTS: 'The folder "{path}" already exists.',
   FOLDER_NOT_FOUND: 'There is no folder "{path}".',
+  FOLDER_ORDER_SAVED: "Order saved.",
   FOLDER_COLOR_SAVED: "Color saved.",
 
   HELPER_CREATED: "Helper created.",

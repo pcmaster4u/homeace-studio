@@ -30,6 +30,10 @@ type CategoryActions = {
   cancelInlineRename: () => void;
   /** Renames the last level of a folder in place, with "Rückgängig" in the toast. */
   renameInline: (path: string, name: string) => Promise<void>;
+  /** Saves siblings in a new order (own order, only in HomeAce Studio), with "Rückgängig". */
+  saveOrder: (parent: string, order: string[], previous: string[]) => Promise<void>;
+  /** Back to A–Z everywhere, with "Rückgängig". */
+  resetOrder: () => Promise<void>;
   /** "Ordnung in einem Klick" is open. */
   isAreaTidyOpen: Ref<boolean>;
   startAreaTidy: () => void;
@@ -194,6 +198,32 @@ export function useCategoryActions(): CategoryActions {
     }
   }
 
+  async function saveOrder(parent: string, order: string[], previous: string[]): Promise<void> {
+    try {
+      await foldersStore.setOrder(parent, order);
+      toasts.show(t("toast.orderSaved"), "success", () => {
+        void foldersStore.setOrder(parent, previous).catch(showError);
+      });
+    } catch (error) {
+      showError(error);
+    }
+  }
+
+  async function resetOrder(): Promise<void> {
+    const before = { ...foldersStore.order };
+    try {
+      for (const parent of Object.keys(before)) await foldersStore.setOrder(parent, []);
+      toasts.show(t("toast.orderReset"), "success", () => {
+        void (async () => {
+          for (const [parent, order] of Object.entries(before))
+            await foldersStore.setOrder(parent, order);
+        })().catch(showError);
+      });
+    } catch (error) {
+      showError(error);
+    }
+  }
+
   async function renameInline(path: string, name: string): Promise<void> {
     inlineRenamingPath.value = null;
     if (name.includes(CATEGORY_SEPARATOR)) {
@@ -240,6 +270,8 @@ export function useCategoryActions(): CategoryActions {
     startInlineRename: (path) => (inlineRenamingPath.value = path),
     cancelInlineRename: () => (inlineRenamingPath.value = null),
     renameInline,
+    saveOrder,
+    resetOrder,
     isAreaTidyOpen,
     startAreaTidy: () => (isAreaTidyOpen.value = true),
     cancelAreaTidy: () => (isAreaTidyOpen.value = false),

@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, Inject, Injectable, Logger } from "@nestjs/common";
 
+import { moveFolderOrder } from "./folder-order";
 import { apiError } from "src/common/api/api-response";
 import { MESSAGE_ID } from "src/messages/message-ids";
 import { OVERLAY_REPOSITORY } from "../overlay/overlay.constants";
@@ -87,6 +88,7 @@ export class CategoriesService {
       folderColors: Object.fromEntries(
         Object.entries(overlay.folderColors).map(([path, color]) => [movePath(path), color]),
       ),
+      folderOrder: moveFolderOrder(overlay.folderOrder, movePath),
     }));
 
     this.logger.log(`Renamed "${source}" to "${target}" (${renames.length} categories)`);

@@ -16,6 +16,8 @@
 - "Neuer Ordner" moved from the list head into the "Neu" menu; the list head is calmer.
 - Arrow keys up and down walk through the list and open the entry.
 - After "Später" the tidy-up hint stays as a single line instead of disappearing.
+- Sort folders by dragging them between their siblings. The order is only in HomeAce Studio (HA keeps
+  categories alphabetical); the A–Z icon next to "Kategorien" brings the default back.
 - Fixed: the toast after disabling an entry showed a raw text key. A test now checks that every
   text the app uses exists in German and English.
 - Properties: new section "Sichtbarkeit & Sprache" with enabled, hidden and aliases for Assist.

@@ -199,6 +199,13 @@ the category when the first entry moves in (`POST /api/entries/:id/move`).
   `FOLDER_DELETED`; `404 FOLDER_NOT_FOUND`. HA categories are never touched.
 - Renaming a folder (`POST /api/categories/rename`) renames saved folders below it too.
 
+
+`GET /api/folders` also has `order`: parent path (`""` for the top level) → its subfolders in the user's
+order. `PUT /api/folders/order` `{ "parent": "Haus", "order": ["Haus/Terrasse", "Haus/Garten"] }` sets it
+(`FOLDER_ORDER_SAVED`); an empty `order` goes back to A–Z; a path that is not a direct child gives
+`400 CATEGORY_PATH_INVALID`. Only HomeAce Studio shows the order; HA keeps categories alphabetical.
+Renames and the tidy-up move it along.
+
 ## POST /api/helpers
 
 Creates a helper in HA and optionally sorts it into a folder.

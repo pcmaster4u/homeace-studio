@@ -155,6 +155,8 @@ frontend/src/
                                  leaving saves, Esc cancels; studioStore.renaming says which entry and where;
                                  toastStore.show(text, tone, undo) adds "Rückgängig"
   locales/__tests__/keys.spec.ts every fixed t("…") key of the code exists in de and en
+  utils/folderOrder.ts           own folder order (applyFolderOrder, moveSibling); composables/useFolderDrag
+                                 tells tree nodes which folder is dragged (sorting only between siblings)
   components/dependencies/       DependencyView (the "Abhängigkeiten" tab of every entry: uses grouped by
                                  role with device names and live state, "+2 weitere" users, used by),
                                  DependencyUseRow, DependencyUserRow (also in the delete dialog);

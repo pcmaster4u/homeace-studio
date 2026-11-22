@@ -56,7 +56,17 @@
 
     <template v-else>
       <div class="category-tree__heading">
-        <span>{{ t("nav.categories") }}</span>
+        <span class="category-tree__heading-text">{{ t("nav.categories") }}</span>
+        <button
+          v-if="hasOwnOrder"
+          class="category-tree__add"
+          type="button"
+          :aria-label="t('nav.resetOrder')"
+          :title="t('nav.resetOrder')"
+          @click="emit('resetOrder')"
+        >
+          <span class="mdi mdi-sort-alphabetical-ascending" />
+        </button>
         <button
           class="category-tree__add"
           type="button"
@@ -81,6 +91,7 @@
           :expanded-paths="expandedPaths"
           :colors="colors"
           :renaming-path="renamingPath"
+          @reorder="(moved, target, isBefore) => emit('reorder', moved, target, isBefore)"
           @start-inline-rename="(path) => emit('startInlineRename', path)"
           @rename-inline="(path, name) => emit('renameInline', path, name)"
           @cancel-inline-rename="emit('cancelInlineRename')"
@@ -137,6 +148,8 @@ const props = defineProps<{
   mode: NavMode;
   /** The folder whose name is an input right now (double click). */
   renamingPath: string | null;
+  /** The user sorted folders by hand; "A–Z" brings the default back. */
+  hasOwnOrder: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -145,6 +158,8 @@ const emit = defineEmits<{
   startInlineRename: [path: string];
   renameInline: [path: string, name: string];
   cancelInlineRename: [];
+  reorder: [moved: string, target: string, isBefore: boolean];
+  resetOrder: [];
   /** `parent` null: a new top-level folder. */
   addFolder: [parent: string | null];
   deleteFolder: [path: string];
@@ -345,5 +360,9 @@ function selectNode(path: string): void {
   font-size: 12px;
   font-weight: 400;
   font-variant-numeric: tabular-nums;
+}
+
+.category-tree__heading-text {
+  flex: 1;
 }
 </style>

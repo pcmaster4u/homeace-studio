@@ -45,6 +45,7 @@ const en: MessageSchema = {
     newSubfolder: 'New folder in "{name}"',
     deleteFolder: 'Remove empty folder "{name}"',
     slashInName: "“/” separates the levels and cannot be part of a name.",
+    resetOrder: "Sort folders alphabetically again",
   },
   common: {
     cancel: "Cancel",
@@ -944,6 +945,8 @@ const en: MessageSchema = {
     duplicatedOff:
       "Copy created, with folder, labels and area. It is switched off so nothing runs twice.",
     renamedFolder: "“{from}” is now “{to}”",
+    orderSaved: "Order saved, only in HomeAce Studio",
+    orderReset: "Folders alphabetical again",
     disabled: "“{name}” disabled",
     findingIgnored: "Will not be reported again",
     movedMany: "Moved one entry to {path} | Moved {count} entries to {path}",

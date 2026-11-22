@@ -37,6 +37,9 @@
           :colors="foldersStore.colors"
           :mode="settings.navMode"
           :renaming-path="actions.inlineRenamingPath.value"
+          :has-own-order="Object.keys(foldersStore.order).length > 0"
+          @reorder="reorderFolder"
+          @reset-order="actions.resetOrder"
           @start-inline-rename="actions.startInlineRename"
           @rename-inline="(path, name) => actions.renameInline(path, name)"
           @cancel-inline-rename="actions.cancelInlineRename"
@@ -246,7 +249,9 @@ import type { Area, Entry, EntryChanges } from "@/types/entry";
 import { areaNote, type AreaListView } from "@/utils/areaNotes";
 import { tidyCandidates } from "@/utils/areaTidy";
 import { areaFilter, areaOfFilter } from "@/utils/entryFilter";
+import type { CategoryNode } from "@/utils/categoryTree";
 import { markGoneChips } from "@/utils/flow/markGoneChips";
+import { moveSibling, parentOf } from "@/utils/folderOrder";
 import { toDisplayFlow } from "@/utils/flow/toDisplayFlow";
 
 import StudioDialogs from "@/components/layout/StudioDialogs.vue";
@@ -482,6 +487,23 @@ function dropEntry(path: string | null, entityId: string): void {
 function onCreate(kind: NewEntryKind): void {
   if (kind === NEW_ENTRY_KIND.helper) create.openHelperDialog();
   else create.openFlowDialog(kind);
+}
+
+/** A folder dropped before or after a sibling: the whole sibling list is saved in that order. */
+function reorderFolder(moved: string, target: string, isBefore: boolean): void {
+  const parent = parentOf(moved);
+  const find = (nodes: CategoryNode[]): CategoryNode[] | null => {
+    if (parent === "") return nodes;
+    for (const node of nodes) {
+      if (node.path === parent) return node.children;
+      const found = find(node.children);
+      if (found) return found;
+    }
+    return null;
+  };
+  const siblings = (find(data.tree.value) ?? []).map((node) => node.path);
+  const previous = foldersStore.order[parent] ?? [];
+  void actions.saveOrder(parent, moveSibling(siblings, moved, target, isBefore), [...previous]);
 }
 
 function renameEntry(entityId: string, name: string): void {

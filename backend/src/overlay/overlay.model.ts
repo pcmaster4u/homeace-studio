@@ -21,6 +21,8 @@ export type Overlay = {
   notes: Record<string, string>;
   /** Color per folder path, as "#rrggbb". */
   folderColors: Record<string, string>;
+  /** Own order of subfolders per parent path ("" for the top level); HA stays alphabetical. */
+  folderOrder: Record<string, string[]>;
   /** Clean-up proposals the user hid ("split:Büro - Licht", "merge:Routine|Routinen"). */
   cleanupIgnored: string[];
   /** Check-up findings the user hid ("gone:automation.x", "unused:input_boolean.y"). */
@@ -38,6 +40,7 @@ export const EMPTY_OVERLAY: Overlay = {
   favorites: [],
   notes: {},
   folderColors: {},
+  folderOrder: {},
   cleanupIgnored: [],
   checkupIgnored: [],
   mcp: { isEnabled: false, token: null },

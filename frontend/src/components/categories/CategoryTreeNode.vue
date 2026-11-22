@@ -6,13 +6,18 @@
         'category-tree-node--active': selected === node.path,
         'category-tree-node--drop': isDropOver,
         'category-tree-node--empty': isEmptyHere,
+        'category-tree-node--before': sortDrop === 'before',
+        'category-tree-node--after': sortDrop === 'after',
       }"
       :style="{ '--depth': depth }"
+      :draggable="renamingPath !== node.path"
+      @dragstart="startFolderDrag"
+      @dragend="draggedFolder = null"
       :title="node.isFolderOnly ? t('nav.folderOnly') : undefined"
       @click="emit('select', node.path)"
-      @dragover="onDragOver"
-      @dragleave="onDragLeave"
-      @drop="onDrop"
+      @dragover="onAnyDragOver"
+      @dragleave="onAnyDragLeave"
+      @drop="onAnyDrop"
     >
       <button
         class="category-tree-node__twisty"
@@ -95,6 +100,7 @@
         :expanded-paths="expandedPaths"
         :colors="colors"
         :renaming-path="renamingPath"
+        @reorder="(moved, target, isBefore) => emit('reorder', moved, target, isBefore)"
         @start-inline-rename="(path) => emit('startInlineRename', path)"
         @rename-inline="(path, name) => emit('renameInline', path, name)"
         @cancel-inline-rename="emit('cancelInlineRename')"
@@ -111,14 +117,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import InlineNameInput from "@/components/common/InlineNameInput.vue";
 
 import { useEntryDropTarget } from "@/composables/useEntryDropTarget";
+import { draggedFolder, FOLDER_DRAG_TYPE } from "@/composables/useFolderDrag";
 import { folderColor } from "@/utils/categoryPath";
 import type { CategoryNode } from "@/utils/categoryTree";
+import { parentOf } from "@/utils/folderOrder";
 
 const props = defineProps<{
   node: CategoryNode;
@@ -142,12 +150,70 @@ const emit = defineEmits<{
   deleteFolder: [path: string];
   pickColor: [path: string];
   dropEntry: [path: string, entityId: string];
+  /** A folder was dropped before or after this one (same parent). */
+  reorder: [moved: string, target: string, isBefore: boolean];
 }>();
 
 const { t } = useI18n();
 const { isDropOver, onDragOver, onDragLeave, onDrop } = useEntryDropTarget((entityId) =>
   emit("dropEntry", props.node.path, entityId),
 );
+
+/** Where a dragged sibling folder would land: a line above or below this one. */
+const sortDrop = ref<"before" | "after" | null>(null);
+
+function startFolderDrag(event: DragEvent): void {
+  if (!event.dataTransfer) return;
+  event.stopPropagation();
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData(FOLDER_DRAG_TYPE, props.node.path);
+  draggedFolder.value = props.node.path;
+}
+
+function isSortableHere(): boolean {
+  const moved = draggedFolder.value;
+  return (
+    moved !== null && moved !== props.node.path && parentOf(moved) === parentOf(props.node.path)
+  );
+}
+
+function onAnyDragOver(event: DragEvent): void {
+  if (draggedFolder.value === null) {
+    onDragOver(event);
+    return;
+  }
+  if (!isSortableHere()) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  const box = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  sortDrop.value = event.clientY < box.top + box.height / 2 ? "before" : "after";
+}
+
+function onAnyDragLeave(): void {
+  sortDrop.value = null;
+  onDragLeave();
+}
+
+function onAnyDrop(event: DragEvent): void {
+  const moved = draggedFolder.value;
+  const position = sortDrop.value;
+  sortDrop.value = null;
+
+  if (moved === null) {
+    onDrop(event);
+    return;
+  }
+  event.preventDefault();
+  event.stopPropagation();
+  draggedFolder.value = null;
+  if (position && isSortableHereFor(moved))
+    emit("reorder", moved, props.node.path, position === "before");
+}
+
+function isSortableHereFor(moved: string): boolean {
+  return moved !== props.node.path && parentOf(moved) === parentOf(props.node.path);
+}
 
 const hasChildren = computed(() => props.node.children.length > 0);
 /** Own color, or the one inherited from the nearest colored parent folder. */
@@ -311,5 +377,13 @@ const canDelete = computed(
 .category-tree-node__rename {
   flex: 1;
   height: 26px;
+}
+
+.category-tree-node--before {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.category-tree-node--after {
+  box-shadow: inset 0 -2px 0 var(--accent);
 }
 </style>

@@ -42,6 +42,22 @@ describe("FoldersService", () => {
     expect(overlay.data.folderColors).toEqual({});
   });
 
+  it("keeps an own order of subfolders per parent; an empty list goes back to A-Z", async () => {
+    await service.setOrder("", ["Haus", "Energie"]);
+    await service.setOrder("Haus", ["Haus/Terrasse", "Haus/Garten"]);
+
+    expect((await service.findAll()).order).toEqual({
+      "": ["Haus", "Energie"],
+      Haus: ["Haus/Terrasse", "Haus/Garten"],
+    });
+
+    await service.setOrder("Haus", []);
+    expect(overlay.data.folderOrder).toEqual({ "": ["Haus", "Energie"] });
+    await expect(service.setOrder("Haus", ["Energie"])).rejects.toMatchObject({
+      response: { message: "CATEGORY_PATH_INVALID" },
+    });
+  });
+
   it("refuses the same folder twice", async () => {
     await service.create("Haus/Pool");
 
