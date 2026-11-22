@@ -111,6 +111,8 @@ as entity IDs stay hidden until you switch them on.
 - Settings per Home Assistant user.
 - A full visual blueprint editor: build blueprints from scratch or from any automation.
 
+The whole plan, with what is released and what is being built, is in the [roadmap](ROADMAP.md).
+
 ## Try it without Home Assistant
 
 A demo mode runs the whole UI against an invented home kept in memory (Node.js 22 or newer):
