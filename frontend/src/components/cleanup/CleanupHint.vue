@@ -1,5 +1,14 @@
 <template>
-  <div class="cleanup-hint">
+  <button
+    v-if="cleanup.isHintCompact"
+    class="cleanup-hint-line"
+    type="button"
+    @click="cleanup.open()"
+  >
+    <span class="mdi mdi-auto-fix" />
+    <span>{{ t("cleanup.hintLine", { count: proposals.length }, proposals.length) }}</span>
+  </button>
+  <div v-else class="cleanup-hint">
     <span class="mdi mdi-auto-fix cleanup-hint__icon" />
     <div>
       <b>{{ t("cleanup.hintTitle") }}</b>
@@ -79,5 +88,32 @@ const example = computed(() => {
 .cleanup-hint__later {
   border-color: transparent;
   background: transparent;
+}
+
+.cleanup-hint-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: calc(100% - 4px);
+  margin: 2px 2px 10px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.cleanup-hint-line .mdi {
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.cleanup-hint-line:hover {
+  background: var(--accent-soft);
+  color: var(--fg);
 }
 </style>

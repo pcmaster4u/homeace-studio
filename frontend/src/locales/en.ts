@@ -442,6 +442,7 @@ const en: MessageSchema = {
       "One suggestion, e.g. turn “{example}” into a real subfolder. | {count} suggestions, e.g. turn “{example}” into a real subfolder.",
     hintShow: "Show",
     hintLater: "Later",
+    hintLine: "One tidy-up suggestion | {count} tidy-up suggestions",
   },
   ai: {
     title: "AI access (MCP)",

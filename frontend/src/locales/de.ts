@@ -446,6 +446,7 @@ export default {
       "Ein Vorschlag, z. B. aus „{example}“ einen echten Unterordner machen. | {count} Vorschläge, z. B. aus „{example}“ einen echten Unterordner machen.",
     hintShow: "Ansehen",
     hintLater: "Später",
+    hintLine: "Ein Aufräum-Vorschlag | {count} Aufräum-Vorschläge",
   },
   ai: {
     title: "KI-Zugang (MCP)",

@@ -14,10 +14,6 @@
           <div v-if="title.crumb" class="entry-list__crumb">{{ title.crumb }} ›</div>
           <h2>{{ title.name }}</h2>
           <div class="entry-list__subtitle">{{ title.subtitle }}</div>
-          <button class="entry-list__folder-btn" type="button" @click="addFolder">
-            <span class="mdi mdi-folder-plus-outline" />
-            {{ isRealCategory ? t("list.newSubfolder") : t("list.newFolder") }}
-          </button>
         </div>
         <div ref="newMenu" class="entry-list__new">
           <button
@@ -42,6 +38,13 @@
                 <span class="mdi" :class="ENTRY_KIND_ICON[kind]" />
               </span>
               {{ t(`list.newMenu.${kind}`) }}
+            </button>
+            <div class="entry-list__new-sep" role="separator" />
+            <button type="button" role="menuitem" @click="pickFolder">
+              <span class="entry-list__new-icon">
+                <span class="mdi mdi-folder-plus-outline" />
+              </span>
+              {{ isRealCategory ? t("list.newSubfolder") : t("list.newFolder") }}
             </button>
           </div>
         </div>
@@ -138,8 +141,8 @@
 </template>
 
 <script setup lang="ts">
-import { onClickOutside } from "@vueuse/core";
-import { computed, ref, useTemplateRef, watch } from "vue";
+import { onClickOutside, useEventListener } from "@vueuse/core";
+import { computed, ref, useTemplateRef, watch, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 
 import {
@@ -217,6 +220,39 @@ function pickNew(kind: NewEntryKind): void {
   isNewMenuOpen.value = false;
   emit("create", kind);
 }
+
+function pickFolder(): void {
+  isNewMenuOpen.value = false;
+  addFolder();
+}
+
+const TYPING_TARGETS = ["INPUT", "TEXTAREA", "SELECT"];
+
+/** Up and down walk through the open rows (and open the entry), like in a file manager. */
+useEventListener(window, "keydown", (event: KeyboardEvent) => {
+  if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+  const target = event.target as HTMLElement | null;
+  if (TYPING_TARGETS.includes(target?.tagName ?? "") || target?.closest("[role=dialog]")) return;
+
+  const ids = groups.value
+    .flatMap((group) => (isOpen(group) ? group.entries : []))
+    .map((entry) => entry.entityId);
+  if (ids.length === 0) return;
+
+  const index = props.selectedEntityId ? ids.indexOf(props.selectedEntityId) : -1;
+  const next =
+    event.key === "ArrowDown" ? Math.min(ids.length - 1, index + 1) : Math.max(0, index - 1);
+  const entityId = ids[next];
+  if (!entityId || entityId === props.selectedEntityId) return;
+
+  event.preventDefault();
+  emit("select", entityId);
+  void nextTick(() =>
+    document
+      .querySelector(`[data-entity-id="${CSS.escape(entityId)}"]`)
+      ?.scrollIntoView({ block: "nearest" }),
+  );
+});
 
 /** Rows in the order they are shown, for shift-click ranges and "select all". */
 const visibleIds = computed(() =>
@@ -372,6 +408,12 @@ function groupLabel(path: string | null): string {
   box-shadow: var(--shadow);
 }
 
+.entry-list__new-sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--line);
+}
+
 .entry-list__new-menu button {
   display: flex;
   align-items: center;
@@ -415,32 +457,6 @@ function groupLabel(path: string | null): string {
   margin-top: 3px;
   color: var(--muted);
   font-size: 12.5px;
-}
-
-.entry-list__folder-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 4px 10px 4px 8px;
-  border: 1px dashed var(--line-strong);
-  border-radius: 8px;
-  background: none;
-  color: var(--muted);
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.entry-list__folder-btn .mdi {
-  font-size: 16px;
-}
-
-.entry-list__folder-btn:hover,
-.entry-list__folder-btn:focus-visible {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent);
 }
 
 .entry-list__bulk {

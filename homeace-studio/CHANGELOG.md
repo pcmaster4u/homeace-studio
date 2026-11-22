@@ -13,6 +13,9 @@
 - "Aktion hinzufügen" and other long menus are wider, in two columns, with one scroll area; entries
   with the same name say which kind they are for ("Einschalten · Licht"). Popovers stay inside the
   window.
+- "Neuer Ordner" moved from the list head into the "Neu" menu; the list head is calmer.
+- Arrow keys up and down walk through the list and open the entry.
+- After "Später" the tidy-up hint stays as a single line instead of disappearing.
 - Fixed: the toast after disabling an entry showed a raw text key. A test now checks that every
   text the app uses exists in German and English.
 - Properties: new section "Sichtbarkeit & Sprache" with enabled, hidden and aliases for Assist.

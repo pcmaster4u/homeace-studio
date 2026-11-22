@@ -24,7 +24,9 @@ export const useCleanupStore = defineStore("cleanup", () => {
   /** "Later" in the tree: the hint stays away until the page is loaded again. */
   const isHintPutOff = ref(false);
 
-  const isHintVisible = computed(() => !isHintPutOff.value && proposals.value.length > 0);
+  const isHintVisible = computed(() => proposals.value.length > 0);
+  /** After "Später" the hint stays as a single line instead of the card. */
+  const isHintCompact = computed(() => isHintPutOff.value);
 
   async function load(): Promise<void> {
     isLoading.value = true;
@@ -82,6 +84,7 @@ export const useCleanupStore = defineStore("cleanup", () => {
     isOpen,
     isLoading,
     isHintVisible,
+    isHintCompact,
     load,
     open,
     close,
