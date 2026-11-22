@@ -17,6 +17,7 @@
         @enable="emit('save', { isDisabled: false })"
         :is-renaming="isRenaming"
         @start-rename="emit('startRename')"
+        @duplicate="emit('duplicate')"
         @rename="(name) => emit('rename', name)"
         @cancel-rename="emit('cancelRename')"
       />
@@ -236,6 +237,7 @@ const emit = defineEmits<{
   /** "Deaktivieren?" asks first, because flows may still use the entry. */
   askDisable: [];
   startRename: [];
+  duplicate: [];
   rename: [name: string];
   cancelRename: [];
   /** "Entity-ID ändern"; `preset` is a suggested ID or null. */

@@ -38,6 +38,17 @@
           >
             <span class="mdi mdi-pencil-outline" />
           </button>
+          <button
+            v-if="canDuplicate"
+            class="icon-btn"
+            type="button"
+            :title="t('detail.duplicate')"
+            :aria-label="t('detail.duplicate')"
+            :disabled="isBusy"
+            @click="emit('duplicate')"
+          >
+            <span class="mdi mdi-content-copy" />
+          </button>
         </span>
       </h1>
       <div v-if="isTechnicalDetailsVisible" class="entry-detail-header__entity-id mono">
@@ -98,6 +109,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import InlineNameInput from "@/components/common/InlineNameInput.vue";
@@ -107,7 +119,7 @@ import type { Entry } from "@/types/entry";
 import { canDelete, canToggle, isOn, supportsAction, toggleAction } from "@/utils/entryActions";
 import { mdiIconClass } from "@/utils/text";
 
-defineProps<{
+const props = defineProps<{
   entry: Entry;
   /** The title is an input right now. */
   isRenaming?: boolean;
@@ -122,12 +134,18 @@ const emit = defineEmits<{
   /** Disabled entries get an "Aktivieren" button instead of on/off. */
   enable: [];
   startRename: [];
+  duplicate: [];
   rename: [name: string];
   cancelRename: [];
   delete: [];
 }>();
 
 const { t } = useI18n();
+
+/** HomeAce Studio copies automations and scripts; helpers and scenes not yet. */
+const canDuplicate = computed(
+  () => props.entry.kind === "automation" || props.entry.kind === "script",
+);
 </script>
 
 <style scoped>

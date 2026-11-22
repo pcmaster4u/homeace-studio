@@ -23,6 +23,7 @@ export const CATALOG_DE: Catalog = {
 
   ENTRY_NOT_FOUND: "Den Eintrag {entityId} gibt es in Home Assistant nicht.",
   ENTRY_RENAMED: "Entity-ID geändert.",
+  ENTRY_DUPLICATED: "Kopie angelegt.",
   ENTRY_ID_INVALID:
     "„{entityId}“ geht als Entity-ID nicht: nur Kleinbuchstaben, Ziffern und _, Bereich wie bisher.",
   ENTRY_ID_TAKEN: "Die Entity-ID „{entityId}“ gibt es schon.",

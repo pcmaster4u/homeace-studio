@@ -7,6 +7,9 @@
 - Rename in place: double click the name in the list or the title, the pencil on hover, or F2.
   The toast offers "Rückgängig".
 - Double click a folder or area name in the tree to rename it in place, also with "Rückgängig".
+- Duplicate an automation or script from the icon next to the pencil in the title: the copy keeps
+  folder, labels and area (HA's own duplicate does not) and opens with its name ready to change. An
+  automation copy starts switched off so nothing runs twice.
 - Fixed: the toast after disabling an entry showed a raw text key. A test now checks that every
   text the app uses exists in German and English.
 - Properties: new section "Sichtbarkeit & Sprache" with enabled, hidden and aliases for Assist.

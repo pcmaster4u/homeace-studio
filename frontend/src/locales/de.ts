@@ -339,6 +339,8 @@ export default {
     fold: "Details einklappen",
     rename: "Umbenennen (Doppelklick oder F2)",
     unfold: "Details ausklappen",
+    duplicate: "Duplizieren (mit Ordner, Labels und Bereich)",
+    copyName: "{name} (Kopie)",
     empty: "Wähle links einen Eintrag aus.",
     identity: "Identität",
     organization: "Ordnung",
@@ -950,6 +952,9 @@ export default {
     undo: "Rückgängig",
     undone: "Rückgängig gemacht",
     renamedEntry: "Umbenannt in „{name}“",
+    duplicated: "Kopie angelegt, mit Ordner, Labels und Bereich",
+    duplicatedOff:
+      "Kopie angelegt, mit Ordner, Labels und Bereich. Sie ist ausgeschaltet, damit nichts doppelt läuft.",
     renamedFolder: "„{from}“ heißt jetzt „{to}“",
     disabled: "„{name}“ deaktiviert",
     findingIgnored: "Wird nicht mehr gemeldet",

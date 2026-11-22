@@ -31,6 +31,8 @@ backend/src/
                          TracesService + Controller (GET /api/traces/:entityId)
   rename/                entity-id.ts (pure: countEntityId, replaceEntityId; whole IDs only, service names
                          left out), RenameService + Controller (GET references, POST rename)
+  duplicate/             DuplicateService + Controller: FlowsService.create with the original as template,
+                         then folder, labels, area; an automation copy is switched off
   demo/                  demo mode: FakeHa (an invented home in memory that answers the WebSocket and
                          REST calls with HA's shapes and events), DemoHaConnectionService / DemoHaRestService
                          (subclasses of the real services), MemoryOverlayRepository

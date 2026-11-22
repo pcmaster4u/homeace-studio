@@ -26,6 +26,12 @@ export async function moveEntry(entityId: string, categoryPath: string | null): 
   await apiPost<null>(`${entryPath(entityId)}/move`, { categoryPath });
 }
 
+/** Copies an automation or script with folder, labels and area. @returns The new entity ID. */
+export async function duplicateEntry(entityId: string, name: string): Promise<string> {
+  const result = await apiPost<{ entityId: string }>(`${entryPath(entityId)}/duplicate`, { name });
+  return result.entityId;
+}
+
 /** Aliases: HA sends them only for one entry at a time. */
 export function fetchEntryDetails(entityId: string): Promise<EntryDetails> {
   return apiFetch<EntryDetails>(`${entryPath(entityId)}/details`);

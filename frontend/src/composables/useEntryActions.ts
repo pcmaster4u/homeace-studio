@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import type { EntryAction } from "@/constants/entries";
 import { useEntriesStore } from "@/stores/entriesStore";
 import { useFoldersStore } from "@/stores/foldersStore";
+import { duplicateEntry } from "@/services/entriesService";
 import { renameEntity } from "@/services/renameService";
 import { useMessagesStore } from "@/stores/messagesStore";
 import { useStudioStore } from "@/stores/studioStore";
@@ -17,6 +18,8 @@ type EntryActions = {
   save: (entityId: string, changes: EntryChanges) => Promise<boolean>;
   /** Renames in HA with "Rückgängig" in the toast. */
   rename: (entry: Entry, name: string) => Promise<void>;
+  /** Copies an automation or script, opens the copy and lets the user name it right away. */
+  duplicate: (entry: Entry) => Promise<void>;
   act: (entry: Entry, action: EntryAction) => Promise<void>;
   toggleFavorite: (entry: Entry) => Promise<void>;
   saveNote: (entry: Entry, note: string) => Promise<void>;
@@ -126,6 +129,18 @@ export function useEntryActions(): EntryActions {
     deletingEntry,
     save: (entityId, changes) =>
       run(() => entriesStore.updateEntry(entityId, changes), t("toast.saved")),
+    duplicate: async (entry) => {
+      await run(async () => {
+        const entityId = await duplicateEntry(
+          entry.entityId,
+          t("detail.copyName", { name: entry.name }),
+        );
+        await entriesStore.load();
+        studio.selectEntry(entityId);
+        studio.startRename(entityId, "title");
+        toasts.show(entry.kind === "automation" ? t("toast.duplicatedOff") : t("toast.duplicated"));
+      });
+    },
     rename: async (entry, name) => {
       const previous = entry.name;
       const isDone = await run(() => entriesStore.updateEntry(entry.entityId, { name }));

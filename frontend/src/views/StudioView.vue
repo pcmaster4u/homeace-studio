@@ -171,6 +171,7 @@
             studio.renaming.entityId === data.selectedEntry.value?.entityId
           "
           @start-rename="startTitleRename"
+          @duplicate="onDuplicate"
           @rename="(name) => renameEntry(data.selectedEntry.value?.entityId ?? '', name)"
           @cancel-rename="studio.stopRename()"
           @rename-id="onRenameId"
@@ -425,6 +426,7 @@ const onToggleFavorite = onSelected((entry) => entryActions.toggleFavorite(entry
 const onSaveNote = onSelected((entry, note: string) => entryActions.saveNote(entry, note));
 const onDelete = onSelected((entry) => entryActions.askDelete(entry));
 const onAskDisable = onSelected((entry) => entryActions.askDisable(entry));
+const onDuplicate = onSelected((entry) => entryActions.duplicate(entry));
 const onRenameId = onSelected((entry, preset: string | null) =>
   entryActions.startRenameId(entry, preset),
 );

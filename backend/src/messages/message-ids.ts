@@ -33,6 +33,7 @@ export const MESSAGE_ID = {
   entryActionUnsupported: "ENTRY_ACTION_UNSUPPORTED",
   entryExtrasSaved: "ENTRY_EXTRAS_SAVED",
   entryRenamed: "ENTRY_RENAMED",
+  entryDuplicated: "ENTRY_DUPLICATED",
   entryIdInvalid: "ENTRY_ID_INVALID",
   entryIdTaken: "ENTRY_ID_TAKEN",
 

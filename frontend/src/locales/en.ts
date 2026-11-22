@@ -335,6 +335,8 @@ const en: MessageSchema = {
     fold: "Fold the details",
     rename: "Rename (double click or F2)",
     unfold: "Show the details",
+    duplicate: "Duplicate (with folder, labels and area)",
+    copyName: "{name} (copy)",
     empty: "Pick an entry on the left.",
     identity: "Identity",
     organization: "Organization",
@@ -937,6 +939,9 @@ const en: MessageSchema = {
     undo: "Undo",
     undone: "Undone",
     renamedEntry: "Renamed to “{name}”",
+    duplicated: "Copy created, with folder, labels and area",
+    duplicatedOff:
+      "Copy created, with folder, labels and area. It is switched off so nothing runs twice.",
     renamedFolder: "“{from}” is now “{to}”",
     disabled: "“{name}” disabled",
     findingIgnored: "Will not be reported again",

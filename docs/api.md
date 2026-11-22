@@ -85,6 +85,14 @@ old ID. `400 ENTRY_ID_INVALID` (another domain, not `[a-z0-9_]`), `409 ENTRY_ID_
 - Values of `action` / `service` stay as they are: `action: script.x` calls a script by its key in
   scripts.yaml, which does not change with the entity ID.
 
+## POST /api/entries/:entityId/duplicate
+
+`{ "name": "Terrace light on motion (Kopie)" }` copies an automation or script from automations.yaml /
+scripts.yaml: the whole flow under a new id (automations) or key (scripts), then folder, labels and
+area of the original (HA's own duplicate keeps only the flow). An automation copy is switched off, so
+original and copy do not both react to the same triggers. Answers `{ entityId }` with
+`ENTRY_DUPLICATED`; `400 FLOW_NOT_EDITABLE` / `FLOW_UNSUPPORTED` like the flow editor.
+
 ## PATCH /api/entries/:entityId/extras
 
 `{ "isFavorite": true, "note": "…" }`, both optional; a blank or null note is removed. Overlay only.

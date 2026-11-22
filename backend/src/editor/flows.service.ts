@@ -19,6 +19,13 @@ import { firstFreeKey, scriptKeyFor } from "./flow-key";
 import type { EditorRepository } from "./repositories/editor.repository";
 
 const DEFAULT_MODE = "single";
+
+/** The fields that make a flow a new one: its id (automations only) and its name. */
+function pickIdentity(config: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(config).filter(([field]) => field === "id" || field === "alias"),
+  );
+}
 const ENTITY_ID_SEPARATOR = ".";
 
 /** Creating and deleting whole automations and scripts (the editor service edits them). */
@@ -42,9 +49,15 @@ export class FlowsService {
    * @returns The entity ID HA gave the new flow.
    * @throws BadRequestException `FLOW_INVALID` when HA rejects the config.
    */
-  async create(dto: CreateFlowDto): Promise<{ entityId: string }> {
+  async create(
+    dto: CreateFlowDto,
+    copyOf?: Record<string, unknown>,
+  ): Promise<{ entityId: string }> {
     const name = dto.name.trim();
-    const { key, config } = await this.newConfig(dto.kind, name);
+    const fresh = await this.newConfig(dto.kind, name);
+    const key = fresh.key;
+    // A copy takes the whole flow; only the id (automations) and the name are new.
+    const config = copyOf ? { ...copyOf, ...pickIdentity(fresh.config) } : fresh.config;
 
     await this.editor.saveConfig(dto.kind, key, config).catch((error: unknown) => {
       throw toFlowError(error);
