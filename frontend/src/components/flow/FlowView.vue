@@ -148,7 +148,7 @@ const emit = defineEmits<{
   change: [change: FlowChange];
 }>();
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 const flowTexts = useFlowTexts();
 
 const openEdit = ref<OpenEdit | null>(null);
@@ -234,11 +234,22 @@ function blockChange(action: string, listPath: ConfigPath, index: number): FlowC
 /** Hand-made types first, then everything HA describes; the search field finds the rest. */
 function openTypePicker(target: AddTarget, anchor: HTMLElement): void {
   const types = blockTypes(target.section, props.catalog, flowTexts.value.titles);
+  // "Einschalten" exists for lights, switches and scripts alike; the kind tells them apart.
+  const labelCount = new Map<string, number>();
+  for (const type of types) labelCount.set(type.label, (labelCount.get(type.label) ?? 0) + 1);
+  const kindOf = (key: string): string | undefined => {
+    const domain = key.split(".")[0] ?? "";
+    return te(`picker.kinds.${domain}`) ? t(`picker.kinds.${domain}`) : undefined;
+  };
   const options = types.map((type, index) => ({
     value: String(index),
     label: type.label,
     icon: type.icon,
-    sub: props.isTechnicalDetailsVisible ? type.key : undefined,
+    sub: props.isTechnicalDetailsVisible
+      ? type.key
+      : (labelCount.get(type.label) ?? 0) > 1
+        ? kindOf(type.key)
+        : undefined,
   }));
 
   openMenu(t(`flow.addTitle.${target.section}`), options, anchor, (value) => {

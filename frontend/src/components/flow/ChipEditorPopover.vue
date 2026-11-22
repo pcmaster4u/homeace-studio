@@ -3,7 +3,11 @@
     <div
       ref="popover"
       class="chip-editor"
-      :class="{ 'chip-editor--sheet': isNarrow, 'chip-editor--wide': editor.type === 'entity' }"
+      :class="{
+        'chip-editor--sheet': isNarrow,
+        'chip-editor--wide': editor.type === 'entity',
+        'chip-editor--menu': isLongMenu,
+      }"
       :style="positionStyle"
       role="dialog"
       :aria-label="edit.title"
@@ -161,6 +165,15 @@ const position = ref<{ left: number; top: number } | null>(null);
 const isNarrow = useMediaQuery("(max-width: 560px)");
 
 const editor = computed(() => props.edit.editor);
+
+/** Menus without a config path ("Aktion hinzufügen") from this length get the wide two-column form. */
+const LONG_MENU = 8;
+const isLongMenu = computed(
+  () =>
+    props.edit.path.length === 0 &&
+    editor.value.type === "choice" &&
+    editor.value.options.length > LONG_MENU,
+);
 const isMultiline = computed(() => editor.value.type === "text" && editor.value.isMultiline);
 const isMultiple = computed(() => {
   const current = editor.value;
@@ -299,8 +312,9 @@ function place(): void {
   const height = element.offsetHeight;
   const left = Math.max(EDGE, Math.min(chip.left, window.innerWidth - width - EDGE));
   const below = chip.bottom + GAP;
-  const top =
-    below + height > window.innerHeight - EDGE ? Math.max(EDGE, chip.top - height - GAP) : below;
+  const preferred = below + height > window.innerHeight - EDGE ? chip.top - height - GAP : below;
+  // Also when the chip sits low on a short window: the popover stays inside it.
+  const top = Math.max(EDGE, Math.min(preferred, window.innerHeight - height - EDGE));
 
   position.value = { left, top };
 }
@@ -348,6 +362,33 @@ onMounted(async () => {
   border-radius: 12px;
   background: var(--surface);
   box-shadow: var(--shadow);
+}
+
+/* Long menus: wide, two columns, and only the list scrolls (search and title stay). */
+.chip-editor--menu {
+  display: flex;
+  flex-direction: column;
+  width: 520px;
+  max-height: min(640px, 82vh);
+  overflow: hidden;
+}
+
+.chip-editor--menu :deep(.choice-list) {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.chip-editor--menu :deep(.choice-list__items) {
+  flex: 1;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  align-content: start;
+  min-height: 0;
+  max-height: none;
+}
+
+.chip-editor--menu :deep(.choice-list__main small) {
+  font-family: var(--font-body);
 }
 
 .chip-editor--sheet {

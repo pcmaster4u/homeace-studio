@@ -10,6 +10,9 @@
 - Duplicate an automation or script from the icon next to the pencil in the title: the copy keeps
   folder, labels and area (HA's own duplicate does not) and opens with its name ready to change. An
   automation copy starts switched off so nothing runs twice.
+- "Aktion hinzufügen" and other long menus are wider, in two columns, with one scroll area; entries
+  with the same name say which kind they are for ("Einschalten · Licht"). Popovers stay inside the
+  window.
 - Fixed: the toast after disabling an entry showed a raw text key. A test now checks that every
   text the app uses exists in German and English.
 - Properties: new section "Sichtbarkeit & Sprache" with enabled, hidden and aliases for Assist.
