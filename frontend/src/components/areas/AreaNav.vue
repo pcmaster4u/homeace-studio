@@ -43,6 +43,7 @@
           @edit="emit('edit', area.areaId)"
           @delete="emit('delete', area.areaId)"
           @drop-entry="(entityId) => emit('dropEntry', area.areaId, entityId)"
+          @rename-inline="(name) => emit('renameArea', area.areaId, name)"
         />
         <AreaNavNode
           :name="t('areas.none')"
@@ -90,6 +91,7 @@ const emit = defineEmits<{
   delete: [areaId: string];
   /** `areaId` null: dropped on "Ohne Bereich", which takes the own area away. */
   dropEntry: [areaId: string | null, entityId: string];
+  renameArea: [areaId: string, name: string];
 }>();
 
 const { t } = useI18n();

@@ -1,6 +1,7 @@
 import { ref, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { CATEGORY_SEPARATOR } from "@/constants/entries";
 import { useEntriesStore } from "@/stores/entriesStore";
 import type { TidyMove } from "@/utils/areaTidy";
 import { useFoldersStore } from "@/stores/foldersStore";
@@ -23,6 +24,12 @@ type CategoryActions = {
   startRename: (path: string) => void;
   cancelRename: () => void;
   confirmRename: (newPath: string) => Promise<void>;
+  /** The folder renamed in place in the tree (double click); null when none. */
+  inlineRenamingPath: Ref<string | null>;
+  startInlineRename: (path: string) => void;
+  cancelInlineRename: () => void;
+  /** Renames the last level of a folder in place, with "Rückgängig" in the toast. */
+  renameInline: (path: string, name: string) => Promise<void>;
   /** "Ordnung in einem Klick" is open. */
   isAreaTidyOpen: Ref<boolean>;
   startAreaTidy: () => void;
@@ -159,6 +166,45 @@ export function useCategoryActions(): CategoryActions {
     }
   }
 
+  const inlineRenamingPath = ref<string | null>(null);
+
+  /** Renames a folder in every scope; the open folder follows. @returns Whether it worked. */
+  async function renameFolder(from: string, to: string, isUndo: boolean): Promise<boolean> {
+    isBusy.value = true;
+
+    try {
+      await entriesStore.renameCategory(from, to);
+      await foldersStore.load();
+      if (studio.category === from || studio.category.startsWith(`${from}${CATEGORY_SEPARATOR}`)) {
+        studio.selectCategory(to + studio.category.slice(from.length));
+      }
+      const last = (path: string): string => path.split(CATEGORY_SEPARATOR).pop() ?? path;
+      if (isUndo) toasts.show(t("toast.undone"));
+      else {
+        toasts.show(t("toast.renamedFolder", { from: last(from), to: last(to) }), "success", () => {
+          void renameFolder(to, from, true);
+        });
+      }
+      return true;
+    } catch (error) {
+      showError(error);
+      return false;
+    } finally {
+      isBusy.value = false;
+    }
+  }
+
+  async function renameInline(path: string, name: string): Promise<void> {
+    inlineRenamingPath.value = null;
+    if (name.includes(CATEGORY_SEPARATOR)) {
+      toasts.show(t("nav.slashInName"), "error");
+      return;
+    }
+    const levels = path.split(CATEGORY_SEPARATOR);
+    const to = [...levels.slice(0, -1), name].join(CATEGORY_SEPARATOR);
+    if (to !== path) await renameFolder(path, to, false);
+  }
+
   async function confirmRename(newPath: string): Promise<void> {
     const from = renamingPath.value;
 
@@ -190,6 +236,10 @@ export function useCategoryActions(): CategoryActions {
     startRename,
     cancelRename,
     confirmRename,
+    inlineRenamingPath,
+    startInlineRename: (path) => (inlineRenamingPath.value = path),
+    cancelInlineRename: () => (inlineRenamingPath.value = null),
+    renameInline,
     isAreaTidyOpen,
     startAreaTidy: () => (isAreaTidyOpen.value = true),
     cancelAreaTidy: () => (isAreaTidyOpen.value = false),

@@ -80,6 +80,10 @@
           :selected="selected"
           :expanded-paths="expandedPaths"
           :colors="colors"
+          :renaming-path="renamingPath"
+          @start-inline-rename="(path) => emit('startInlineRename', path)"
+          @rename-inline="(path, name) => emit('renameInline', path, name)"
+          @cancel-inline-rename="emit('cancelInlineRename')"
           @select="selectNode"
           @pick-color="(path) => emit('pickColor', path)"
           @toggle="toggleNode"
@@ -131,11 +135,16 @@ const props = defineProps<{
   colors: Record<string, string>;
   /** Folders (HA categories) or areas; the special nodes on top stay in both. */
   mode: NavMode;
+  /** The folder whose name is an input right now (double click). */
+  renamingPath: string | null;
 }>();
 
 const emit = defineEmits<{
   select: [path: string];
   rename: [path: string];
+  startInlineRename: [path: string];
+  renameInline: [path: string, name: string];
+  cancelInlineRename: [];
   /** `parent` null: a new top-level folder. */
   addFolder: [parent: string | null];
   deleteFolder: [path: string];

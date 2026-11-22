@@ -16,6 +16,8 @@ type AreaActions = {
   /** Creates or saves the area of the open dialog. */
   saveDraft: (name: string, icon: string | null) => Promise<void>;
   confirmDelete: () => Promise<void>;
+  /** Renames an area in place (double click), with "Rückgängig" in the toast. */
+  renameArea: (areaId: string, name: string, isUndo?: boolean) => Promise<void>;
   /** Gives entries an own area in HA; null takes it away (derived areas stay). */
   setOwnArea: (entityIds: readonly string[], areaId: string | null) => Promise<void>;
 };
@@ -66,6 +68,23 @@ export function useAreaActions(): AreaActions {
     });
   }
 
+  function renameArea(areaId: string, name: string, isUndo = false): Promise<void> {
+    const previous = lookups.areas.find((area) => area.areaId === areaId)?.name;
+    if (!previous || previous === name) return Promise.resolve();
+
+    return run(async () => {
+      await updateArea(areaId, { name });
+      await lookups.load();
+      void entryAreas.load();
+      if (isUndo) toasts.show(t("toast.undone"));
+      else {
+        toasts.show(t("toast.renamedFolder", { from: previous, to: name }), "success", () => {
+          void renameArea(areaId, previous, true);
+        });
+      }
+    });
+  }
+
   function confirmDelete(): Promise<void> {
     const area = areas.deleting;
     if (!area) return Promise.resolve();
@@ -112,5 +131,5 @@ export function useAreaActions(): AreaActions {
     });
   }
 
-  return { isBusy, saveDraft, confirmDelete, setOwnArea };
+  return { isBusy, saveDraft, confirmDelete, setOwnArea, renameArea };
 }

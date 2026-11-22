@@ -6,6 +6,7 @@
   wider list; opening an entry brings it back.
 - Rename in place: double click the name in the list or the title, the pencil on hover, or F2.
   The toast offers "Rückgängig".
+- Double click a folder or area name in the tree to rename it in place, also with "Rückgängig".
 - Fixed: the toast after disabling an entry showed a raw text key. A test now checks that every
   text the app uses exists in German and English.
 - Properties: new section "Sichtbarkeit & Sprache" with enabled, hidden and aliases for Assist.

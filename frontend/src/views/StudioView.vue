@@ -36,6 +36,10 @@
           :checkup-count="checkup.hasLoaded ? checkup.findings.length : null"
           :colors="foldersStore.colors"
           :mode="settings.navMode"
+          :renaming-path="actions.inlineRenamingPath.value"
+          @start-inline-rename="actions.startInlineRename"
+          @rename-inline="(path, name) => actions.renameInline(path, name)"
+          @cancel-inline-rename="actions.cancelInlineRename"
           @update:mode="setNavMode"
           @select="selectCategory"
           @rename="actions.startRename"
@@ -61,6 +65,7 @@
               @edit="(areaId) => withArea(areaId, areas.startEdit)"
               @delete="(areaId) => withArea(areaId, areas.startDelete)"
               @drop-entry="dropOnArea"
+              @rename-area="(areaId, name) => areaActions.renameArea(areaId, name)"
             />
           </template>
         </CategoryTree>

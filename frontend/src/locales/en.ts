@@ -44,6 +44,7 @@ const en: MessageSchema = {
     color: 'Color for "{name}"',
     newSubfolder: 'New folder in "{name}"',
     deleteFolder: 'Remove empty folder "{name}"',
+    slashInName: "“/” separates the levels and cannot be part of a name.",
   },
   common: {
     cancel: "Cancel",
@@ -936,6 +937,7 @@ const en: MessageSchema = {
     undo: "Undo",
     undone: "Undone",
     renamedEntry: "Renamed to “{name}”",
+    renamedFolder: "“{from}” is now “{to}”",
     disabled: "“{name}” disabled",
     findingIgnored: "Will not be reported again",
     movedMany: "Moved one entry to {path} | Moved {count} entries to {path}",

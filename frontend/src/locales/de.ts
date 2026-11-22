@@ -44,6 +44,7 @@ export default {
     color: "Farbe für „{name}“",
     newSubfolder: "Unterordner in „{name}“ anlegen",
     deleteFolder: "Leeren Ordner „{name}“ entfernen",
+    slashInName: "„/“ trennt die Ebenen und geht im Namen nicht.",
   },
   common: {
     cancel: "Abbrechen",
@@ -949,6 +950,7 @@ export default {
     undo: "Rückgängig",
     undone: "Rückgängig gemacht",
     renamedEntry: "Umbenannt in „{name}“",
+    renamedFolder: "„{from}“ heißt jetzt „{to}“",
     disabled: "„{name}“ deaktiviert",
     findingIgnored: "Wird nicht mehr gemeldet",
     movedMany: "Ein Eintrag nach {path} verschoben | {count} Einträge nach {path} verschoben",

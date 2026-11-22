@@ -13,7 +13,21 @@
   >
     <button type="button" class="area-node__main" @click="emit('select')">
       <span class="mdi" :class="iconClass" />
-      <span class="area-node__name">{{ name }}</span>
+      <InlineNameInput
+        v-if="isRenaming"
+        :value="name"
+        :label="t('areas.edit', { name })"
+        @save="
+          (next) => {
+            isRenaming = false;
+            emit('renameInline', next);
+          }
+        "
+        @cancel="isRenaming = false"
+      />
+      <span v-else class="area-node__name" @dblclick.stop="hasActions && (isRenaming = true)">{{
+        name
+      }}</span>
       <span class="area-node__count">{{ count }}</span>
     </button>
     <span v-if="hasActions" class="area-node__actions">
@@ -40,7 +54,10 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
+
+import InlineNameInput from "@/components/common/InlineNameInput.vue";
 
 import { useEntryDropTarget } from "@/composables/useEntryDropTarget";
 
@@ -59,7 +76,11 @@ const emit = defineEmits<{
   edit: [];
   delete: [];
   dropEntry: [entityId: string];
+  /** Double click on the name renamed the area in place. */
+  renameInline: [name: string];
 }>();
+
+const isRenaming = ref(false);
 
 const { t } = useI18n();
 const { isDropOver, onDragOver, onDragLeave, onDrop } = useEntryDropTarget((entityId) =>

@@ -29,7 +29,20 @@
         :class="node.isFolderOnly ? 'mdi-folder-outline' : 'mdi-folder'"
         :style="color ? { color } : undefined"
       />
-      <span class="category-tree-node__name">{{ node.name }}</span>
+      <InlineNameInput
+        v-if="renamingPath === node.path"
+        class="category-tree-node__rename"
+        :value="node.name"
+        :label="t('nav.rename', { name: node.name })"
+        @save="(name) => emit('renameInline', node.path, name)"
+        @cancel="emit('cancelInlineRename')"
+      />
+      <span
+        v-else
+        class="category-tree-node__name"
+        @dblclick.stop="emit('startInlineRename', node.path)"
+        >{{ node.name }}</span
+      >
       <span class="category-tree-node__count">{{ node.totalCount }}</span>
       <span class="category-tree-node__actions">
         <button
@@ -81,6 +94,10 @@
         :selected="selected"
         :expanded-paths="expandedPaths"
         :colors="colors"
+        :renaming-path="renamingPath"
+        @start-inline-rename="(path) => emit('startInlineRename', path)"
+        @rename-inline="(path, name) => emit('renameInline', path, name)"
+        @cancel-inline-rename="emit('cancelInlineRename')"
         @select="(path) => emit('select', path)"
         @pick-color="(path) => emit('pickColor', path)"
         @toggle="(path) => emit('toggle', path)"
@@ -97,6 +114,8 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import InlineNameInput from "@/components/common/InlineNameInput.vue";
+
 import { useEntryDropTarget } from "@/composables/useEntryDropTarget";
 import { folderColor } from "@/utils/categoryPath";
 import type { CategoryNode } from "@/utils/categoryTree";
@@ -108,12 +127,17 @@ const props = defineProps<{
   expandedPaths: ReadonlySet<string>;
   /** Folder path to "#rrggbb" (own colors, overlay). */
   colors: Record<string, string>;
+  /** The folder whose name is an input right now (double click). */
+  renamingPath: string | null;
 }>();
 
 const emit = defineEmits<{
   select: [path: string];
   toggle: [path: string];
   rename: [path: string];
+  startInlineRename: [path: string];
+  renameInline: [path: string, name: string];
+  cancelInlineRename: [];
   addFolder: [parent: string];
   deleteFolder: [path: string];
   pickColor: [path: string];
@@ -282,5 +306,10 @@ const canDelete = computed(
     width: 32px;
     height: 32px;
   }
+}
+
+.category-tree-node__rename {
+  flex: 1;
+  height: 26px;
 }
 </style>
