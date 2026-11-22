@@ -17,6 +17,9 @@ The parts are released together, after a test round on a real Home Assistant.
 | 📋 | Scene editor | Edit the devices and states of a scene, with a live preview |
 | 📋 | Entities by drag & drop | Optional list of entities (area → device → function); drop one on *When*, *And only if* or *Then* to create a block with suggestions; tap instead of drag on phones |
 | 📋 | Settings per user | Each Home Assistant user keeps their own view settings |
+| 📋 | Manage labels | Create, rename, recolor and delete labels right in the label picker; deleting says where the label is used |
+| 📋 | Icons from icon packs | Icons from custom icon packs (e.g. Font Awesome or custom icons from HACS) show up and can be picked, when opened from the Home Assistant sidebar |
+| 📋 | Info column | When the details pane is wide, a narrow column shows folder, area, labels, last run, where it is used and the note at a glance |
 
 ## Planned after that
 
