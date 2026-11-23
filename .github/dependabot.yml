@@ -1,6 +1,8 @@
 # Weekly pull requests for outdated or vulnerable dependencies. Minor and patch updates come grouped in
 # one pull request per part, so the list stays short; the Checks workflow tests every pull request.
-# Security updates come right away, independent of this schedule.
+# Security updates come right away, independent of this schedule (also for major versions).
+# Major versions (NestJS 12, TypeScript 7, …) are no automatic pull requests: they often need code
+# changes and packages that belong together (all @nestjs/*), so they are a planned task of their own.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -11,6 +13,9 @@ updates:
     groups:
       frontend-minor-patch:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: npm
     directory: /backend
@@ -20,6 +25,9 @@ updates:
     groups:
       backend-minor-patch:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
