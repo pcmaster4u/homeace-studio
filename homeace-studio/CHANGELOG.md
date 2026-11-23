@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.12.1
 
 - Fixed: opening an entry made HomeAce Studio load the whole entity registry and every state from
   Home Assistant, which cost noticeable CPU in both. It now asks for that one entry only: clicking
