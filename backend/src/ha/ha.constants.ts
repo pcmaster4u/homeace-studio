@@ -78,3 +78,8 @@ export const HA_RECONNECT_DELAY_MS = 5_000;
 
 /** Fallback when HA reports an error without a code. */
 export const HA_UNKNOWN_ERROR_CODE = "unknown_error";
+
+/** Error codes HA answers WebSocket commands with (`success: false`). */
+export const HA_ERROR_CODE = {
+  notFound: "not_found",
+} as const;

@@ -46,9 +46,22 @@ export class EntriesService {
   }
 
   /** Aliases of a registered entry (HA leaves them out of the list). */
+  /**
+   * Aliases of an entry. Asks HA for this one registry entry only: checking it against the full list
+   * (the whole entity registry and every state) on each opened entry cost noticeable CPU, in HA too.
+   *
+   * @throws BadRequestException `ENTRY_NOT_IN_REGISTRY` when HA has no registry entry for it.
+   */
   async details(entityId: string): Promise<EntryDetails> {
-    await this.requireRegistered(entityId);
-    return this.entries.findDetails(entityId);
+    const details = await this.entries.findDetails(entityId);
+
+    if (!details) {
+      throw new BadRequestException(
+        apiError(MESSAGE_ID.entryNotInRegistry, { params: { entityId } }),
+      );
+    }
+
+    return details;
   }
 
   /**

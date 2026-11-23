@@ -2,7 +2,8 @@ import { Injectable } from "@nestjs/common";
 
 import { CATEGORY_SCOPES, type CategoryScope } from "../../categories/categories.constants";
 import { HaConnectionService } from "../../ha/ha-connection.service";
-import { HA_COMMAND, HA_CONFIG_ENTRY_TYPE } from "../../ha/ha.constants";
+import { HaCommandError } from "../../ha/ha-command.error";
+import { HA_COMMAND, HA_CONFIG_ENTRY_TYPE, HA_ERROR_CODE } from "../../ha/ha.constants";
 import type {
   HaArea,
   HaCategory,
@@ -78,10 +79,16 @@ export class HaEntriesRepository implements EntryRepository {
     });
   }
 
-  async findDetails(entityId: string): Promise<EntryDetails> {
-    const entry = await this.ha.call<HaEntityRegistryEntry>(HA_COMMAND.entityRegistryGet, {
-      entity_id: entityId,
-    });
+  async findDetails(entityId: string): Promise<EntryDetails | null> {
+    let entry: HaEntityRegistryEntry;
+    try {
+      entry = await this.ha.call<HaEntityRegistryEntry>(HA_COMMAND.entityRegistryGet, {
+        entity_id: entityId,
+      });
+    } catch (error) {
+      if (error instanceof HaCommandError && error.code === HA_ERROR_CODE.notFound) return null;
+      throw error;
+    }
 
     return {
       aliases: (entry.aliases ?? []).filter((alias): alias is string => typeof alias === "string"),

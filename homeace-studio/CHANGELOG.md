@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Fixed: opening an entry made HomeAce Studio load the whole entity registry and every state from
+  Home Assistant, which cost noticeable CPU in both. It now asks for that one entry only: clicking
+  through all entries takes about a seventh of the CPU time and much less memory.
+
 ## 0.12.0
 
 - The details pane folds away with the round button in the middle of the column splitter, for a

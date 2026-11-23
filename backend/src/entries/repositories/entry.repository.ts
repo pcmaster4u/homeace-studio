@@ -5,8 +5,8 @@ export interface EntryRepository {
   findOne(entityId: string): Promise<Entry | null>;
   /** Writes name, icon, area and labels to HA's entity registry; missing fields stay. */
   update(entityId: string, changes: EntryChanges): Promise<void>;
-  /** Fields only `entity_registry/get` has (aliases). */
-  findDetails(entityId: string): Promise<EntryDetails>;
+  /** Fields only `entity_registry/get` has (aliases); null when HA has no registry entry for it. */
+  findDetails(entityId: string): Promise<EntryDetails | null>;
   /** Calls an HA service for one entity, e.g. `automation.turn_off`. */
   callService(domain: string, service: string, entityId: string): Promise<void>;
 }

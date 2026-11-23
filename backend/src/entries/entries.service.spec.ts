@@ -30,15 +30,12 @@ function entry(overrides: Partial<Entry>): Entry {
 function setup(entries: Entry[], overlayData: Overlay = structuredClone(EMPTY_OVERLAY)) {
   const update = jest.fn().mockResolvedValue(undefined);
   const callService = jest.fn().mockResolvedValue(undefined);
-  const repository: EntryRepository = {
-    findAll: jest.fn().mockResolvedValue(entries),
-    findOne: jest.fn((entityId: string) =>
-      Promise.resolve(entries.find((item) => item.entityId === entityId) ?? null),
-    ),
-    update,
-    callService,
-    findDetails: jest.fn().mockResolvedValue({ aliases: ["Licht draußen"] }),
-  };
+  const findAll = jest.fn().mockResolvedValue(entries);
+  const findOne = jest.fn((entityId: string) =>
+    Promise.resolve(entries.find((item) => item.entityId === entityId) ?? null),
+  );
+  const findDetails = jest.fn().mockResolvedValue({ aliases: ["Licht draußen"] });
+  const repository: EntryRepository = { findAll, findOne, update, callService, findDetails };
   const overlay = {
     data: overlayData,
     read: () => Promise.resolve(structuredClone(overlay.data)),
@@ -51,7 +48,7 @@ function setup(entries: Entry[], overlayData: Overlay = structuredClone(EMPTY_OV
   const categories = { assign } as unknown as CategoriesService;
   const service = new EntriesService(repository, overlay, categories);
 
-  return { service, assign, update, callService, overlay };
+  return { service, assign, update, callService, overlay, findAll, findOne, findDetails };
 }
 
 describe("EntriesService", () => {
@@ -161,5 +158,25 @@ describe("EntriesService", () => {
       favorites: ["script.example"],
       notes: { "script.example": "Wichtig" },
     });
+  });
+
+  it("reads the details of one entry without loading every entry", async () => {
+    const { service, findAll, findOne, findDetails } = setup([entry({})]);
+
+    await expect(service.details("script.example")).resolves.toEqual({
+      aliases: ["Licht draußen"],
+    });
+    expect(findDetails).toHaveBeenCalledWith("script.example");
+    expect(findAll).not.toHaveBeenCalled();
+    expect(findOne).not.toHaveBeenCalled();
+  });
+
+  it("refuses details for an entity without a registry entry", async () => {
+    const { service, findDetails } = setup([]);
+    findDetails.mockResolvedValueOnce(null);
+
+    await expect(service.details("automation.yaml_only")).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 });
