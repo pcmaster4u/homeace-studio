@@ -37,8 +37,8 @@ cd ../backend && npm run lint:check && npm test && npm run build
 
 Some conventions:
 
-- Code, comments and docs in English; the UI in German, English and Russian (`frontend/src/locales`),
-  every text in all three.
+- Code, comments and docs in English; the UI in German and English (`frontend/src/locales`), every
+  text in both.
 - Small, focused pull requests; user-visible changes get a line under "Unreleased" in
   [homeace-studio/CHANGELOG.md](homeace-studio/CHANGELOG.md).
 - Do not change the version in `homeace-studio/config.yaml`: that starts a release.
